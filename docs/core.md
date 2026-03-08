@@ -8,6 +8,9 @@
 - [v0.1.0](./core/v0.1.0.md)
 
 ## 相关文档
+- [文档索引](./README.md)
+- [仓库结构与文件地图](./architecture/repo-map.md)
+- [模式设计说明](./design/transports.md)
 - [测试说明](./testing.md)
 
 ## 版本信息
