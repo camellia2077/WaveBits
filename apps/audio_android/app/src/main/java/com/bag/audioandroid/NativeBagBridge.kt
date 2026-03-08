@@ -8,14 +8,31 @@ object NativeBagBridge {
     external fun nativeEncodeTextToPcm(
         text: String,
         sampleRateHz: Int,
-        frameSamples: Int
+        frameSamples: Int,
+        mode: Int
     ): ShortArray
+
+    external fun nativeValidateEncodeRequest(
+        text: String,
+        sampleRateHz: Int,
+        frameSamples: Int,
+        mode: Int
+    ): String
 
     external fun nativeDecodeGeneratedPcm(
         pcm: ShortArray,
         sampleRateHz: Int,
-        frameSamples: Int
+        frameSamples: Int,
+        mode: Int
     ): String
+
+    external fun nativeValidateDecodeConfig(
+        sampleRateHz: Int,
+        frameSamples: Int,
+        mode: Int
+    ): String
+
+    external fun nativeErrorCodeMessage(code: Int): String
 
     external fun nativeGetCoreVersion(): String
 }

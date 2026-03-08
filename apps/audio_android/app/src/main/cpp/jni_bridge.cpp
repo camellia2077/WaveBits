@@ -40,6 +40,7 @@ bag_encoder_config MakeEncoderConfig(int sample_rate_hz, int frame_samples) {
     config.sample_rate_hz = NormalizeSampleRate(sample_rate_hz);
     config.frame_samples = NormalizeFrameSamples(sample_rate_hz, frame_samples);
     config.enable_diagnostics = 0;
+    config.mode = BAG_TRANSPORT_FLASH;
     config.reserved = 0;
     return config;
 }
@@ -49,6 +50,7 @@ bag_decoder_config MakeDecoderConfig(int sample_rate_hz, int frame_samples) {
     config.sample_rate_hz = NormalizeSampleRate(sample_rate_hz);
     config.frame_samples = NormalizeFrameSamples(sample_rate_hz, frame_samples);
     config.enable_diagnostics = 0;
+    config.mode = BAG_TRANSPORT_FLASH;
     config.reserved = 0;
     return config;
 }
@@ -56,13 +58,19 @@ bag_decoder_config MakeDecoderConfig(int sample_rate_hz, int frame_samples) {
 
 extern "C" JNIEXPORT jshortArray JNICALL
 Java_com_bag_audioandroid_NativeBagBridge_nativeEncodeTextToPcm(
-    JNIEnv* env, jobject /*thiz*/, jstring text, jint sample_rate_hz, jint frame_samples) {
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jstring text,
+    jint sample_rate_hz,
+    jint frame_samples,
+    jint mode) {
     const std::string input = JStringToStdString(env, text);
     if (input.empty()) {
         return env->NewShortArray(0);
     }
 
-    const bag_encoder_config config = MakeEncoderConfig(sample_rate_hz, frame_samples);
+    bag_encoder_config config = MakeEncoderConfig(sample_rate_hz, frame_samples);
+    config.mode = static_cast<bag_transport_mode>(mode);
     bag_pcm16_result pcm{};
     if (bag_encode_text(&config, input.c_str(), &pcm) != BAG_OK) {
         return env->NewShortArray(0);
@@ -81,8 +89,28 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeEncodeTextToPcm(
 }
 
 extern "C" JNIEXPORT jstring JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativeValidateEncodeRequest(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jstring text,
+    jint sample_rate_hz,
+    jint frame_samples,
+    jint mode) {
+    const std::string input = JStringToStdString(env, text);
+    bag_encoder_config config = MakeEncoderConfig(sample_rate_hz, frame_samples);
+    config.mode = static_cast<bag_transport_mode>(mode);
+    const bag_validation_issue issue = bag_validate_encode_request(&config, input.c_str());
+    return env->NewStringUTF(bag_validation_issue_message(issue));
+}
+
+extern "C" JNIEXPORT jstring JNICALL
 Java_com_bag_audioandroid_NativeBagBridge_nativeDecodeGeneratedPcm(
-    JNIEnv* env, jobject /*thiz*/, jshortArray pcm, jint sample_rate_hz, jint frame_samples) {
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jshortArray pcm,
+    jint sample_rate_hz,
+    jint frame_samples,
+    jint mode) {
     if (pcm == nullptr) {
         return env->NewStringUTF("");
     }
@@ -91,7 +119,8 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeDecodeGeneratedPcm(
     std::vector<int16_t> buffer(static_cast<size_t>(len), 0);
     env->GetShortArrayRegion(pcm, 0, len, reinterpret_cast<jshort*>(buffer.data()));
 
-    const bag_decoder_config config = MakeDecoderConfig(sample_rate_hz, frame_samples);
+    bag_decoder_config config = MakeDecoderConfig(sample_rate_hz, frame_samples);
+    config.mode = static_cast<bag_transport_mode>(mode);
     bag_decoder* decoder = nullptr;
     if (bag_create_decoder(&config, &decoder) != BAG_OK || decoder == nullptr) {
         return env->NewStringUTF("");
@@ -103,10 +132,34 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeDecodeGeneratedPcm(
     bag_text_result result{};
     result.buffer = text_buffer;
     result.buffer_size = sizeof(text_buffer);
-    (void)bag_poll_result(decoder, &result);
+    if (bag_poll_result(decoder, &result) != BAG_OK) {
+        bag_destroy_decoder(decoder);
+        return env->NewStringUTF("");
+    }
 
     bag_destroy_decoder(decoder);
     return env->NewStringUTF(text_buffer);
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativeValidateDecodeConfig(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jint sample_rate_hz,
+    jint frame_samples,
+    jint mode) {
+    bag_decoder_config config = MakeDecoderConfig(sample_rate_hz, frame_samples);
+    config.mode = static_cast<bag_transport_mode>(mode);
+    const bag_validation_issue issue = bag_validate_decoder_config(&config);
+    return env->NewStringUTF(bag_validation_issue_message(issue));
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativeErrorCodeMessage(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jint code) {
+    return env->NewStringUTF(bag_error_code_message(static_cast<bag_error_code>(code)));
 }
 
 extern "C" JNIEXPORT jstring JNICALL

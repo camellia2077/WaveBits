@@ -35,6 +35,7 @@ target_include_directories(test_artifact
 target_link_libraries(test_artifact
     PRIVATE
         bag_api
+        bag_core
         audio_io
 )
 add_test(NAME artifact_tests COMMAND test_artifact)

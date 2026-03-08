@@ -7,6 +7,7 @@ import com.bag.audioandroid.audio.playPcm
 import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.ui.model.AppTab
 import com.bag.audioandroid.ui.model.PaletteOption
+import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,13 +59,44 @@ class AudioAndroidViewModel(
         _uiState.update { it.copy(inputText = value) }
     }
 
+    fun onTransportModeSelected(mode: TransportModeOption) {
+        _uiState.update { it.copy(transportMode = mode) }
+    }
+
     fun onEncode() {
         val current = _uiState.value
-        val pcm = audioCodecGateway.encodeTextToPcm(current.inputText, SAMPLE_RATE_HZ, FRAME_SAMPLES)
+        val validationMessage = audioCodecGateway.validateEncodeRequest(
+            current.inputText,
+            SAMPLE_RATE_HZ,
+            FRAME_SAMPLES,
+            current.transportMode.nativeValue
+        )
+        if (validationMessage.isNotBlank()) {
+            _uiState.update {
+                it.copy(
+                    generatedPcm = shortArrayOf(),
+                    resultText = "",
+                    statusText = validationMessage,
+                    isPlaying = false,
+                    playbackProgress = 0f
+                )
+            }
+            return
+        }
+        val pcm = audioCodecGateway.encodeTextToPcm(
+            current.inputText,
+            SAMPLE_RATE_HZ,
+            FRAME_SAMPLES,
+            current.transportMode.nativeValue
+        )
         val status = if (pcm.isEmpty()) {
-            "音频生成失败或输入为空"
+            if (current.inputText.isBlank()) {
+                "Input text is empty."
+            } else {
+                audioCodecGateway.errorCodeMessage(BAG_INTERNAL_CODE)
+            }
         } else {
-            "音频已生成，样本数=${pcm.size}"
+            "${current.transportMode.wireName} 模式音频已生成，样本数=${pcm.size}"
         }
         _uiState.update {
             it.copy(
@@ -122,12 +154,28 @@ class AudioAndroidViewModel(
             return
         }
 
+        val validationMessage = audioCodecGateway.validateDecodeConfig(
+            SAMPLE_RATE_HZ,
+            FRAME_SAMPLES,
+            current.transportMode.nativeValue
+        )
+        if (validationMessage.isNotBlank()) {
+            _uiState.update { it.copy(statusText = validationMessage) }
+            return
+        }
+
         val decoded = audioCodecGateway.decodeGeneratedPcm(
             current.generatedPcm,
             SAMPLE_RATE_HZ,
-            FRAME_SAMPLES
+            FRAME_SAMPLES,
+            current.transportMode.nativeValue
         )
-        _uiState.update { it.copy(resultText = decoded, statusText = "解析完成") }
+        val status = if (decoded.isEmpty()) {
+            audioCodecGateway.errorCodeMessage(BAG_INTERNAL_CODE)
+        } else {
+            "${current.transportMode.wireName} 模式解析完成"
+        }
+        _uiState.update { it.copy(resultText = decoded, statusText = status) }
     }
 
     fun onClear() {
@@ -146,5 +194,6 @@ class AudioAndroidViewModel(
     private companion object {
         const val SAMPLE_RATE_HZ = 44100
         const val FRAME_SAMPLES = 2205
+        const val BAG_INTERNAL_CODE = 4
     }
 }

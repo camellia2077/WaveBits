@@ -2,22 +2,30 @@ package com.bag.audioandroid.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.ui.component.ActionButton
+import com.bag.audioandroid.ui.model.TransportModeOption
 
 @Composable
 fun AudioTabScreen(
+    transportMode: TransportModeOption,
+    onTransportModeSelected: (TransportModeOption) -> Unit,
     inputText: String,
     onInputTextChange: (String) -> Unit,
     generatedPcm: ShortArray,
@@ -46,6 +54,34 @@ fun AudioTabScreen(
             label = { Text("输入文本") },
             modifier = Modifier.fillMaxWidth()
         )
+
+        Column(
+            modifier = Modifier.selectableGroup(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "模式",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TransportModeOption.entries.forEach { option ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.selectable(
+                            selected = transportMode == option,
+                            onClick = { onTransportModeSelected(option) }
+                        )
+                    ) {
+                        RadioButton(
+                            selected = transportMode == option,
+                            onClick = { onTransportModeSelected(option) }
+                        )
+                        Text(option.label)
+                    }
+                }
+            }
+        }
 
         ActionButton("文本转音频", onEncode)
         ActionButton("播放音频", onPlay)

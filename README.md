@@ -30,6 +30,7 @@ python python/main.py decode --in data/output_audio/output.wav --out-text data/o
 ## C++ 版本（libsndfile）
 内核版本：`0.1.1`（详见 [docs/core.md](./docs/core.md)）
 表现层版本：`0.1.1`（详见 [docs/presentation.md](./docs/presentation.md)）
+测试说明：详见 [docs/testing.md](./docs/testing.md)
 
 共享代码目录：
 - `libs/audio_core`：协议、FSK 编解码、pipeline 等核心能力
@@ -52,35 +53,51 @@ cmake -S . -B build -G Ninja
 cmake --build build
 ```
 
+### 开发工具入口
+```
+python tools/run.py configure --build-dir build/dev
+python tools/run.py build --build-dir build/dev
+python tools/run.py test --build-dir build/dev
+python tools/run.py test --build-dir build/dev --report-dir build/test-artifacts/reports/latest
+python tools/run.py verify --build-dir build/dev --skip-android
+python tools/run.py android assemble-debug
+python tools/run.py roundtrip --build-dir build/dev --mode flash --text "Hello"
+python tools/run.py smoke --build-dir build/dev
+```
+
+说明：`tools/` 只做编排，实际构建规则仍以 `CMake` / `Gradle` 为准。
+说明：可见测试音频产物默认输出到 `build/test-artifacts/`。
+说明：`python tools/run.py test` 默认额外产出 `summary.json` 与 `run.log`，用于机器汇总和人工排查。
+
 ### 使用示例
 编码：
 ```
-build/binary_audio_cpp.exe encode --text "Hello" --out data/output_audio/hello.wav
+build/bin/binary_audio_cpp.exe encode --text "Hello" --out data/output_audio/hello.wav
 ```
 
 从文本文件编码：
 ```
-build/binary_audio_cpp.exe encode --text-file data/input.txt --out data/output_audio/hello.wav
+build/bin/binary_audio_cpp.exe encode --text-file data/input.txt --out data/output_audio/hello.wav
 ```
 
 解码：
 ```
-build/binary_audio_cpp.exe decode --in data/output_audio/output.wav
+build/bin/binary_audio_cpp.exe decode --in data/output_audio/output.wav
 ```
 
 解码并写入文本文件：
 ```
-build/binary_audio_cpp.exe decode --in data/output_audio/output.wav --out-text data/output_text/output.txt
+build/bin/binary_audio_cpp.exe decode --in data/output_audio/output.wav --out-text data/output_text/output.txt
 ```
 
 查看 CLI 相关第三方许可证：
 ```
-build/binary_audio_cpp.exe licenses
+build/bin/binary_audio_cpp.exe licenses
 ```
 
 查看 CLI 与内核版本：
 ```
-build/binary_audio_cpp.exe version
+build/bin/binary_audio_cpp.exe version
 ```
 
 

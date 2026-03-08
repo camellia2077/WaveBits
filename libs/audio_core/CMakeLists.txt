@@ -1,6 +1,8 @@
 add_library(bag_core STATIC
     src/common/version.cpp
     src/fsk/fsk_codec.cpp
+    src/pro/frame_codec.cpp
+    src/pro/text_codec.cpp
     src/pipeline/pipeline.cpp
 )
 

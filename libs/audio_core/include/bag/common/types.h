@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "bag/common/config.h"
+
 namespace bag {
 
 struct PcmBlock {
@@ -23,6 +25,7 @@ struct TextResult {
     std::string text;
     bool complete = false;
     float confidence = 0.0f;
+    TransportMode mode = TransportMode::kFlash;
 };
 
 }  // namespace bag

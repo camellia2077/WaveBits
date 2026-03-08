@@ -74,6 +74,8 @@ fun AudioAndroidApp() {
                 )
 
                 AppTab.Audio -> AudioTabScreen(
+                    transportMode = uiState.transportMode,
+                    onTransportModeSelected = viewModel::onTransportModeSelected,
                     inputText = uiState.inputText,
                     onInputTextChange = viewModel::onInputTextChange,
                     generatedPcm = uiState.generatedPcm,
