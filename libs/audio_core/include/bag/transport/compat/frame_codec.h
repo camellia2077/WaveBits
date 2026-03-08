@@ -6,13 +6,16 @@
 
 #include "bag/common/config.h"
 #include "bag/common/error_code.h"
-#include "bag/transport/compat/frame_codec.h"
 
-namespace bag::pro {
+namespace bag::transport::compat {
 
-using DecodedFrame = bag::transport::compat::DecodedFrame;
-inline constexpr uint8_t kFrameVersion = bag::transport::compat::kFrameVersion;
-inline constexpr size_t kMaxFramePayloadBytes = bag::transport::compat::kMaxFramePayloadBytes;
+inline constexpr uint8_t kFrameVersion = 0x01;
+inline constexpr size_t kMaxFramePayloadBytes = 512;
+
+struct DecodedFrame {
+    bag::TransportMode mode = bag::TransportMode::kFlash;
+    std::vector<uint8_t> payload;
+};
 
 uint16_t ComputeCrc16CcittFalse(const std::vector<uint8_t>& data);
 ErrorCode EncodeFrame(bag::TransportMode mode,
@@ -20,4 +23,4 @@ ErrorCode EncodeFrame(bag::TransportMode mode,
                       std::vector<uint8_t>* out_frame);
 ErrorCode DecodeFrame(const std::vector<uint8_t>& frame_bytes, DecodedFrame* out_frame);
 
-}  // namespace bag::pro
+}  // namespace bag::transport::compat

@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "bag/common/error_code.h"
+#include "bag/pro/codec.h"
+#include "bag/ultra/codec.h"
 
 namespace bag::pro {
 

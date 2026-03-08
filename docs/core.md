@@ -19,10 +19,14 @@
   - `types.h`：跨模块数据结构（`PcmBlock`、`IrPacket`、`TextResult`）。
   - `error_code.h`：统一错误码。
   - `version.h`：核心版本接口。
+- `libs/audio_core/include/bag/transport`
+  - `transport.h`：当前主线门面，负责配置校验、编码入口与按 mode 创建解码器。
+- `libs/audio_core/include/bag/flash`、`libs/audio_core/include/bag/pro`、`libs/audio_core/include/bag/ultra`
+  - mode-first 模块；每种模式各自管理自己的信息层与 clean/compat PHY。
 - `libs/audio_core/include/bag/fsk`
-  - `fsk_codec.h`：FSK 文本编解码接口（`EncodeTextToPcm16` / `DecodePcm16ToText`）。
+  - `fsk_codec.h`：保留的兼容入口；实现语义已收敛为 `flash/BFSK` 的过渡包装。
 - `libs/audio_core/include/bag/pipeline`
-  - `pipeline.h`：`IPipeline` 抽象与 `CreatePipeline` 工厂。
+  - `pipeline.h`：保留的兼容适配层；`CreatePipeline` 内部委托给 `transport` decoder。
 - `libs/audio_core/include/bag/phy`、`libs/audio_core/include/bag/link`
   - 预留接口（`IFunPhy`、`IProPhy`、`ILinkLayer`），当前未接入完整实现。
 - `libs/audio_api`
@@ -31,8 +35,10 @@
   - `wav_io.h/.cpp`：WAV 读写与文件 I/O 边界。
 
 ## 当前已实现能力
-1. 文本与音频（PCM16）互转的基础 FSK 链路。
-2. Pipeline 最小闭环：`PushPcm -> PollTextResult -> Reset`。
+1. `transport facade + flash/pro/ultra` 的 mode-first 内部主线。
+2. `flash` 的原始文本/字节直通 + BFSK clean PHY。
+3. `pro/ultra` 当前兼容路径：payload/frame/CRC 后继续走 framed-over-FSK。
+4. Pipeline 最小闭环：`PushPcm -> PollTextResult -> Reset`。
 3. C API 解码器生命周期与推流接口：
    - `bag_create_decoder`
    - `bag_push_pcm`
@@ -46,13 +52,16 @@
 
 ## 当前边界（v0.1.1）
 1. 以最小可用为目标，重点在单链路打通。
-2. `phy/pro`、`phy/fun`、`link` 仍是接口层，未形成完整协议栈实现。
-3. 尚未包含前向纠错、重传策略、复杂同步与抗噪优化。
-4. 结果置信度目前为简化值，后续可演进为真实质量估计模型。
+2. `CreatePipeline` 现为兼容适配层，正式主线已经下沉到 `transport` 与各 mode 模块。
+3. `pro/ultra` 仍是兼容式 framed-over-FSK，实现目的是保住当前行为，不代表后续正式 PHY 方案。
+4. `phy/pro`、`phy/fun`、`link` 仍是接口层，未接入当前主线。
+5. 尚未包含前向纠错、重传策略、复杂同步与抗噪优化。
+6. 结果置信度目前为简化值，后续可演进为真实质量估计模型。
 
 ## MVP 暂不做（持续补充）
 - [x] `pro/ultra` 长文本处理固定为“单帧上限，超长报错”；当前 `payload` 上限为 `512` 字节。
 - [ ] 自动拆帧、多帧重组、长文本流式会话管理不在本轮 MVP 范围内。
+- [ ] style layer 暂不实现；当前只保留 mode 内部的 clean/compat 路径，不新增 style 配置或外部 API。
 
 ## 对外集成建议
 1. Android/Windows 等平台通过 `bag_api` 调用 core，避免直接依赖内部实现细节。

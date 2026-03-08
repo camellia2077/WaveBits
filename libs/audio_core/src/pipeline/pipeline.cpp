@@ -1,122 +1,47 @@
 #include "bag/pipeline/pipeline.h"
 
-#include <vector>
-
-#include "bag/fsk/fsk_codec.h"
-#include "bag/pro/frame_codec.h"
-#include "bag/pro/text_codec.h"
+#include "bag/transport/transport.h"
 
 namespace bag {
-
 namespace {
 
-std::vector<uint8_t> StringToBytes(const std::string& text) {
-    return std::vector<uint8_t>(text.begin(), text.end());
-}
-
-class TransportPipeline final : public IPipeline {
+class PipelineAdapter final : public IPipeline {
 public:
-    explicit TransportPipeline(CoreConfig config) : config_(config) {
-        if (config_.sample_rate_hz <= 0) {
-            config_.sample_rate_hz = 44100;
-        }
-        if (config_.frame_samples <= 0) {
-            config_.frame_samples = 2205;
-        }
-        if (!IsValidTransportMode(config_.mode)) {
-            config_.mode = TransportMode::kFlash;
-        }
-        fsk_config_.sample_rate_hz = config_.sample_rate_hz;
-        fsk_config_.bit_duration_sec =
-            static_cast<double>(config_.frame_samples) / static_cast<double>(config_.sample_rate_hz);
-    }
+    explicit PipelineAdapter(std::unique_ptr<ITransportDecoder> decoder)
+        : decoder_(std::move(decoder)) {}
 
     ErrorCode PushPcm(const PcmBlock& block) override {
-        if (block.samples == nullptr || block.sample_count == 0) {
+        if (decoder_ == nullptr) {
             return ErrorCode::kInvalidArgument;
         }
-        buffered_pcm_.insert(buffered_pcm_.end(), block.samples, block.samples + block.sample_count);
-        has_pending_result_ = true;
-        return ErrorCode::kOk;
+        return decoder_->PushPcm(block);
     }
 
     ErrorCode PollTextResult(TextResult* out_result) override {
-        if (out_result == nullptr) {
+        if (decoder_ == nullptr) {
             return ErrorCode::kInvalidArgument;
         }
-        if (!has_pending_result_ || buffered_pcm_.empty()) {
-            out_result->text.clear();
-            out_result->complete = false;
-            out_result->confidence = 0.0f;
-            return ErrorCode::kNotReady;
-        }
-
-        try {
-            if (config_.mode == TransportMode::kFlash) {
-                out_result->text = fsk::DecodePcm16ToText(buffered_pcm_, fsk_config_);
-                out_result->mode = TransportMode::kFlash;
-            } else {
-                const std::string framed_text = fsk::DecodePcm16ToText(buffered_pcm_, fsk_config_);
-                const std::vector<uint8_t> frame_bytes = StringToBytes(framed_text);
-                pro::DecodedFrame frame{};
-                if (pro::DecodeFrame(frame_bytes, &frame) != ErrorCode::kOk) {
-                    out_result->text.clear();
-                    out_result->complete = false;
-                    out_result->confidence = 0.0f;
-                    out_result->mode = config_.mode;
-                    return ErrorCode::kInternal;
-                }
-                if (frame.mode != config_.mode) {
-                    out_result->text.clear();
-                    out_result->complete = false;
-                    out_result->confidence = 0.0f;
-                    out_result->mode = frame.mode;
-                    return ErrorCode::kInternal;
-                }
-
-                ErrorCode decode_code = ErrorCode::kInternal;
-                if (frame.mode == TransportMode::kPro) {
-                    decode_code = pro::DecodePayloadToProText(frame.payload, &out_result->text);
-                } else if (frame.mode == TransportMode::kUltra) {
-                    decode_code = pro::DecodePayloadToUltraText(frame.payload, &out_result->text);
-                }
-                if (decode_code != ErrorCode::kOk) {
-                    out_result->text.clear();
-                    out_result->complete = false;
-                    out_result->confidence = 0.0f;
-                    out_result->mode = frame.mode;
-                    return ErrorCode::kInternal;
-                }
-                out_result->mode = frame.mode;
-            }
-            out_result->complete = true;
-            out_result->confidence = 1.0f;
-            has_pending_result_ = false;
-            return ErrorCode::kOk;
-        } catch (...) {
-            out_result->text.clear();
-            out_result->complete = false;
-            out_result->confidence = 0.0f;
-            out_result->mode = config_.mode;
-            return ErrorCode::kInternal;
-        }
+        return decoder_->PollTextResult(out_result);
     }
 
     void Reset() override {
-        buffered_pcm_.clear();
-        has_pending_result_ = false;
+        if (decoder_ != nullptr) {
+            decoder_->Reset();
+        }
     }
 
 private:
-    CoreConfig config_;
-    fsk::FskConfig fsk_config_{};
-    std::vector<int16_t> buffered_pcm_;
-    bool has_pending_result_ = false;
+    std::unique_ptr<ITransportDecoder> decoder_;
 };
+
 }  // namespace
 
 std::unique_ptr<IPipeline> CreatePipeline(const CoreConfig& config) {
-    return std::make_unique<TransportPipeline>(config);
+    auto decoder = CreateTransportDecoder(config);
+    if (!decoder) {
+        return nullptr;
+    }
+    return std::make_unique<PipelineAdapter>(std::move(decoder));
 }
 
 }  // namespace bag

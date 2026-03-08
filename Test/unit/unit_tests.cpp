@@ -11,6 +11,7 @@
 #include "bag/pipeline/pipeline.h"
 #include "bag/pro/frame_codec.h"
 #include "bag/pro/text_codec.h"
+#include "bag/transport/transport.h"
 #include "test_framework.h"
 #include "test_fs.h"
 #include "test_vectors.h"
@@ -40,7 +41,12 @@ std::unique_ptr<bag::IPipeline> MakePipeline(
     return bag::CreatePipeline(MakeCoreConfig(mode));
 }
 
-std::vector<int16_t> EncodeForMode(bag::TransportMode mode, const std::string& text) {
+std::unique_ptr<bag::ITransportDecoder> MakeTransportDecoder(
+    bag::TransportMode mode = bag::TransportMode::kFlash) {
+    return bag::CreateTransportDecoder(MakeCoreConfig(mode));
+}
+
+std::vector<int16_t> EncodeForModeCompat(bag::TransportMode mode, const std::string& text) {
     const auto fsk_config = MakeFskConfig();
     if (mode == bag::TransportMode::kFlash) {
         return bag::fsk::EncodeTextToPcm16(text, fsk_config);
@@ -61,9 +67,18 @@ std::vector<int16_t> EncodeForMode(bag::TransportMode mode, const std::string& t
     return bag::fsk::EncodeTextToPcm16(std::string(frame.begin(), frame.end()), fsk_config);
 }
 
+std::vector<int16_t> EncodeForModeFacade(bag::TransportMode mode, const std::string& text) {
+    std::vector<int16_t> pcm;
+    test::AssertEq(
+        bag::EncodeTextToPcm16(MakeCoreConfig(mode), text, &pcm),
+        bag::ErrorCode::kOk,
+        "Transport facade encode should succeed.");
+    return pcm;
+}
+
 void PushAndPollExpectingText(bag::TransportMode mode, const std::string& text) {
     auto pipeline = MakePipeline(mode);
-    const auto pcm = EncodeForMode(mode, text);
+    const auto pcm = EncodeForModeCompat(mode, text);
 
     bag::PcmBlock block{};
     block.samples = pcm.data();
@@ -84,6 +99,32 @@ void PushAndPollExpectingText(bag::TransportMode mode, const std::string& text) 
     test::AssertTrue(result.complete, "Pipeline result should be marked complete.");
     test::AssertEq(result.confidence, 1.0f, "Pipeline confidence should match the simplified value.");
     test::AssertEq(result.mode, mode, "Pipeline should report the decoded transport mode.");
+}
+
+void PushAndPollViaTransportDecoderExpectingText(bag::TransportMode mode, const std::string& text) {
+    auto decoder = MakeTransportDecoder(mode);
+    test::AssertTrue(decoder != nullptr, "Transport decoder should be created for valid mode.");
+    const auto pcm = EncodeForModeFacade(mode, text);
+
+    bag::PcmBlock block{};
+    block.samples = pcm.data();
+    block.sample_count = pcm.size();
+    block.timestamp_ms = 456;
+
+    test::AssertEq(
+        decoder->PushPcm(block),
+        bag::ErrorCode::kOk,
+        "Transport decoder push should succeed for encoded PCM.");
+
+    bag::TextResult result{};
+    test::AssertEq(
+        decoder->PollTextResult(&result),
+        bag::ErrorCode::kOk,
+        "Transport decoder poll should succeed after encoded PCM push.");
+    test::AssertEq(result.text, text, "Transport decoder should recover original text.");
+    test::AssertTrue(result.complete, "Transport decoder result should be complete.");
+    test::AssertEq(result.confidence, 1.0f, "Transport decoder confidence should remain simplified.");
+    test::AssertEq(result.mode, mode, "Transport decoder should preserve configured mode.");
 }
 
 void TestEncodeLengthMatchesExpected() {
@@ -205,6 +246,61 @@ void TestSnapshotFirstSamplesStable() {
             test::Fail("Snapshot mismatch at sample index " + std::to_string(index));
         }
     }
+}
+
+void TestTransportFacadeEncodeMatchesCompatibility() {
+    const auto flash_pcm = EncodeForModeFacade(bag::TransportMode::kFlash, u8"你好，WaveBits");
+    test::AssertEq(
+        flash_pcm,
+        EncodeForModeCompat(bag::TransportMode::kFlash, u8"你好，WaveBits"),
+        "Flash transport facade should preserve existing BFSK output.");
+
+    const auto pro_pcm = EncodeForModeFacade(bag::TransportMode::kPro, "Hello-123");
+    test::AssertEq(
+        pro_pcm,
+        EncodeForModeCompat(bag::TransportMode::kPro, "Hello-123"),
+        "Pro transport facade should preserve current framed-over-FSK output.");
+
+    const auto ultra_pcm = EncodeForModeFacade(bag::TransportMode::kUltra, u8"WaveBits 超级模式 🚀");
+    test::AssertEq(
+        ultra_pcm,
+        EncodeForModeCompat(bag::TransportMode::kUltra, u8"WaveBits 超级模式 🚀"),
+        "Ultra transport facade should preserve current framed-over-FSK output.");
+}
+
+void TestTransportFacadeValidation() {
+    auto config = MakeCoreConfig();
+    config.sample_rate_hz = 0;
+    test::AssertEq(
+        bag::ValidateEncodeRequest(config, "A"),
+        bag::TransportValidationIssue::kInvalidSampleRate,
+        "Transport validation should reject zero sample rate.");
+
+    config = MakeCoreConfig();
+    config.frame_samples = 0;
+    test::AssertEq(
+        bag::ValidateEncodeRequest(config, "A"),
+        bag::TransportValidationIssue::kInvalidFrameSamples,
+        "Transport validation should reject zero frame size.");
+
+    config = MakeCoreConfig();
+    config.mode = static_cast<bag::TransportMode>(99);
+    test::AssertEq(
+        bag::ValidateDecoderConfig(config),
+        bag::TransportValidationIssue::kInvalidMode,
+        "Transport decoder validation should reject unknown modes.");
+
+    config = MakeCoreConfig(bag::TransportMode::kPro);
+    test::AssertEq(
+        bag::ValidateEncodeRequest(config, u8"中文"),
+        bag::TransportValidationIssue::kProAsciiOnly,
+        "Transport validation should keep the pro ASCII-only rule.");
+
+    config = MakeCoreConfig(bag::TransportMode::kUltra);
+    test::AssertEq(
+        bag::ValidateEncodeRequest(config, test::BuildTooLongUltraCorpus()),
+        bag::TransportValidationIssue::kPayloadTooLarge,
+        "Transport validation should expose the single-frame payload limit.");
 }
 
 void TestProTextCodecRoundTrip() {
@@ -430,6 +526,12 @@ void TestPipelineUltraRoundTrip() {
     PushAndPollExpectingText(bag::TransportMode::kUltra, u8"WaveBits 超级模式 🚀");
 }
 
+void TestTransportDecoderRoundTripAcrossModes() {
+    PushAndPollViaTransportDecoderExpectingText(bag::TransportMode::kFlash, u8"你好，WaveBits");
+    PushAndPollViaTransportDecoderExpectingText(bag::TransportMode::kPro, "Hello-123");
+    PushAndPollViaTransportDecoderExpectingText(bag::TransportMode::kUltra, u8"WaveBits 超级模式 🚀");
+}
+
 }  // namespace
 
 int main() {
@@ -441,6 +543,8 @@ int main() {
     runner.Add("Unit.PipelinePushPollLifecycle", TestPipelinePushPollLifecycle);
     runner.Add("Unit.PipelineResetClearsPendingState", TestPipelineResetClearsPendingState);
     runner.Add("Unit.SnapshotFirstSamplesStable", TestSnapshotFirstSamplesStable);
+    runner.Add("Unit.TransportFacadeEncodeMatchesCompatibility", TestTransportFacadeEncodeMatchesCompatibility);
+    runner.Add("Unit.TransportFacadeValidation", TestTransportFacadeValidation);
     runner.Add("Unit.ProTextCodecRoundTrip", TestProTextCodecRoundTrip);
     runner.Add("Unit.ProTextCodecRejectsInvalidInput", TestProTextCodecRejectsInvalidInput);
     runner.Add("Unit.ProPayloadBoundary", TestProPayloadBoundary);
@@ -451,5 +555,6 @@ int main() {
     runner.Add("Unit.PipelineFlashUtf8RoundTrip", TestPipelineFlashUtf8RoundTrip);
     runner.Add("Unit.PipelineProRoundTrip", TestPipelineProRoundTrip);
     runner.Add("Unit.PipelineUltraRoundTrip", TestPipelineUltraRoundTrip);
+    runner.Add("Unit.TransportDecoderRoundTripAcrossModes", TestTransportDecoderRoundTripAcrossModes);
     return runner.Run();
 }
