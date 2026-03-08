@@ -33,7 +33,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
         "`version` output should contain the presentation version.");
     test::AssertContains(
         version_result.output,
-        "core: v0.1.1",
+        "core: v0.2.0",
         "`version` output should contain the core version.");
 
     const auto dash_version_result = RunCli(cli_path, {"--version"}, dir);
@@ -44,7 +44,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
         "`--version` output should contain the presentation version.");
     test::AssertContains(
         dash_version_result.output,
-        "core: v0.1.1",
+        "core: v0.2.0",
         "`--version` output should contain the core version.");
 }
 
@@ -119,65 +119,67 @@ void TestUltraEncodeTextFileAndDecodeToTextFile(const std::filesystem::path& cli
         "Ultra CLI decoded text file content should match the original input.");
 }
 
-void TestProMaxSingleFrameTextFileRoundTrip(const std::filesystem::path& cli_path) {
+void TestProExtendedAsciiTextFileRoundTrip(const std::filesystem::path& cli_path) {
     const auto dir = test::MakeTempDir("cli_smoke");
-    const auto input_path = dir / "pro_max.txt";
-    const auto wav_path = dir / "pro_max.wav";
-    const auto output_text_path = dir / "pro_max_decoded.txt";
+    const auto input_path = dir / "pro_extended.txt";
+    const auto wav_path = dir / "pro_extended.wav";
+    const auto output_text_path = dir / "pro_extended_decoded.txt";
 
-    test::WriteTextFile(input_path, test::BuildMaxProCorpus());
+    test::WriteTextFile(input_path, test::BuildTooLongProCorpus());
 
     const auto encode_result = RunCli(
         cli_path,
         {"encode", "--mode", "pro", "--text-file", input_path.string(), "--out", wav_path.string()},
         dir);
-    test::AssertEq(encode_result.exit_code, 0, "Pro CLI should accept the max single-frame ASCII corpus.");
+    test::AssertEq(
+        encode_result.exit_code,
+        0,
+        "Pro CLI should accept extended ASCII text beyond the old compat limit.");
 
     const auto decode_result = RunCli(
         cli_path,
         {"decode", "--mode", "pro", "--in", wav_path.string(), "--out-text", output_text_path.string()},
         dir);
-    test::AssertEq(decode_result.exit_code, 0, "Pro CLI should decode the max single-frame ASCII corpus.");
+    test::AssertEq(decode_result.exit_code, 0, "Pro CLI should decode the extended ASCII corpus.");
     test::AssertEq(
         test::ReadTextFile(output_text_path),
-        test::BuildMaxProCorpus(),
-        "Pro CLI should preserve the max single-frame ASCII corpus.");
+        test::BuildTooLongProCorpus(),
+        "Pro CLI should preserve the extended ASCII corpus.");
 }
 
-void TestUltraMaxUtf8TextFileRoundTrip(const std::filesystem::path& cli_path) {
+void TestUltraExtendedUtf8TextFileRoundTrip(const std::filesystem::path& cli_path) {
     const auto dir = test::MakeTempDir("cli_smoke");
-    const auto input_path = dir / "ultra_max.txt";
-    const auto wav_path = dir / "ultra_max.wav";
-    const auto output_text_path = dir / "ultra_max_decoded.txt";
+    const auto input_path = dir / "ultra_extended.txt";
+    const auto wav_path = dir / "ultra_extended.wav";
+    const auto output_text_path = dir / "ultra_extended_decoded.txt";
 
-    test::WriteTextFile(input_path, test::BuildMaxUltraCorpus());
+    test::WriteTextFile(input_path, test::BuildTooLongUltraCorpus());
 
     const auto encode_result = RunCli(
         cli_path,
         {"encode", "--mode", "ultra", "--text-file", input_path.string(), "--out", wav_path.string()},
         dir);
-    test::AssertEq(encode_result.exit_code, 0, "Ultra CLI should accept the max 512-byte UTF-8 corpus.");
+    test::AssertEq(
+        encode_result.exit_code,
+        0,
+        "Ultra CLI should accept extended UTF-8 text beyond the old compat limit.");
 
     const auto decode_result = RunCli(
         cli_path,
         {"decode", "--mode", "ultra", "--in", wav_path.string(), "--out-text", output_text_path.string()},
         dir);
-    test::AssertEq(decode_result.exit_code, 0, "Ultra CLI should decode the max 512-byte UTF-8 corpus.");
+    test::AssertEq(decode_result.exit_code, 0, "Ultra CLI should decode the extended UTF-8 corpus.");
     test::AssertEq(
         test::ReadTextFile(output_text_path),
-        test::BuildMaxUltraCorpus(),
-        "Ultra CLI should preserve the max 512-byte UTF-8 corpus.");
+        test::BuildTooLongUltraCorpus(),
+        "Ultra CLI should preserve the extended UTF-8 corpus.");
 }
 
 void TestModeSpecificValidation(const std::filesystem::path& cli_path) {
     const auto dir = test::MakeTempDir("cli_smoke");
     const auto non_ascii_path = dir / "non_ascii.txt";
-    const auto pro_too_long_path = dir / "pro_too_long.txt";
-    const auto ultra_too_long_path = dir / "ultra_too_long.txt";
 
     test::WriteTextFile(non_ascii_path, u8"中文");
-    test::WriteTextFile(pro_too_long_path, test::BuildTooLongProCorpus());
-    test::WriteTextFile(ultra_too_long_path, test::BuildTooLongUltraCorpus());
 
     const auto non_ascii_result = RunCli(
         cli_path,
@@ -188,26 +190,6 @@ void TestModeSpecificValidation(const std::filesystem::path& cli_path) {
         non_ascii_result.output,
         "ASCII",
         "Pro CLI should explain the ASCII-only restriction.");
-
-    const auto pro_too_long_result = RunCli(
-        cli_path,
-        {"encode", "--mode", "pro", "--text-file", pro_too_long_path.string(), "--out", (dir / "pro_long.wav").string()},
-        dir);
-    test::AssertTrue(pro_too_long_result.exit_code != 0, "Pro CLI should reject oversized payloads.");
-    test::AssertContains(
-        pro_too_long_result.output,
-        "512-byte",
-        "Pro CLI should mention the single-frame limit.");
-
-    const auto ultra_too_long_result = RunCli(
-        cli_path,
-        {"encode", "--mode", "ultra", "--text-file", ultra_too_long_path.string(), "--out", (dir / "ultra_long.wav").string()},
-        dir);
-    test::AssertTrue(ultra_too_long_result.exit_code != 0, "Ultra CLI should reject oversized payloads.");
-    test::AssertContains(
-        ultra_too_long_result.output,
-        "512-byte",
-        "Ultra CLI should mention the single-frame limit.");
 }
 
 void TestInvalidArgumentsShowUsage(const std::filesystem::path& cli_path) {
@@ -243,11 +225,11 @@ int main(int argc, char* argv[]) {
         "CliSmoke.UltraEncodeTextFileAndDecodeToTextFile",
         [&]() { TestUltraEncodeTextFileAndDecodeToTextFile(cli_path); });
     runner.Add(
-        "CliSmoke.ProMaxSingleFrameTextFileRoundTrip",
-        [&]() { TestProMaxSingleFrameTextFileRoundTrip(cli_path); });
+        "CliSmoke.ProExtendedAsciiTextFileRoundTrip",
+        [&]() { TestProExtendedAsciiTextFileRoundTrip(cli_path); });
     runner.Add(
-        "CliSmoke.UltraMaxUtf8TextFileRoundTrip",
-        [&]() { TestUltraMaxUtf8TextFileRoundTrip(cli_path); });
+        "CliSmoke.UltraExtendedUtf8TextFileRoundTrip",
+        [&]() { TestUltraExtendedUtf8TextFileRoundTrip(cli_path); });
     runner.Add("CliSmoke.ModeSpecificValidation", [&]() { TestModeSpecificValidation(cli_path); });
     runner.Add("CliSmoke.InvalidArgumentsShowUsage", [&]() { TestInvalidArgumentsShowUsage(cli_path); });
     return runner.Run();

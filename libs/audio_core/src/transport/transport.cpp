@@ -2,9 +2,11 @@
 
 #include "bag/flash/phy_clean.h"
 #include "bag/pro/codec.h"
+#include "bag/pro/phy_clean.h"
 #include "bag/pro/phy_compat.h"
 #include "bag/transport/compat/frame_codec.h"
 #include "bag/ultra/codec.h"
+#include "bag/ultra/phy_clean.h"
 #include "bag/ultra/phy_compat.h"
 
 namespace bag {
@@ -44,23 +46,11 @@ TransportValidationIssue ValidateEncodeRequest(const CoreConfig& config, std::st
         return TransportValidationIssue::kOk;
     }
 
-    if (config.mode == TransportMode::kPro && !IsAsciiText(text)) {
-        return TransportValidationIssue::kProAsciiOnly;
+    if (config.mode == TransportMode::kPro) {
+        return IsAsciiText(text) ? TransportValidationIssue::kOk
+                                 : TransportValidationIssue::kProAsciiOnly;
     }
 
-    std::vector<uint8_t> payload;
-    ErrorCode payload_code = ErrorCode::kInvalidArgument;
-    if (config.mode == TransportMode::kPro) {
-        payload_code = bag::pro::EncodeTextToPayload(std::string(text), &payload);
-    } else if (config.mode == TransportMode::kUltra) {
-        payload_code = bag::ultra::EncodeTextToPayload(std::string(text), &payload);
-    }
-    if (payload_code != ErrorCode::kOk) {
-        return TransportValidationIssue::kInvalidMode;
-    }
-    if (payload.size() > bag::transport::compat::kMaxFramePayloadBytes) {
-        return TransportValidationIssue::kPayloadTooLarge;
-    }
     return TransportValidationIssue::kOk;
 }
 
@@ -82,9 +72,9 @@ ErrorCode EncodeTextToPcm16(const CoreConfig& config,
     case TransportMode::kFlash:
         return bag::flash::EncodeTextToPcm16(config, text, out_pcm);
     case TransportMode::kPro:
-        return bag::pro::EncodeTextToPcm16Compat(config, text, out_pcm);
+        return bag::pro::EncodeTextToPcm16(config, text, out_pcm);
     case TransportMode::kUltra:
-        return bag::ultra::EncodeTextToPcm16Compat(config, text, out_pcm);
+        return bag::ultra::EncodeTextToPcm16(config, text, out_pcm);
     default:
         return ErrorCode::kInvalidArgument;
     }
@@ -99,9 +89,9 @@ std::unique_ptr<ITransportDecoder> CreateTransportDecoder(const CoreConfig& conf
     case TransportMode::kFlash:
         return bag::flash::CreateDecoder(config);
     case TransportMode::kPro:
-        return bag::pro::CreateCompatDecoder(config);
+        return bag::pro::CreateDecoder(config);
     case TransportMode::kUltra:
-        return bag::ultra::CreateCompatDecoder(config);
+        return bag::ultra::CreateDecoder(config);
     default:
         return nullptr;
     }

@@ -7,11 +7,15 @@
 #include "bag/common/config.h"
 #include "bag/common/error_code.h"
 #include "bag/common/types.h"
+#include "bag/flash/codec.h"
+#include "bag/flash/phy_clean.h"
 #include "bag/fsk/fsk_codec.h"
 #include "bag/pipeline/pipeline.h"
 #include "bag/pro/frame_codec.h"
+#include "bag/pro/phy_clean.h"
 #include "bag/pro/text_codec.h"
 #include "bag/transport/transport.h"
+#include "bag/ultra/phy_clean.h"
 #include "test_framework.h"
 #include "test_fs.h"
 #include "test_vectors.h"
@@ -46,25 +50,30 @@ std::unique_ptr<bag::ITransportDecoder> MakeTransportDecoder(
     return bag::CreateTransportDecoder(MakeCoreConfig(mode));
 }
 
-std::vector<int16_t> EncodeForModeCompat(bag::TransportMode mode, const std::string& text) {
-    const auto fsk_config = MakeFskConfig();
+std::vector<int16_t> EncodeForModeReference(bag::TransportMode mode, const std::string& text) {
+    const auto config = MakeCoreConfig(mode);
+    std::vector<int16_t> pcm;
     if (mode == bag::TransportMode::kFlash) {
-        return bag::fsk::EncodeTextToPcm16(text, fsk_config);
+        test::AssertEq(
+            bag::flash::EncodeTextToPcm16(config, text, &pcm),
+            bag::ErrorCode::kOk,
+            "Flash clean phy encode should succeed.");
+        return pcm;
     }
 
-    std::vector<uint8_t> payload;
-    bag::ErrorCode payload_code = bag::ErrorCode::kInvalidArgument;
     if (mode == bag::TransportMode::kPro) {
-        payload_code = bag::pro::EncodeProTextToPayload(text, &payload);
-    } else if (mode == bag::TransportMode::kUltra) {
-        payload_code = bag::pro::EncodeUltraTextToPayload(text, &payload);
+        test::AssertEq(
+            bag::pro::EncodeTextToPcm16(config, text, &pcm),
+            bag::ErrorCode::kOk,
+            "Pro clean phy encode should succeed.");
+        return pcm;
     }
-    test::AssertEq(payload_code, bag::ErrorCode::kOk, "Transport payload encode should succeed.");
 
-    std::vector<uint8_t> frame;
-    const auto frame_code = bag::pro::EncodeFrame(mode, payload, &frame);
-    test::AssertEq(frame_code, bag::ErrorCode::kOk, "Transport frame encode should succeed.");
-    return bag::fsk::EncodeTextToPcm16(std::string(frame.begin(), frame.end()), fsk_config);
+    test::AssertEq(
+        bag::ultra::EncodeTextToPcm16(config, text, &pcm),
+        bag::ErrorCode::kOk,
+        "Ultra clean phy encode should succeed.");
+    return pcm;
 }
 
 std::vector<int16_t> EncodeForModeFacade(bag::TransportMode mode, const std::string& text) {
@@ -78,7 +87,7 @@ std::vector<int16_t> EncodeForModeFacade(bag::TransportMode mode, const std::str
 
 void PushAndPollExpectingText(bag::TransportMode mode, const std::string& text) {
     auto pipeline = MakePipeline(mode);
-    const auto pcm = EncodeForModeCompat(mode, text);
+    const auto pcm = EncodeForModeReference(mode, text);
 
     bag::PcmBlock block{};
     block.samples = pcm.data();
@@ -248,24 +257,61 @@ void TestSnapshotFirstSamplesStable() {
     }
 }
 
+void TestFlashCodecRoundTrip() {
+    const std::string text = u8"你好，WaveBits";
+    std::vector<uint8_t> bytes;
+    test::AssertEq(
+        bag::flash::EncodeTextToBytes(text, &bytes),
+        bag::ErrorCode::kOk,
+        "Flash codec should accept raw UTF-8 bytes.");
+    test::AssertEq(
+        bytes,
+        std::vector<uint8_t>(text.begin(), text.end()),
+        "Flash codec should preserve the original raw bytes.");
+
+    std::string decoded;
+    test::AssertEq(
+        bag::flash::DecodeBytesToText(bytes, &decoded),
+        bag::ErrorCode::kOk,
+        "Flash codec decode should succeed.");
+    test::AssertEq(decoded, text, "Flash codec should roundtrip raw UTF-8 text.");
+}
+
+void TestFlashPhyCleanRoundTrip() {
+    const auto config = MakeCoreConfig(bag::TransportMode::kFlash);
+    std::vector<int16_t> pcm;
+    test::AssertEq(
+        bag::flash::EncodeTextToPcm16(config, u8"你好，WaveBits", &pcm),
+        bag::ErrorCode::kOk,
+        "Flash clean phy encode should succeed.");
+    test::AssertTrue(!pcm.empty(), "Flash clean phy should emit PCM for non-empty input.");
+
+    std::string decoded;
+    test::AssertEq(
+        bag::flash::DecodePcm16ToText(config, pcm, &decoded),
+        bag::ErrorCode::kOk,
+        "Flash clean phy decode should succeed.");
+    test::AssertEq(decoded, std::string(u8"你好，WaveBits"), "Flash clean phy should roundtrip UTF-8 text.");
+}
+
 void TestTransportFacadeEncodeMatchesCompatibility() {
     const auto flash_pcm = EncodeForModeFacade(bag::TransportMode::kFlash, u8"你好，WaveBits");
     test::AssertEq(
         flash_pcm,
-        EncodeForModeCompat(bag::TransportMode::kFlash, u8"你好，WaveBits"),
-        "Flash transport facade should preserve existing BFSK output.");
+        EncodeForModeReference(bag::TransportMode::kFlash, u8"你好，WaveBits"),
+        "Flash transport facade should delegate to the flash clean path.");
 
     const auto pro_pcm = EncodeForModeFacade(bag::TransportMode::kPro, "Hello-123");
     test::AssertEq(
         pro_pcm,
-        EncodeForModeCompat(bag::TransportMode::kPro, "Hello-123"),
-        "Pro transport facade should preserve current framed-over-FSK output.");
+        EncodeForModeReference(bag::TransportMode::kPro, "Hello-123"),
+        "Pro transport facade should delegate to the pro clean path.");
 
     const auto ultra_pcm = EncodeForModeFacade(bag::TransportMode::kUltra, u8"WaveBits 超级模式 🚀");
     test::AssertEq(
         ultra_pcm,
-        EncodeForModeCompat(bag::TransportMode::kUltra, u8"WaveBits 超级模式 🚀"),
-        "Ultra transport facade should preserve current framed-over-FSK output.");
+        EncodeForModeReference(bag::TransportMode::kUltra, u8"WaveBits 超级模式 🚀"),
+        "Ultra transport facade should delegate to the ultra clean path.");
 }
 
 void TestTransportFacadeValidation() {
@@ -290,17 +336,31 @@ void TestTransportFacadeValidation() {
         bag::TransportValidationIssue::kInvalidMode,
         "Transport decoder validation should reject unknown modes.");
 
+    config = MakeCoreConfig(bag::TransportMode::kFlash);
+    test::AssertEq(
+        bag::ValidateEncodeRequest(config, std::string(513, 'F')),
+        bag::TransportValidationIssue::kOk,
+        "Flash validation should not inherit the framed single-frame payload limit.");
+    test::AssertEq(
+        bag::ValidateEncodeRequest(config, u8"你好，WaveBits"),
+        bag::TransportValidationIssue::kOk,
+        "Flash validation should continue to allow raw UTF-8 text.");
+
     config = MakeCoreConfig(bag::TransportMode::kPro);
     test::AssertEq(
         bag::ValidateEncodeRequest(config, u8"中文"),
         bag::TransportValidationIssue::kProAsciiOnly,
         "Transport validation should keep the pro ASCII-only rule.");
+    test::AssertEq(
+        bag::ValidateEncodeRequest(config, test::BuildTooLongProCorpus()),
+        bag::TransportValidationIssue::kOk,
+        "Pro validation should no longer inherit the compat single-frame limit.");
 
     config = MakeCoreConfig(bag::TransportMode::kUltra);
     test::AssertEq(
         bag::ValidateEncodeRequest(config, test::BuildTooLongUltraCorpus()),
-        bag::TransportValidationIssue::kPayloadTooLarge,
-        "Transport validation should expose the single-frame payload limit.");
+        bag::TransportValidationIssue::kOk,
+        "Ultra validation should no longer inherit the compat single-frame limit.");
 }
 
 void TestProTextCodecRoundTrip() {
@@ -310,21 +370,42 @@ void TestProTextCodecRoundTrip() {
         bag::ErrorCode::kOk,
         "Single-character pro payload encode should succeed.");
     test::AssertEq(
-        std::string(payload.begin(), payload.end()),
-        std::string("065"),
-        "Pro payload should store fixed 3-digit ASCII values.");
+        payload,
+        std::vector<uint8_t>{static_cast<uint8_t>('A')},
+        "Pro payload should now store raw ASCII bytes.");
+
+    std::vector<uint8_t> symbols;
+    test::AssertEq(
+        bag::pro::EncodePayloadToSymbols(payload, &symbols),
+        bag::ErrorCode::kOk,
+        "Pro payload-to-symbol encode should succeed.");
+    test::AssertEq(
+        symbols,
+        std::vector<uint8_t>{0x04, 0x01},
+        "Pro symbols should map a byte to high/low nibbles.");
 
     payload.clear();
     test::AssertEq(
         bag::pro::EncodeProTextToPayload("Hello-123", &payload),
         bag::ErrorCode::kOk,
         "ASCII pro payload encode should succeed.");
+    test::AssertEq(
+        bag::pro::EncodePayloadToSymbols(payload, &symbols),
+        bag::ErrorCode::kOk,
+        "ASCII pro symbol encode should succeed.");
     std::string decoded;
     test::AssertEq(
         bag::pro::DecodePayloadToProText(payload, &decoded),
         bag::ErrorCode::kOk,
         "Pro payload decode should succeed.");
     test::AssertEq(decoded, std::string("Hello-123"), "Pro payload decode should recover the original text.");
+
+    std::vector<uint8_t> decoded_payload;
+    test::AssertEq(
+        bag::pro::DecodeSymbolsToPayload(symbols, &decoded_payload),
+        bag::ErrorCode::kOk,
+        "Pro symbol decode should succeed.");
+    test::AssertEq(decoded_payload, payload, "Pro symbol decode should recover the original payload.");
 }
 
 void TestProTextCodecRejectsInvalidInput() {
@@ -334,49 +415,66 @@ void TestProTextCodecRejectsInvalidInput() {
         bag::ErrorCode::kInvalidArgument,
         "Pro payload encode should reject non-ASCII input.");
 
-    const std::vector<uint8_t> bad_length = {'0', '6'};
+    const std::vector<uint8_t> bad_payload = {0x80};
     std::string decoded;
     test::AssertEq(
-        bag::pro::DecodePayloadToProText(bad_length, &decoded),
+        bag::pro::DecodePayloadToProText(bad_payload, &decoded),
         bag::ErrorCode::kInvalidArgument,
-        "Pro payload decode should reject non-triplet payload length.");
+        "Pro payload decode should reject non-ASCII bytes.");
 
-    const std::vector<uint8_t> bad_digits = {'0', '6', 'X'};
+    const std::vector<uint8_t> odd_symbols = {0x04};
     test::AssertEq(
-        bag::pro::DecodePayloadToProText(bad_digits, &decoded),
+        bag::pro::DecodeSymbolsToPayload(odd_symbols, &payload),
         bag::ErrorCode::kInvalidArgument,
-        "Pro payload decode should reject non-decimal groups.");
+        "Pro symbol decode should reject odd nibble counts.");
+
+    const std::vector<uint8_t> out_of_range_symbols = {0x04, 0x10};
+    test::AssertEq(
+        bag::pro::DecodeSymbolsToPayload(out_of_range_symbols, &payload),
+        bag::ErrorCode::kInvalidArgument,
+        "Pro symbol decode should reject nibble values outside 0x0..0xF.");
 }
 
-void TestProPayloadBoundary() {
+void TestProPhyCleanRoundTrip() {
+    const auto config = MakeCoreConfig(bag::TransportMode::kPro);
+    const std::string text = "Hello-123";
+    std::vector<int16_t> pcm;
+    test::AssertEq(
+        bag::pro::EncodeTextToPcm16(config, text, &pcm),
+        bag::ErrorCode::kOk,
+        "Pro clean phy encode should succeed.");
+    test::AssertEq(
+        pcm.size(),
+        text.size() * bag::pro::kSymbolsPerPayloadByte * static_cast<size_t>(config.frame_samples),
+        "Pro clean phy PCM length should be byte count * 2 symbols * frame size.");
+
+    std::string decoded;
+    test::AssertEq(
+        bag::pro::DecodePcm16ToText(config, pcm, &decoded),
+        bag::ErrorCode::kOk,
+        "Pro clean phy decode should succeed.");
+    test::AssertEq(decoded, text, "Pro clean phy should roundtrip ASCII text.");
+}
+
+void TestProPayloadUsesRawAsciiBytes() {
     std::vector<uint8_t> payload;
     test::AssertEq(
         bag::pro::EncodeProTextToPayload(test::BuildMaxProCorpus(), &payload),
         bag::ErrorCode::kOk,
-        "Pro payload encode should accept the max single-frame ASCII corpus.");
+        "Pro payload encode should accept the representative long ASCII corpus.");
     test::AssertEq(
         payload.size(),
-        static_cast<size_t>(510),
-        "Pro max corpus should expand to 510 payload bytes.");
-
-    std::vector<uint8_t> frame;
-    test::AssertEq(
-        bag::pro::EncodeFrame(bag::TransportMode::kPro, payload, &frame),
-        bag::ErrorCode::kOk,
-        "Frame encode should accept the max single-frame pro payload.");
+        test::BuildMaxProCorpus().size(),
+        "Pro payload length should remain equal to the ASCII byte count.");
 
     test::AssertEq(
         bag::pro::EncodeProTextToPayload(test::BuildTooLongProCorpus(), &payload),
         bag::ErrorCode::kOk,
-        "Pro text codec should still encode payloads above frame size.");
+        "Pro payload encode should keep accepting ASCII text beyond the old compat limit.");
     test::AssertEq(
         payload.size(),
-        static_cast<size_t>(513),
-        "Too-long pro corpus should expand to 513 payload bytes.");
-    test::AssertEq(
-        bag::pro::EncodeFrame(bag::TransportMode::kPro, payload, &frame),
-        bag::ErrorCode::kInvalidArgument,
-        "Frame encode should reject pro payloads above the single-frame limit.");
+        test::BuildTooLongProCorpus().size(),
+        "Pro payload should stay as raw ASCII bytes even for longer corpus inputs.");
 }
 
 void TestUltraTextCodecRoundTrip() {
@@ -393,46 +491,71 @@ void TestUltraTextCodecRoundTrip() {
         bag::ErrorCode::kOk,
         "Ultra payload decode should succeed.");
     test::AssertEq(decoded, input, "Ultra payload decode should preserve UTF-8 bytes.");
+
+    std::vector<uint8_t> symbols;
+    test::AssertEq(
+        bag::ultra::EncodePayloadToSymbols(payload, &symbols),
+        bag::ErrorCode::kOk,
+        "Ultra payload-to-symbol encode should succeed.");
+
+    std::vector<uint8_t> decoded_payload;
+    test::AssertEq(
+        bag::ultra::DecodeSymbolsToPayload(symbols, &decoded_payload),
+        bag::ErrorCode::kOk,
+        "Ultra symbol decode should succeed.");
+    test::AssertEq(decoded_payload, payload, "Ultra symbol decode should recover UTF-8 bytes.");
 }
 
-void TestUltraPayloadBoundary() {
+void TestUltraPhyCleanRoundTrip() {
+    const auto config = MakeCoreConfig(bag::TransportMode::kUltra);
+    const std::string input = u8"WaveBits 超级模式 🚀";
+    std::vector<int16_t> pcm;
+    test::AssertEq(
+        bag::ultra::EncodeTextToPcm16(config, input, &pcm),
+        bag::ErrorCode::kOk,
+        "Ultra clean phy encode should succeed.");
+    test::AssertEq(
+        pcm.size(),
+        std::vector<uint8_t>(input.begin(), input.end()).size() *
+            bag::ultra::kSymbolsPerPayloadByte * static_cast<size_t>(config.frame_samples),
+        "Ultra clean phy PCM length should be byte count * 2 symbols * frame size.");
+
+    std::string decoded;
+    test::AssertEq(
+        bag::ultra::DecodePcm16ToText(config, pcm, &decoded),
+        bag::ErrorCode::kOk,
+        "Ultra clean phy decode should succeed.");
+    test::AssertEq(decoded, input, "Ultra clean phy should roundtrip UTF-8 text.");
+}
+
+void TestUltraPayloadUsesUtf8Bytes() {
     std::vector<uint8_t> payload;
     const std::string max_input = test::BuildMaxUltraCorpus();
     test::AssertEq(
         bag::pro::EncodeUltraTextToPayload(max_input, &payload),
         bag::ErrorCode::kOk,
-        "Ultra payload encode should accept the max single-frame UTF-8 corpus.");
+        "Ultra payload encode should accept representative large UTF-8 input.");
     test::AssertEq(
         payload.size(),
         static_cast<size_t>(512),
-        "Ultra max corpus should occupy exactly 512 UTF-8 bytes.");
+        "Ultra representative corpus should occupy exactly 512 UTF-8 bytes.");
 
     std::string decoded;
     test::AssertEq(
         bag::pro::DecodePayloadToUltraText(payload, &decoded),
         bag::ErrorCode::kOk,
-        "Ultra max payload decode should succeed.");
-    test::AssertEq(decoded, max_input, "Ultra max payload decode should preserve UTF-8 bytes.");
-
-    std::vector<uint8_t> frame;
-    test::AssertEq(
-        bag::pro::EncodeFrame(bag::TransportMode::kUltra, payload, &frame),
-        bag::ErrorCode::kOk,
-        "Frame encode should accept the max single-frame ultra payload.");
+        "Ultra representative payload decode should succeed.");
+    test::AssertEq(decoded, max_input, "Ultra representative payload decode should preserve UTF-8 bytes.");
 
     const std::string too_long_input = test::BuildTooLongUltraCorpus();
     test::AssertEq(
         bag::pro::EncodeUltraTextToPayload(too_long_input, &payload),
         bag::ErrorCode::kOk,
-        "Ultra text codec should still encode payloads above frame size.");
+        "Ultra text codec should keep accepting UTF-8 input beyond the old compat limit.");
     test::AssertEq(
         payload.size(),
         static_cast<size_t>(513),
-        "Too-long ultra corpus should occupy 513 UTF-8 bytes.");
-    test::AssertEq(
-        bag::pro::EncodeFrame(bag::TransportMode::kUltra, payload, &frame),
-        bag::ErrorCode::kInvalidArgument,
-        "Frame encode should reject ultra payloads above the single-frame limit.");
+        "Extended ultra corpus should occupy 513 UTF-8 bytes.");
 }
 
 void TestFrameCodecRoundTrip() {
@@ -543,13 +666,17 @@ int main() {
     runner.Add("Unit.PipelinePushPollLifecycle", TestPipelinePushPollLifecycle);
     runner.Add("Unit.PipelineResetClearsPendingState", TestPipelineResetClearsPendingState);
     runner.Add("Unit.SnapshotFirstSamplesStable", TestSnapshotFirstSamplesStable);
+    runner.Add("Unit.FlashCodecRoundTrip", TestFlashCodecRoundTrip);
+    runner.Add("Unit.FlashPhyCleanRoundTrip", TestFlashPhyCleanRoundTrip);
     runner.Add("Unit.TransportFacadeEncodeMatchesCompatibility", TestTransportFacadeEncodeMatchesCompatibility);
     runner.Add("Unit.TransportFacadeValidation", TestTransportFacadeValidation);
     runner.Add("Unit.ProTextCodecRoundTrip", TestProTextCodecRoundTrip);
     runner.Add("Unit.ProTextCodecRejectsInvalidInput", TestProTextCodecRejectsInvalidInput);
-    runner.Add("Unit.ProPayloadBoundary", TestProPayloadBoundary);
+    runner.Add("Unit.ProPhyCleanRoundTrip", TestProPhyCleanRoundTrip);
+    runner.Add("Unit.ProPayloadUsesRawAsciiBytes", TestProPayloadUsesRawAsciiBytes);
     runner.Add("Unit.UltraTextCodecRoundTrip", TestUltraTextCodecRoundTrip);
-    runner.Add("Unit.UltraPayloadBoundary", TestUltraPayloadBoundary);
+    runner.Add("Unit.UltraPhyCleanRoundTrip", TestUltraPhyCleanRoundTrip);
+    runner.Add("Unit.UltraPayloadUsesUtf8Bytes", TestUltraPayloadUsesUtf8Bytes);
     runner.Add("Unit.FrameCodecRoundTrip", TestFrameCodecRoundTrip);
     runner.Add("Unit.FrameCodecRejectsMalformedFrames", TestFrameCodecRejectsMalformedFrames);
     runner.Add("Unit.PipelineFlashUtf8RoundTrip", TestPipelineFlashUtf8RoundTrip);

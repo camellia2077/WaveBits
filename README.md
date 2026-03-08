@@ -1,116 +1,36 @@
-# Binary_Audio_Generator
-用于把文字转化为二进制音频（FSK）。
+# ⚙️ WaveBits
 
-## 依赖安装
-```
-pip install -r python/requirements.txt
-```
+**基于 C++ 核心的高性能二进制音频调制解调工具 (High-Performance Binary-to-Audio Transceiver)**
 
-## 使用示例
-编码：
-```
-python python/main.py encode --text "Hello" --out data/output_audio/hello.wav
-```
+[![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](LICENSE)
+[![Protocol](https://img.shields.io/badge/Protocol-16--FSK%20/跨平台-gold.svg)]()
 
-从文本文件编码：
-```
-python python/main.py encode --text-file data/input.txt --out data/output_audio/hello.wav
-```
+> **“肉体苦弱，逻辑永恒。凡人以言语互通，贤者以圣歌共鸣。”**
 
-解码：
-```
-python python/main.py decode --in data/output_audio/output.wav
-```
+## 🛠️ 项目定位 (Project Sanctity)
+本项目是为模拟复古未来主义 (Retro-futurism) 通信效果而设计的实验性音效工具。它将自然语言的文字圣化为二进制音频脉冲（Binary Cant），旨在探索数字信号处理（DSP）与工业哥特美学的结合。
 
-解码并写入文本文件：
-```
-python python/main.py decode --in data/output_audio/output.wav --out-text data/output_text/output.txt
-```
+仅负责将逻辑状态转化为波形，未包含任何形式的密码学加密。
+* **技术核心**：采用 16-FSK 与经典 DTMF 算法。
+* **工程理念**：以高效率，复现特定科幻语境下，那种庄严且充满冗余美学的“二进制圣歌”
 
-## C++ 版本（libsndfile）
-内核版本：`0.1.1`（详见 [docs/core.md](./docs/core.md)）
-表现层版本：`0.1.1`（详见 [docs/presentation.md](./docs/presentation.md)）
-测试说明：详见 [docs/testing.md](./docs/testing.md)
+---
 
-共享代码目录：
-- `libs/audio_core`：协议、FSK 编解码、pipeline 等核心能力
-- `libs/audio_api`：跨平台稳定 C API
-- `libs/audio_io`：WAV 读写等 I/O 能力
+## ⚖️ 逻辑契约与责任界定 (Covenants & Liability)
 
-### 依赖（MSYS2 UCRT64）
-```
-pacman -S --needed \
-  mingw-w64-ucrt-x86_64-gcc \
-  mingw-w64-ucrt-x86_64-cmake \
-  mingw-w64-ucrt-x86_64-ninja \
-  mingw-w64-ucrt-x86_64-pkgconf \
-  mingw-w64-ucrt-x86_64-libsndfile
-```
+### 1. 圣化准则与因果限制 (Principles & Limitations)
+* **逻辑透明性**：本工具所使用的调制算法均为**公开、通用的通信协议**。其本质是逻辑的有序排列，不具备任何绕过安全审查的加密或隐写（Steganography）功能。
+* **机魂之谕**：开发者仅提供逻辑的初态（源代码）。用户在唤醒机魂（运行程序）进行信号转换时，有责任确保其行为符合所在地法律及网络安全准则。
+* **圣职定位**：本项目仅作为**音频信号处理（DSP）算法研究与声学通信原理验证工具**。所有功能仅为展示 C++ 在 NDK 环境下的编解码性能，而非设计用于隐秘通联。
+* **因果自担**：开发者无法预知亦无法控制逻辑的最终流向。若用户利用此圣歌从事非法行为（如非法窃听、散布违禁信息等），其引发的亚空间回响（法律后果）由用户自行承担。
+* **原样分发 (As-Is)**：本软件按逻辑原样分发。在最大法律限度内，作者不对软件的适用性、稳定性或因逻辑运行导致的数据损失承担赔偿责任。
 
-### 构建
-```
-cmake -S . -B build -G Ninja
-cmake --build build
-```
+### 2. 知识产权与异端排除 (IP Disclaimer)
+* **非关联声明**：本项目为独立开发的开源工具，与任何商业化桌面游戏、特定的虚构世界观品牌或其母公司无任何关联，亦未获得其授权。
+* **美学溯源**：其术语灵感来源于广义的超人类主义（Transhumanism）及工业哥特（Industrial Gothic）文学流派，属于纯粹的同人创作表达。
 
-### 开发工具入口
-```
-python tools/run.py configure --build-dir build/dev
-python tools/run.py build --build-dir build/dev
-python tools/run.py test --build-dir build/dev
-python tools/run.py test --build-dir build/dev --report-dir build/test-artifacts/reports/latest
-python tools/run.py verify --build-dir build/dev --skip-android
-python tools/run.py android assemble-debug
-python tools/run.py roundtrip --build-dir build/dev --mode flash --text "Hello"
-python tools/run.py smoke --build-dir build/dev
-```
+---
 
-说明：`tools/` 只做编排，实际构建规则仍以 `CMake` / `Gradle` 为准。
-说明：可见测试音频产物默认输出到 `build/test-artifacts/`。
-说明：`python tools/run.py test` 默认额外产出 `summary.json` 与 `run.log`，用于机器汇总和人工排查。
+## 🚀 快速开始
 
-### 使用示例
-编码：
-```
-build/bin/binary_audio_cpp.exe encode --text "Hello" --out data/output_audio/hello.wav
-```
-
-从文本文件编码：
-```
-build/bin/binary_audio_cpp.exe encode --text-file data/input.txt --out data/output_audio/hello.wav
-```
-
-解码：
-```
-build/bin/binary_audio_cpp.exe decode --in data/output_audio/output.wav
-```
-
-解码并写入文本文件：
-```
-build/bin/binary_audio_cpp.exe decode --in data/output_audio/output.wav --out-text data/output_text/output.txt
-```
-
-查看 CLI 相关第三方许可证：
-```
-build/bin/binary_audio_cpp.exe licenses
-```
-
-查看 CLI 与内核版本：
-```
-build/bin/binary_audio_cpp.exe version
-```
-
-
-## 致谢
-本项目使用了以下第三方库，感谢其贡献：
-- libsndfile
-- NumPy
-- SciPy
-
-## Licenses
-- 本项目：MIT（见 [LICENSE](./LICENSE)）
-- libsndfile：LGPL-2.1-or-later
-- NumPy：BSD-3-Clause
-- SciPy：BSD-3-Clause
-
-说明：第三方库许可证请以上游项目仓库中的 LICENSE 文件为准。
+> **机魂指引**：若发现本项目代码库中存在任何违背逻辑纯净性或不当的内容，请通过 [GitHub Issues] 联系处理。

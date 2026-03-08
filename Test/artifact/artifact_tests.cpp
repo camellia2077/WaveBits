@@ -3,8 +3,10 @@
 #include <vector>
 
 #include "bag_api.h"
+#include "bag/pro/codec.h"
 #include "bag/pro/frame_codec.h"
 #include "bag/pro/text_codec.h"
+#include "bag/ultra/codec.h"
 #include "test_framework.h"
 #include "test_fs.h"
 #include "test_vectors.h"
@@ -76,41 +78,38 @@ DecodeOutcome DecodeFromVector(const bag_decoder_config& config, const std::vect
     return out;
 }
 
-size_t EncodedTransportByteCount(const std::string& text, bag_transport_mode mode) {
+size_t ExpectedPcmSampleCount(const std::string& text,
+                              bag_transport_mode mode,
+                              const test::ConfigCase& config_case) {
     if (mode == BAG_TRANSPORT_FLASH) {
-        return text.size();
+        return text.size() * 8 * static_cast<size_t>(config_case.frame_samples);
     }
 
-    std::vector<uint8_t> payload;
     if (mode == BAG_TRANSPORT_PRO) {
+        std::vector<uint8_t> payload;
         test::AssertEq(
             bag::pro::EncodeProTextToPayload(text, &payload),
             bag::ErrorCode::kOk,
             "Artifact expected-length pro payload encode should succeed.");
-    } else {
-        test::AssertEq(
-            bag::pro::EncodeUltraTextToPayload(text, &payload),
-            bag::ErrorCode::kOk,
-            "Artifact expected-length ultra payload encode should succeed.");
+        return payload.size() * bag::pro::kSymbolsPerPayloadByte *
+               static_cast<size_t>(config_case.frame_samples);
     }
 
-    std::vector<uint8_t> frame;
-    const auto core_mode =
-        mode == BAG_TRANSPORT_PRO ? bag::TransportMode::kPro : bag::TransportMode::kUltra;
+    std::vector<uint8_t> payload;
     test::AssertEq(
-        bag::pro::EncodeFrame(core_mode, payload, &frame),
+        bag::ultra::EncodeTextToPayload(text, &payload),
         bag::ErrorCode::kOk,
-        "Artifact expected-length frame encode should succeed.");
-    return frame.size();
+        "Artifact expected-length ultra payload encode should succeed.");
+    return payload.size() * bag::ultra::kSymbolsPerPayloadByte *
+           static_cast<size_t>(config_case.frame_samples);
 }
 
 void AssertPcmProperties(const std::vector<int16_t>& pcm,
                          const std::string& text,
                          bag_transport_mode mode,
                          const test::ConfigCase& config_case) {
-    const auto transport_bytes = EncodedTransportByteCount(text, mode);
-    const auto expected_length = transport_bytes * 8 * static_cast<size_t>(config_case.frame_samples);
-    test::AssertEq(pcm.size(), expected_length, "PCM length should match transport bytes * 8 * frame size.");
+    const auto expected_length = ExpectedPcmSampleCount(text, mode, config_case);
+    test::AssertEq(pcm.size(), expected_length, "PCM length should match the selected mode's symbol layout.");
 
     const auto [min_it, max_it] = std::minmax_element(pcm.begin(), pcm.end());
     test::AssertTrue(min_it != pcm.end(), "PCM should not be empty for non-empty artifact corpus.");
@@ -193,36 +192,38 @@ void TestArtifactDecodeUnderGainDrop() {
     }
 }
 
-void TestArtifactBoundaryRoundTrip() {
+void TestArtifactModeSpecificLongRoundTrip() {
     const auto config_case = test::ConfigCases().front();
 
     {
         const auto encoder_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_PRO);
         const auto decoder_config = MakeDecoderConfig(config_case, BAG_TRANSPORT_PRO);
-        const auto pcm = EncodeToVector(encoder_config, test::BuildMaxProCorpus());
-        AssertPcmProperties(pcm, test::BuildMaxProCorpus(), BAG_TRANSPORT_PRO, config_case);
+        const auto text = test::BuildTooLongProCorpus();
+        const auto pcm = EncodeToVector(encoder_config, text);
+        AssertPcmProperties(pcm, text, BAG_TRANSPORT_PRO, config_case);
         const auto decoded = DecodeFromVector(decoder_config, pcm);
-        test::AssertEq(decoded.text, test::BuildMaxProCorpus(), "Pro boundary artifact should roundtrip.");
-        test::AssertEq(decoded.mode, BAG_TRANSPORT_PRO, "Pro boundary artifact should preserve mode.");
+        test::AssertEq(decoded.text, text, "Pro extended ASCII artifact should roundtrip.");
+        test::AssertEq(decoded.mode, BAG_TRANSPORT_PRO, "Pro extended ASCII artifact should preserve mode.");
     }
 
     {
         const auto encoder_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_ULTRA);
         const auto decoder_config = MakeDecoderConfig(config_case, BAG_TRANSPORT_ULTRA);
-        const auto pcm = EncodeToVector(encoder_config, test::BuildMaxUltraCorpus());
-        AssertPcmProperties(pcm, test::BuildMaxUltraCorpus(), BAG_TRANSPORT_ULTRA, config_case);
+        const auto text = test::BuildTooLongUltraCorpus();
+        const auto pcm = EncodeToVector(encoder_config, text);
+        AssertPcmProperties(pcm, text, BAG_TRANSPORT_ULTRA, config_case);
 
         const auto dir = test::MakeTempDir("artifact");
-        const auto wav_path = dir / "ultra_max.wav";
+        const auto wav_path = dir / "ultra_extended.wav";
         audio_io::WriteMonoPcm16Wav(wav_path, config_case.sample_rate_hz, pcm);
         const auto wav = audio_io::ReadMonoPcm16Wav(wav_path);
 
         const auto decoded = DecodeFromVector(decoder_config, wav.mono_pcm);
         test::AssertEq(
             decoded.text,
-            test::BuildMaxUltraCorpus(),
-            "Ultra boundary artifact should preserve UTF-8 text.");
-        test::AssertEq(decoded.mode, BAG_TRANSPORT_ULTRA, "Ultra boundary artifact should preserve mode.");
+            text,
+            "Ultra extended artifact should preserve UTF-8 text.");
+        test::AssertEq(decoded.mode, BAG_TRANSPORT_ULTRA, "Ultra extended artifact should preserve mode.");
     }
 }
 
@@ -241,7 +242,7 @@ int main() {
     test::Runner runner;
     runner.Add("Artifact.DirectRoundTripAcrossModes", TestArtifactDirectRoundTripAcrossModes);
     runner.Add("Artifact.WavRoundTripAcrossModes", TestArtifactWavRoundTripAcrossModes);
-    runner.Add("Artifact.BoundaryRoundTrip", TestArtifactBoundaryRoundTrip);
+    runner.Add("Artifact.ModeSpecificLongRoundTrip", TestArtifactModeSpecificLongRoundTrip);
     runner.Add("Artifact.DecodeUnderGainDrop", TestArtifactDecodeUnderGainDrop);
     runner.Add("Artifact.VersionMatchesRelease", TestArtifactVersionMatchesRelease);
     return runner.Run();

@@ -220,30 +220,51 @@ void TestApiModeSpecificValidation() {
         "Pro mode should reject non-ASCII input.");
     test::AssertEq(
         bag_encode_text(&pro_config, test::BuildTooLongProCorpus().c_str(), &pcm),
-        BAG_INVALID_ARGUMENT,
-        "Pro mode should reject payloads above the single-frame limit.");
+        BAG_OK,
+        "Pro mode should no longer inherit the compat single-frame limit.");
+    bag_free_pcm16_result(&pcm);
 
     auto ultra_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_ULTRA);
     test::AssertEq(
         bag_encode_text(&ultra_config, test::BuildTooLongUltraCorpus().c_str(), &pcm),
-        BAG_INVALID_ARGUMENT,
-        "Ultra mode should reject payloads above the single-frame limit.");
+        BAG_OK,
+        "Ultra mode should no longer inherit the compat single-frame limit.");
+    bag_free_pcm16_result(&pcm);
 }
 
 void TestApiBoundarySuccessCases() {
     const auto config_case = test::ConfigCases().front();
 
     {
+        const auto long_flash_text = std::string(513, 'F');
+        const auto encoder_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_FLASH);
+        const auto decoder_config = MakeDecoderConfig(config_case, BAG_TRANSPORT_FLASH);
+        bag_pcm16_result pcm{};
+        test::AssertEq(
+            bag_encode_text(&encoder_config, long_flash_text.c_str(), &pcm),
+            BAG_OK,
+            "Flash mode should not inherit the single-frame payload limit.");
+        const auto decoded = DecodeViaApi(decoder_config, pcm);
+        test::AssertEq(decoded.code, BAG_OK, "Flash long-text decode should succeed.");
+        test::AssertEq(decoded.text, long_flash_text, "Flash long-text roundtrip should preserve text.");
+        test::AssertEq(decoded.mode, BAG_TRANSPORT_FLASH, "Flash long-text decode should preserve mode.");
+        bag_free_pcm16_result(&pcm);
+    }
+
+    {
         const auto encoder_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_PRO);
         const auto decoder_config = MakeDecoderConfig(config_case, BAG_TRANSPORT_PRO);
         bag_pcm16_result pcm{};
         test::AssertEq(
-            bag_encode_text(&encoder_config, test::BuildMaxProCorpus().c_str(), &pcm),
+            bag_encode_text(&encoder_config, test::BuildTooLongProCorpus().c_str(), &pcm),
             BAG_OK,
-            "Pro mode should accept the max single-frame ASCII corpus.");
+            "Pro mode should accept extended ASCII text beyond the old compat limit.");
         const auto decoded = DecodeViaApi(decoder_config, pcm);
         test::AssertEq(decoded.code, BAG_OK, "Pro boundary decode should succeed.");
-        test::AssertEq(decoded.text, test::BuildMaxProCorpus(), "Pro boundary roundtrip should preserve text.");
+        test::AssertEq(
+            decoded.text,
+            test::BuildTooLongProCorpus(),
+            "Pro boundary roundtrip should preserve the extended ASCII text.");
         test::AssertEq(decoded.mode, BAG_TRANSPORT_PRO, "Pro boundary decode should preserve mode.");
         bag_free_pcm16_result(&pcm);
     }
@@ -253,15 +274,15 @@ void TestApiBoundarySuccessCases() {
         const auto decoder_config = MakeDecoderConfig(config_case, BAG_TRANSPORT_ULTRA);
         bag_pcm16_result pcm{};
         test::AssertEq(
-            bag_encode_text(&encoder_config, test::BuildMaxUltraCorpus().c_str(), &pcm),
+            bag_encode_text(&encoder_config, test::BuildTooLongUltraCorpus().c_str(), &pcm),
             BAG_OK,
-            "Ultra mode should accept the max 512-byte UTF-8 corpus.");
+            "Ultra mode should accept extended UTF-8 text beyond the old compat limit.");
         const auto decoded = DecodeViaApi(decoder_config, pcm);
         test::AssertEq(decoded.code, BAG_OK, "Ultra boundary decode should succeed.");
         test::AssertEq(
             decoded.text,
-            test::BuildMaxUltraCorpus(),
-            "Ultra boundary roundtrip should preserve UTF-8 text.");
+            test::BuildTooLongUltraCorpus(),
+            "Ultra boundary roundtrip should preserve the extended UTF-8 text.");
         test::AssertEq(decoded.mode, BAG_TRANSPORT_ULTRA, "Ultra boundary decode should preserve mode.");
         bag_free_pcm16_result(&pcm);
     }
@@ -333,16 +354,16 @@ void TestApiValidationHelpers() {
         bag_validation_issue_message(BAG_VALIDATION_PRO_ASCII_ONLY),
         "ASCII",
         "Validation helper message should explain the ASCII-only rule.");
+    test::AssertEq(
+        bag_validate_encode_request(&pro_config, test::BuildTooLongProCorpus().c_str()),
+        BAG_VALIDATION_OK,
+        "Validation helper should reflect that pro no longer inherits the compat frame limit.");
 
     auto ultra_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_ULTRA);
     test::AssertEq(
         bag_validate_encode_request(&ultra_config, test::BuildTooLongUltraCorpus().c_str()),
-        BAG_VALIDATION_PAYLOAD_TOO_LARGE,
-        "Validation helper should expose the single-frame size limit.");
-    test::AssertContains(
-        bag_validation_issue_message(BAG_VALIDATION_PAYLOAD_TOO_LARGE),
-        "512-byte",
-        "Validation helper message should mention the single-frame size limit.");
+        BAG_VALIDATION_OK,
+        "Validation helper should reflect that ultra no longer inherits the compat frame limit.");
 
     auto invalid_decoder = MakeDecoderConfig(config_case, static_cast<bag_transport_mode>(99));
     test::AssertEq(
