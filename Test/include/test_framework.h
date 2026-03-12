@@ -1,10 +1,12 @@
 #pragma once
 
+#if !defined(WAVEBITS_TEST_IMPORT_STD)
 #include <functional>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+#endif
 
 namespace test {
 

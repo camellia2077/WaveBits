@@ -1,7 +1,11 @@
 #pragma once
 
+#if !defined(WAVEBITS_TEST_IMPORT_STD)
 #include <string>
 #include <vector>
+#endif
+
+#include "test_utf8.h"
 
 namespace test {
 
@@ -39,7 +43,7 @@ inline const std::vector<CorpusCase>& FlashCorpusCases() {
         {"single_char", "A"},
         {"ascii", "Hello-123"},
         {"punctuation", "WaveBits: encode & decode!"},
-        {"utf8", u8"你好，WaveBits"},
+        {"utf8", test::Utf8Literal(u8"你好，WaveBits")},
         {"long_ascii", BuildLongCorpus()},
     };
     return cases;
@@ -63,7 +67,7 @@ inline const std::vector<CorpusCase>& ProCorpusCases() {
 inline std::string BuildMaxUltraCorpus() {
     std::string text;
     for (int index = 0; index < 170; ++index) {
-        text += u8"你";
+        text += test::Utf8Literal(u8"你");
     }
     text += "AB";
     return text;
@@ -73,9 +77,9 @@ inline const std::vector<CorpusCase>& UltraCorpusCases() {
     static const std::vector<CorpusCase> cases = {
         {"ascii", "Hello-123"},
         {"punctuation", "WaveBits: encode & decode!"},
-        {"utf8", u8"你好，WaveBits"},
-        {"emoji", u8"WaveBits 🚀"},
-        {"mixed_utf8", u8"WaveBits 超级模式 🚀"},
+        {"utf8", test::Utf8Literal(u8"你好，WaveBits")},
+        {"emoji", test::Utf8Literal(u8"WaveBits 🚀")},
+        {"mixed_utf8", test::Utf8Literal(u8"WaveBits 超级模式 🚀")},
         {"max_single_frame_utf8", BuildMaxUltraCorpus()},
     };
     return cases;
@@ -92,11 +96,11 @@ inline std::string BuildTooLongProCorpus() {
 inline std::string BuildTooLongUltraCorpus() {
     std::string text;
     for (int index = 0; index < 171; ++index) {
-        text += u8"你";
+        text += test::Utf8Literal(u8"你");
     }
     return text;
 }
 
-inline constexpr char kExpectedCoreVersion[] = "0.2.0";
+inline constexpr char kExpectedCoreVersion[] = "0.3.0";
 
 }  // namespace test

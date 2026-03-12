@@ -3,6 +3,7 @@
 
 #include "bag_api.h"
 #include "test_framework.h"
+#include "test_utf8.h"
 #include "test_vectors.h"
 
 namespace {
@@ -214,8 +215,9 @@ void TestApiModeSpecificValidation() {
     bag_pcm16_result pcm{};
 
     auto pro_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_PRO);
+    const auto pro_non_ascii = test::Utf8Literal(u8"中文");
     test::AssertEq(
-        bag_encode_text(&pro_config, u8"中文", &pcm),
+        bag_encode_text(&pro_config, pro_non_ascii.c_str(), &pcm),
         BAG_INVALID_ARGUMENT,
         "Pro mode should reject non-ASCII input.");
     test::AssertEq(
@@ -346,8 +348,9 @@ void TestApiValidationHelpers() {
 
     const auto config_case = test::ConfigCases().front();
     auto pro_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_PRO);
+    const auto pro_non_ascii = test::Utf8Literal(u8"中文");
     test::AssertEq(
-        bag_validate_encode_request(&pro_config, u8"中文"),
+        bag_validate_encode_request(&pro_config, pro_non_ascii.c_str()),
         BAG_VALIDATION_PRO_ASCII_ONLY,
         "Validation helper should expose the pro ASCII-only rule.");
     test::AssertContains(

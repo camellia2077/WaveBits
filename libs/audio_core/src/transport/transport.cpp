@@ -1,15 +1,35 @@
-#include "bag/transport/transport.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
 
-#include "bag/flash/phy_clean.h"
-#include "bag/pro/codec.h"
-#include "bag/pro/phy_clean.h"
-#include "bag/pro/phy_compat.h"
-#include "bag/transport/compat/frame_codec.h"
-#include "bag/ultra/codec.h"
-#include "bag/ultra/phy_clean.h"
-#include "bag/ultra/phy_compat.h"
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <vector>
+#endif
+
+module bag.transport.facade;
+
+import bag.flash.phy_clean;
+import bag.pro.phy_clean;
+import bag.ultra.phy_clean;
+#else
+#include "bag/legacy/transport/transport.h"
+
+#include "bag/legacy/flash/phy_clean.h"
+#include "bag/legacy/pro/phy_clean.h"
+#include "bag/legacy/ultra/phy_clean.h"
+#endif
+#endif
 
 namespace bag {
+
+using std::int16_t;
+
 namespace {
 
 bool IsAsciiText(std::string_view text) {

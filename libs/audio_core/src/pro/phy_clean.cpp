@@ -1,11 +1,38 @@
-#include "bag/pro/phy_clean.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
+
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
+#endif
+
+module bag.pro.phy_clean;
+
+import bag.pro.codec;
+#else
+#include "bag/legacy/pro/phy_clean.h"
 
 #include <algorithm>
 #include <cmath>
 
-#include "bag/pro/codec.h"
+#include "bag/legacy/pro/codec.h"
+#endif
+#endif
 
 namespace bag::pro {
+
+using std::int16_t;
+using std::size_t;
+using std::uint8_t;
+
 namespace {
 
 constexpr double kPi = 3.14159265358979323846;

@@ -4,8 +4,10 @@ from dataclasses import dataclass
 import os
 import shlex
 import subprocess
+import sys
+from threading import Thread
 from pathlib import Path
-from typing import Sequence
+from typing import IO, Sequence
 
 from .constants import ROOT_DIR
 
@@ -56,4 +58,59 @@ def run_capture(command: Sequence[str], cwd: Path | None = None) -> CapturedProc
         returncode=completed.returncode,
         stdout=stdout,
         stderr=stderr,
+    )
+
+
+def _stream_text(pipe: IO[str] | None, sink: IO[str], chunks: list[str]) -> None:
+    if pipe is None:
+        return
+
+    try:
+        for chunk in iter(lambda: pipe.readline(), ""):
+            chunks.append(chunk)
+            sink.write(chunk)
+            sink.flush()
+    finally:
+        pipe.close()
+
+
+def run_capture_streaming(command: Sequence[str], cwd: Path | None = None) -> CapturedProcessResult:
+    effective_cwd = cwd or ROOT_DIR
+    print_command(command, effective_cwd)
+    process = subprocess.Popen(
+        command,
+        cwd=effective_cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+    )
+
+    stdout_chunks: list[str] = []
+    stderr_chunks: list[str] = []
+    stdout_thread = Thread(
+        target=_stream_text,
+        args=(process.stdout, sys.stdout, stdout_chunks),
+        daemon=True,
+    )
+    stderr_thread = Thread(
+        target=_stream_text,
+        args=(process.stderr, sys.stderr, stderr_chunks),
+        daemon=True,
+    )
+    stdout_thread.start()
+    stderr_thread.start()
+
+    returncode = process.wait()
+    stdout_thread.join()
+    stderr_thread.join()
+
+    return CapturedProcessResult(
+        command=list(command),
+        cwd=effective_cwd,
+        returncode=returncode,
+        stdout="".join(stdout_chunks),
+        stderr="".join(stderr_chunks),
     )

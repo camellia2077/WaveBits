@@ -1,6 +1,27 @@
-#include "bag/transport/compat/frame_codec.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
+
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <cstddef>
+#include <cstdint>
+#include <vector>
+#endif
+
+module bag.transport.compat.frame_codec;
+#else
+#include "bag/legacy/transport/compat/frame_codec.h"
+#endif
+#endif
 
 namespace bag::transport::compat {
+
+using std::size_t;
+using std::uint16_t;
+using std::uint8_t;
+
 namespace {
 
 inline constexpr uint8_t kPreamble0 = 0x55;

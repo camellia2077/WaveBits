@@ -2,8 +2,13 @@
 
 #include <vector>
 
-#include "bag/common/error_code.h"
-#include "bag/common/types.h"
+#if __cplusplus >= 202002L
+import bag.common.error_code;
+import bag.common.types;
+#else
+#include "bag/legacy/common/error_code.h"
+#include "bag/legacy/common/types.h"
+#endif
 
 namespace bag {
 

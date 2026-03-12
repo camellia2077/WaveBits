@@ -1,6 +1,27 @@
-#include "bag/pro/codec.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
+
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include <vector>
+#endif
+
+module bag.pro.codec;
+#else
+#include "bag/legacy/pro/codec.h"
+#endif
+#endif
 
 namespace bag::pro {
+
+using std::size_t;
+using std::uint8_t;
+
 namespace {
 
 bool IsAsciiText(const std::string& text) {

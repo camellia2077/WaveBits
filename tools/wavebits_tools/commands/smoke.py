@@ -32,6 +32,8 @@ def cmd_smoke(args: argparse.Namespace) -> None:
             argparse.Namespace(
                 build_dir=str(build_dir),
                 generator=args.generator,
+                experimental_modules=getattr(args, "experimental_modules", False),
+                no_modules=getattr(args, "no_modules", False),
                 mode=case.mode,
                 text=case.text,
                 text_file=None,

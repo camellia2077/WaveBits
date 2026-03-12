@@ -5,6 +5,7 @@
 #include "test_framework.h"
 #include "test_fs.h"
 #include "test_process.h"
+#include "test_utf8.h"
 #include "test_vectors.h"
 
 namespace {
@@ -33,7 +34,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
         "`version` output should contain the presentation version.");
     test::AssertContains(
         version_result.output,
-        "core: v0.2.0",
+        "core: v0.3.0",
         "`version` output should contain the core version.");
 
     const auto dash_version_result = RunCli(cli_path, {"--version"}, dir);
@@ -44,7 +45,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
         "`--version` output should contain the presentation version.");
     test::AssertContains(
         dash_version_result.output,
-        "core: v0.2.0",
+        "core: v0.3.0",
         "`--version` output should contain the core version.");
 }
 
@@ -94,7 +95,7 @@ void TestUltraEncodeTextFileAndDecodeToTextFile(const std::filesystem::path& cli
     const auto input_path = dir / "input.txt";
     const auto wav_path = dir / "ultra.wav";
     const auto output_text_path = dir / "decoded.txt";
-    const std::string input = u8"WaveBits 超级模式 🚀";
+    const std::string input = test::Utf8Literal(u8"WaveBits 超级模式 🚀");
 
     test::WriteTextFile(input_path, input);
 
@@ -179,7 +180,7 @@ void TestModeSpecificValidation(const std::filesystem::path& cli_path) {
     const auto dir = test::MakeTempDir("cli_smoke");
     const auto non_ascii_path = dir / "non_ascii.txt";
 
-    test::WriteTextFile(non_ascii_path, u8"中文");
+    test::WriteTextFile(non_ascii_path, test::Utf8Literal(u8"中文"));
 
     const auto non_ascii_result = RunCli(
         cli_path,

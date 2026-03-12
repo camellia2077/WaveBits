@@ -1,6 +1,26 @@
-#include "bag/ultra/codec.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
+
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include <vector>
+#endif
+
+module bag.ultra.codec;
+#else
+#include "bag/legacy/ultra/codec.h"
+#endif
+#endif
 
 namespace bag::ultra {
+
+using std::size_t;
+using std::uint8_t;
 
 ErrorCode EncodeTextToPayload(const std::string& text, std::vector<uint8_t>* out_payload) {
     if (out_payload == nullptr) {

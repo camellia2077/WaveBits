@@ -78,6 +78,8 @@ def ensure_cli_binary(args: argparse.Namespace, build_dir: Path) -> Path:
             configure_if_missing=True,
             generator=args.generator,
             target=[CLI_TARGET_NAME],
+            experimental_modules=getattr(args, "experimental_modules", False),
+            no_modules=getattr(args, "no_modules", False),
         )
     )
     cli_binary = find_cli_binary(build_dir)

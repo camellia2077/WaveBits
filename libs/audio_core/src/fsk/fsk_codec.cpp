@@ -1,10 +1,23 @@
-#include "bag/fsk/fsk_codec.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
 
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <cstdint>
+#include <string>
 #include <vector>
+#endif
 
-#include "bag/flash/phy_clean.h"
+module bag.fsk.codec;
+
+import bag.flash.phy_clean;
+#endif
+#endif
 
 namespace bag::fsk {
+
 namespace {
 
 bag::flash::BfskConfig ToBfskConfig(const FskConfig& config) {
@@ -19,14 +32,14 @@ bag::flash::BfskConfig ToBfskConfig(const FskConfig& config) {
 
 }  // namespace
 
-std::vector<int16_t> EncodeTextToPcm16(const std::string& text, const FskConfig& config) {
+std::vector<std::int16_t> EncodeTextToPcm16(const std::string& text, const FskConfig& config) {
     return bag::flash::EncodeBytesToPcm16(
-        std::vector<uint8_t>(text.begin(), text.end()),
+        std::vector<std::uint8_t>(text.begin(), text.end()),
         ToBfskConfig(config));
 }
 
-std::string DecodePcm16ToText(const std::vector<int16_t>& pcm, const FskConfig& config) {
-    const std::vector<uint8_t> bytes =
+std::string DecodePcm16ToText(const std::vector<std::int16_t>& pcm, const FskConfig& config) {
+    const std::vector<std::uint8_t> bytes =
         bag::flash::DecodePcm16ToBytes(pcm, ToBfskConfig(config));
     return std::string(bytes.begin(), bytes.end());
 }

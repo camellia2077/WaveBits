@@ -1,14 +1,25 @@
 #include "bag_api.h"
 
+#if defined(WAVEBITS_API_IMPORT_STD)
+import std;
+#else
 #include <algorithm>
 #include <memory>
 #include <new>
 #include <stdexcept>
+#include <string>
 #include <vector>
+#endif
 
-#include "bag/common/config.h"
-#include "bag/common/version.h"
-#include "bag/transport/transport.h"
+#if __cplusplus >= 202002L
+import bag.common.config;
+import bag.common.version;
+import bag.transport.facade;
+#else
+#include "bag/legacy/common/config.h"
+#include "bag/legacy/common/version.h"
+#include "bag/legacy/transport/transport.h"
+#endif
 
 struct bag_decoder {
     std::unique_ptr<bag::ITransportDecoder> decoder;
@@ -231,7 +242,7 @@ bag_error_code bag_encode_text(const bag_encoder_config* config,
             config->enable_diagnostics,
             config->mode,
             config->reserved);
-        std::vector<int16_t> pcm;
+        std::vector<std::int16_t> pcm;
         const bag::ErrorCode encode_code =
             bag::EncodeTextToPcm16(core_config, text, &pcm);
         if (encode_code != bag::ErrorCode::kOk) {
@@ -241,7 +252,7 @@ bag_error_code bag_encode_text(const bag_encoder_config* config,
             return BAG_OK;
         }
 
-        auto* samples = new (std::nothrow) int16_t[pcm.size()];
+        auto* samples = new (std::nothrow) std::int16_t[pcm.size()];
         if (samples == nullptr) {
             return BAG_INTERNAL;
         }
@@ -335,7 +346,7 @@ bag_error_code bag_poll_result(bag_decoder* decoder, bag_text_result* out_result
     out_result->mode = ToApiMode(result.mode);
 
     if (out_result->buffer != nullptr && out_result->buffer_size > 0) {
-        const size_t copy_size = std::min(result.text.size(), out_result->buffer_size - 1);
+        const std::size_t copy_size = std::min(result.text.size(), out_result->buffer_size - 1);
         if (copy_size > 0) {
             std::copy_n(result.text.data(), copy_size, out_result->buffer);
         }
@@ -355,3 +366,4 @@ void bag_reset(bag_decoder* decoder) {
 const char* bag_core_version(void) {
     return bag::CoreVersion();
 }
+

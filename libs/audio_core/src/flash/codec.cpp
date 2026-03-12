@@ -1,6 +1,24 @@
-#include "bag/flash/codec.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
+
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <cstdint>
+#include <string>
+#include <vector>
+#endif
+
+module bag.flash.codec;
+#else
+#include "bag/legacy/flash/codec.h"
+#endif
+#endif
 
 namespace bag::flash {
+
+using std::uint8_t;
 
 ErrorCode EncodeTextToBytes(const std::string& text, std::vector<uint8_t>* out_bytes) {
     if (out_bytes == nullptr) {

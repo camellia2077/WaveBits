@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 from datetime import datetime
 import re
-import sys
 from time import perf_counter
 from pathlib import Path
 from typing import Any
@@ -11,7 +10,7 @@ from typing import Any
 from ..artifacts import test_artifacts_root, unique_directory, write_json, write_utf8
 from ..constants import ROOT_DIR
 from ..paths import resolve_build_dir
-from ..process import quote, run_capture
+from ..process import quote, run_capture_streaming
 
 
 TEST_RESULT_RE = re.compile(
@@ -145,18 +144,9 @@ def cmd_test(args: argparse.Namespace) -> None:
         command.extend(["-R", args.tests_regex])
     started_at = datetime.now().astimezone()
     timer_started = perf_counter()
-    result = run_capture(command)
+    result = run_capture_streaming(command)
     measured_duration_sec = perf_counter() - timer_started
     finished_at = datetime.now().astimezone()
-
-    if result.stdout:
-        sys.stdout.write(result.stdout)
-        if not result.stdout.endswith("\n"):
-            sys.stdout.write("\n")
-    if result.stderr:
-        sys.stderr.write(result.stderr)
-        if not result.stderr.endswith("\n"):
-            sys.stderr.write("\n")
 
     summary = _parse_ctest_output(result.stdout, result.returncode, measured_duration_sec)
     summary.update(

@@ -1,12 +1,39 @@
-#include "bag/flash/phy_clean.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
+
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
+#endif
+
+module bag.flash.phy_clean;
+
+import bag.flash.codec;
+#else
+#include "bag/legacy/flash/phy_clean.h"
 
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
-#include "bag/flash/codec.h"
+#include "bag/legacy/flash/codec.h"
+#endif
+#endif
 
 namespace bag::flash {
+
+using std::int16_t;
+using std::size_t;
+using std::uint8_t;
+
 namespace {
 
 int ChunkSize(const BfskConfig& config) {

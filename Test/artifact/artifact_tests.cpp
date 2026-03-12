@@ -3,12 +3,9 @@
 #include <vector>
 
 #include "bag_api.h"
-#include "bag/pro/codec.h"
-#include "bag/pro/frame_codec.h"
-#include "bag/pro/text_codec.h"
-#include "bag/ultra/codec.h"
 #include "test_framework.h"
 #include "test_fs.h"
+#include "test_utf8.h"
 #include "test_vectors.h"
 #include "wav_io.h"
 
@@ -85,23 +82,14 @@ size_t ExpectedPcmSampleCount(const std::string& text,
         return text.size() * 8 * static_cast<size_t>(config_case.frame_samples);
     }
 
-    if (mode == BAG_TRANSPORT_PRO) {
-        std::vector<uint8_t> payload;
-        test::AssertEq(
-            bag::pro::EncodeProTextToPayload(text, &payload),
-            bag::ErrorCode::kOk,
-            "Artifact expected-length pro payload encode should succeed.");
-        return payload.size() * bag::pro::kSymbolsPerPayloadByte *
-               static_cast<size_t>(config_case.frame_samples);
+    // At the boundary layer, the current product contract is byte-oriented:
+    // flash uses 8 BFSK bits per byte, while pro/ultra use 2 symbols per byte.
+    if (mode == BAG_TRANSPORT_PRO || mode == BAG_TRANSPORT_ULTRA) {
+        return text.size() * 2 * static_cast<size_t>(config_case.frame_samples);
     }
 
-    std::vector<uint8_t> payload;
-    test::AssertEq(
-        bag::ultra::EncodeTextToPayload(text, &payload),
-        bag::ErrorCode::kOk,
-        "Artifact expected-length ultra payload encode should succeed.");
-    return payload.size() * bag::ultra::kSymbolsPerPayloadByte *
-           static_cast<size_t>(config_case.frame_samples);
+    test::Fail("Artifact expected-length helper received an unsupported transport mode.");
+    return 0;
 }
 
 void AssertPcmProperties(const std::vector<int16_t>& pcm,
@@ -172,7 +160,7 @@ void TestArtifactDecodeUnderGainDrop() {
     const std::vector<Case> cases = {
         {BAG_TRANSPORT_FLASH, "GAIN-TEST"},
         {BAG_TRANSPORT_PRO, "GAIN-TEST"},
-        {BAG_TRANSPORT_ULTRA, u8"增益-测试"},
+        {BAG_TRANSPORT_ULTRA, test::Utf8Literal(u8"增益-测试")},
     };
 
     for (const auto& config_case : test::ConfigCases()) {

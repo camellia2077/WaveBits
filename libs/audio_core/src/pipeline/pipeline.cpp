@@ -1,6 +1,23 @@
-#include "bag/pipeline/pipeline.h"
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
+#if __cplusplus >= 202002L
+module;
 
-#include "bag/transport/transport.h"
+#if defined(WAVEBITS_CORE_IMPORT_STD)
+import std;
+#else
+#include <memory>
+#include <utility>
+#endif
+
+module bag.pipeline;
+
+import bag.transport.facade;
+#else
+#include "bag/legacy/pipeline/pipeline.h"
+
+#include "bag/legacy/transport/transport.h"
+#endif
+#endif
 
 namespace bag {
 namespace {

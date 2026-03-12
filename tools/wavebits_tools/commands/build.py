@@ -14,6 +14,8 @@ def cmd_build(args: argparse.Namespace) -> None:
             argparse.Namespace(
                 build_dir=str(build_dir),
                 generator=args.generator,
+                experimental_modules=getattr(args, "experimental_modules", False),
+                no_modules=getattr(args, "no_modules", False),
             )
         )
 
