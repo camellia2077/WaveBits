@@ -1,6 +1,6 @@
 # WaveBits 文档索引
 
-更新时间：2026-03-08
+更新时间：2026-03-11
 
 ## 先看这里
 - 修改 `libs/` 下的共享库代码前，优先阅读：
@@ -43,5 +43,5 @@
 
 ## 给 agent 的建议
 - 优先从文档跳转到目标文件，不要先递归扫描整个 `libs/audio_core/`。
-- 若任务只涉及 clean 主链路，通常不需要先打开 `phy_compat.*`、`frame_codec.*`、`text_codec.*` 或 `include/bag/phy/*`。
+- 若任务只涉及 clean 主链路，通常不需要先打开 `phy_compat.*`、`transport/compat/frame_codec.*`、`src/fsk/fsk_codec.cpp` 或 `include/bag/phy/*`。
 - 若任务只涉及 CLI / Android 集成，通常先看 `libs/audio_api` 与 `docs/design/transports.md`，再决定是否深入 `audio_core`。

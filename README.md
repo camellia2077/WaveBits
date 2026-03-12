@@ -34,3 +34,30 @@
 ## 🚀 快速开始
 
 > **机魂指引**：若发现本项目代码库中存在任何违背逻辑纯净性或不当的内容，请通过 [GitHub Issues] 联系处理。
+
+## 🧭 开发入口
+
+### Android
+- Android 官方工程入口在仓库根目录 `C:\code\WaveBits`。
+- 直接从根目录执行：
+  - Windows：`.\gradlew.bat :app:assembleDebug`
+  - macOS/Linux：`./gradlew :app:assembleDebug`
+- `apps/audio_android/app` 只保留 Android 模块源码、JNI 与资源；不再作为独立 `Gradle` root。
+- Android Studio 建议直接打开仓库根目录，而不是单独打开 `apps/audio_android`。
+
+### 本地编排工具
+- 推荐统一使用 `python tools/run.py <command>`。
+- 常用命令：
+  - `python tools/run.py build --build-dir build/dev`
+  - `python tools/run.py verify --build-dir build/dev`
+  - `python tools/run.py android assemble-debug`
+  - `python tools/run.py export-apk`
+- 约定：
+  - host 根目录 CMake 构建默认开启 `WAVEBITS_HOST_MODULES=ON`。
+  - 如需回退旧的 header 兼容路径，可显式使用 `python tools/run.py verify --build-dir build/legacy-host --skip-android --no-modules`。
+  - `build/` 继续保留给 CMake / Gradle 的原生构建输出与测试产物。
+  - 根目录 `dist/` 只存放 Python 导出的最终交付物；当前 Android APK 默认导出到 `dist/android/`。
+
+更多仓库结构与入口说明见：
+- `docs/architecture/repo-map.md`
+- `tools/README.md`

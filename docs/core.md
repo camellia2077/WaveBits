@@ -1,8 +1,11 @@
-# Audio Core 现状（v0.2.0）
+# Audio Core 现状（v0.3.0）
 
-更新时间：2026-03-08
+更新时间：2026-03-12
 
 ## 版本更新说明
+- [v0.3.0](./core/v0.3.0.md)
+- [v0.2.2](./core/v0.2.2.md)
+- [v0.2.1](./core/v0.2.1.md)
 - [v0.2.0](./core/v0.2.0.md)
 - [v0.1.1](./core/v0.1.1.md)
 - [v0.1.0](./core/v0.1.0.md)
@@ -14,23 +17,20 @@
 - [测试说明](./testing.md)
 
 ## 版本信息
-- 内核版本：`0.2.0`
+- 内核版本：`0.3.0`
 - C API 可通过 `bag_core_version()` 查询版本字符串。
 
 ## 目录与职责
-- `libs/audio_core/include/bag/common`
-  - `config.h`：核心配置（采样率、帧长、诊断开关）。
-  - `types.h`：跨模块数据结构（`PcmBlock`、`IrPacket`、`TextResult`）。
-  - `error_code.h`：统一错误码。
-  - `version.h`：核心版本接口。
-- `libs/audio_core/include/bag/transport`
-  - `transport.h`：当前主线门面，负责配置校验、编码入口与按 mode 创建解码器。
+- `libs/audio_core/modules/bag/common`
+  - `config/types/error_code/version.cppm`：当前主线基础声明模块。
+- `libs/audio_core/include/bag/legacy`
+  - `common/*`、`flash/*`、`pro/*`、`transport/*`、`ultra/*`：Android / no-modules / legacy fallback 的显式声明面。
 - `libs/audio_core/include/bag/flash`、`libs/audio_core/include/bag/pro`、`libs/audio_core/include/bag/ultra`
-  - mode-first 模块；每种模式各自管理自己的信息层与 clean/compat PHY。
-- `libs/audio_core/include/bag/fsk`
-  - `fsk_codec.h`：保留的兼容入口；实现语义已收敛为 `flash/BFSK` 的过渡包装。
-- `libs/audio_core/include/bag/pipeline`
-  - `pipeline.h`：保留的兼容适配层；`CreatePipeline` 内部委托给 `transport` decoder。
+  - 这层 shared bridge headers 已在 `Phase 19` 退休；当前主线请直接看对应 modules 与 `src/*.cpp`。
+- `libs/audio_core/modules/bag/fsk`、`libs/audio_core/src/fsk/fsk_codec.cpp`
+  - `bag.fsk.codec`：host module-first helper；实现语义已收敛为 `flash/BFSK` 的过渡包装。
+- `libs/audio_core/include/bag/legacy/pro`、`libs/audio_core/include/bag/legacy/ultra`
+  - `phy_compat.h`：仅保留给 legacy / no-modules 路径的历史 compat PHY 声明。
 - `libs/audio_core/include/bag/phy`、`libs/audio_core/include/bag/link`
   - 预留接口（`IFunPhy`、`IProPhy`、`ILinkLayer`），当前未接入完整实现。
 - `libs/audio_api`
@@ -54,15 +54,17 @@
    - `bag_destroy_decoder`
    - `bag_core_version`
 
-## 当前边界（v0.2.0）
+## 当前边界（v0.3.0）
 1. 以最小可用为目标，重点在单链路打通。
 2. `CreatePipeline` 现为兼容适配层，正式主线已经下沉到 `transport` 与各 mode 模块。
 3. `flash` 当前固定为长期基线模式：原始直通、无 payload/frame 封装、无单帧 `512` 字节上限、只保留 `clean` 路径。
 4. `pro` 当前固定为 ASCII-only：文本直接转 ASCII byte，再按 nibble 进入 DTMF-like 双音 clean PHY；不再继承 compat frame/CRC/512-byte 上限。
 5. `ultra` 当前固定为 UTF-8 byte：文本直接按 UTF-8 字节进入 nibble/symbol 映射，再走 clean `16-FSK`；不再继承 compat frame/CRC/512-byte 上限。
-6. `phy/pro`、`phy/fun`、`link` 仍是接口层，未接入当前主线。
-7. 尚未包含前向纠错、重传策略、复杂同步与抗噪优化。
-8. 结果置信度目前为简化值，后续可演进为真实质量估计模型。
+6. `Phase 18` 已删除 `text_codec.h`、`frame_codec.h`、`fsk_codec.h` 这批 compatibility-only wrappers。
+7. `Phase 19` 已退休 `audio_core` 主线 shared bridge headers；legacy 声明入口已显式切到 `bag/legacy/**`。
+8. `phy/pro`、`phy/fun`、`link` 仍是接口层，未接入当前主线。
+9. 尚未包含前向纠错、重传策略、复杂同步与抗噪优化。
+10. 结果置信度目前为简化值，后续可演进为真实质量估计模型。
 
 ## 模式实现与编码
 
