@@ -17,14 +17,6 @@ import std;
 module bag.flash.phy_clean;
 
 import bag.flash.codec;
-#else
-#include "bag/legacy/flash/phy_clean.h"
-
-#include <algorithm>
-#include <cmath>
-#include <stdexcept>
-
-#include "bag/legacy/flash/codec.h"
 #endif
 #endif
 

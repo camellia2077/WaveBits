@@ -66,8 +66,6 @@ if(WAVEBITS_HOST_MODULES)
         endif()
     endfunction()
 
-    wavebits_configure_module_test(test_unit)
-
     add_executable(test_modules_phase0
         modules/phase0_smoke.cpp
     )

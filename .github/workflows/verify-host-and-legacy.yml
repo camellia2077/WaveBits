@@ -1,0 +1,56 @@
+name: verify-host-modules
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup MSYS2 UCRT64 toolchain
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-clang
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-libsndfile
+
+      - name: Add MSYS2 tools to PATH
+        shell: pwsh
+        run: |
+          "C:\msys64\ucrt64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Show toolchain versions
+        shell: pwsh
+        run: |
+          python --version
+          clang++ --version
+          cmake --version
+          ninja --version
+          pkg-config --modversion sndfile
+
+      - name: List verify check groups
+        shell: pwsh
+        run: python tools/run.py verify --list-checks
+
+      - name: Verify default host modules path
+        shell: pwsh
+        run: python tools/run.py verify --build-dir build/dev --skip-android

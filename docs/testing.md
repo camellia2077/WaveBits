@@ -1,25 +1,42 @@
 # WaveBits 测试说明
 
-更新时间：2026-03-12
+更新时间：2026-03-13
 
 ## 测试分层
 - `unit`
-  - `flash/pro/transport` 低层行为、WAV 读写，以及 retired wrappers 不回流的最小回归。
+  - `wav_io.h` header-boundary smoke 与缺失文件失败语义。
 - `api contract`
   - `bag_api` 的 C ABI、错误语义、mode 透传与校验规则。
 - `artifact roundtrip`
   - `text -> PCM/WAV -> text` 的产品主链路。
 - `modules phase smokes`
-  - 直接 `import bag.*` 的 host module-first 验证，覆盖基础模块、叶子模块、中层模块与汇聚层。
+  - 直接 `import bag.*` / `import audio_io.wav` 的 host module-first 验证，覆盖基础模块、叶子模块、中层模块与汇聚层。
 - `cli smoke`
   - 真实执行 `binary_audio_cpp`，验证命令行参数、产物文件与 roundtrip。
 
-## Host 构建路径
-- host 根目录 CMake 构建默认开启 `WAVEBITS_HOST_MODULES=ON`
+## 当前门禁路径
+
+### Host 默认主路径
 - 默认验证命令：
   - `python tools/run.py verify --build-dir build/dev --skip-android`
-- legacy header 兼容回退命令：
-  - `python tools/run.py verify --build-dir build/legacy-host --skip-android --no-modules`
+- 当前含义：
+  - 验证 host 默认 modules 主路径
+  - 不再借默认 `verify` 步骤隐式表达 Android gate
+
+### Android 独立 gate
+- focused gate：
+  - `python tools/run.py android native-debug`
+  - `python tools/run.py android assemble-debug`
+- 当前含义：
+  - Android 通过 `apps/audio_android/native_package/CMakeLists.txt -> bag_android_native` 独立装配
+  - Android JNI 继续只消费 `bag_api.h`
+  - Android native package 当前只编译 package-private wrapper 与 `android_bag/**` 私有声明层
+
+### Host 支持政策
+- host 根目录 `CMake` 默认开启 `WAVEBITS_HOST_MODULES=ON`
+- root host `WAVEBITS_HOST_MODULES=OFF` 已退休
+
+## `verify` 静态检查
 - `verify` 在构建前会执行 6 组静态检查：
   - `module_structure`
     - 锁定 named-module implementation units 与 module-first wiring 不回退
@@ -30,21 +47,30 @@
   - `audio_io_boundary`
     - 锁定 `wav_io.h` 与 `audio_io.wav` 的双入口模型、private backend 拆分、`sndfile` containment 与 `wav_impl.cpp` 的 global-fragment backend 声明位置
   - `compatibility`
-    - 锁定 compatibility headers 与 direct consumers 的当前口径，不允许历史 include 链漂移回来
+    - 锁定 compatibility headers、reserved-interface declaration boundary 与 direct consumers 的当前口径，不允许历史 include 链漂移回来
   - `retirement`
-    - 锁定 retired wrappers、shared bridge headers 与 `bag/legacy/**` carve-out surface 不回流
-- legacy header 兼容回退路径现在显式通过 `bag/legacy/**` 暴露给 `bag_api.cpp`、`unit_tests` 与 `bag_core` 的 no-modules 实现
-- `verify` 会输出分步 banner，并直接透传 configure/build/test/Android 的实时输出，避免长时间构建看起来像卡死
-- Android 不跟随这次默认切换：
-  - 仍由 `apps/audio_android/app/src/main/cpp/CMakeLists.txt` 下的 `CMake 3.22.1 + C++17 + bag_api.h` 路线负责
+    - 锁定 retired wrappers、shared bridge headers、已删除的 `bag/legacy/**` no-reintroduction 状态，以及 boundary-adjacent host wiring 不回退
+- 当前主仓 `bag/internal/**` owner 已为 `0`
+- `bag/interface/common/*` 当前按长期保留的 reserved-interface declaration boundary 管理：
+  - 只允许预留接口头与该目录内部消费
+  - 保持 include-based header 形态，不新增 `import std;`
+  - 不新增 `bag.interface.*` module mirror
+- 当前不再有批准的 `bag/legacy/**` 直接消费者，legacy headers 也已从仓库删除
+
+## CI 与发布前门禁
+- CI 当前通过 `.github/workflows/verify-host-and-legacy.yml` 持续执行：
+  - `verify --list-checks`
+  - `verify --build-dir build/dev --skip-android`
+- 发布前门禁与退休前置条件追踪见：
+  - `docs/notes/legacy-release-gates.md`
+  - `docs/notes/legacy-retirement-preconditions.md`
 
 ## 为什么必须按模式分开测试
 三种模式共用部分底层链路，但业务语义不同，不能用同一套文本机械套用：
-
 - `flash`
-  - 原始直通模式，重点验证兼容基线。
+  - 原始直通模式，重点验证 clean raw-byte 语义。
 - `pro`
-  - ASCII-only 正式模式，文本先转 ASCII byte，再按 nibble 进入 DTMF-like 双音 clean PHY。
+  - ASCII-only 正式模式，文本先转 ASCII byte，再按 nibble 进入 `DTMF-like` 双音 clean PHY。
 - `ultra`
   - UTF-8 正式模式，文本先转 UTF-8 byte，再按 nibble 进入 clean `16-FSK`。
 
@@ -68,8 +94,8 @@
   - `"Hello-123"`
   - `"WaveBits: encode & decode!"`
   - 约 `128` 字节长文本
-  - 代表性长 ASCII 语料：`170` 个 ASCII 字符（当前固定为 `170` 个 `'A'`）
-  - compat 上限回归语料：`171` 个 ASCII 字符，用于验证 `pro` 不再继承旧的 `512-byte` framed 限制
+  - 代表性长 ASCII 语料：`170` 个 ASCII 字符
+  - 回归语料：`171` 个 ASCII 字符
 - 失败语料：
   - 任意非 ASCII 文本，例如 `u8"中文"`
 
@@ -79,8 +105,8 @@
   - `u8"你好，WaveBits"`
   - `u8"WaveBits 🚀"`
   - `u8"WaveBits 超级模式 🚀"`
-  - 代表性大语料：恰好 `512` 字节 UTF-8（当前固定为 `170` 个 `u8"你"` 加 `"AB"`）
-  - 扩展回归语料：`513` 字节 UTF-8（当前固定为 `171` 个 `u8"你"`）
+  - 代表性大语料：恰好 `512` 字节 UTF-8
+  - 扩展回归语料：`513` 字节 UTF-8
 
 ## 成功 / 失败矩阵
 
@@ -92,15 +118,12 @@
 
 ## 当前门禁要求
 - `unit_tests`
-  - `flash/BFSK`：直接 `byte <-> PCM`、sample length、幅值范围、空输入与 snapshot。
-  - `wav_io`：`wav_io.h` header boundary 的多组 mono roundtrip contract 与缺失文件失败语义。
-  - `pro`：`bag.pro.codec` 的 ASCII payload/symbol encode/decode 与失败语义。
-  - `frame_codec`：`bag.transport.compat.frame_codec` 的成功路径与畸形帧失败语义。
+  - `wav_io.h` header boundary 的多组 mono roundtrip contract 与缺失文件失败语义。
 - `api_tests`
   - 三模式 roundtrip 必须通过。
   - `pro` 非 ASCII 必须返回 `BAG_INVALID_ARGUMENT`。
-  - `pro` 的 `171` ASCII 回归语料必须成功，证明不再继承 compat frame 限制。
-  - `ultra` 的 `513` UTF-8 回归语料必须成功，证明不再继承 compat frame 限制。
+  - `pro` 的 `171` ASCII 回归语料必须成功。
+  - `ultra` 的 `513` UTF-8 回归语料必须成功。
   - 解码结果的 `mode` 必须与配置一致。
 - `artifact_tests`
   - 三模式 direct/WAV roundtrip 必须通过。
@@ -113,10 +136,20 @@
   - `pro` 非 ASCII 失败提示必须包含 `ASCII`。
   - `pro` 的 extended ASCII 文本文件 roundtrip 必须通过。
   - `ultra` 的 extended UTF-8 文本文件 roundtrip 必须通过。
+  - 属于额外产品 smoke，不在默认 `verify` 最小集里。
 - `modules_phase0_smoke / modules_phase2_leaf_smoke / modules_phase3_mid_layer_smoke / modules_phase4_facade_pipeline_smoke / modules_phase10_internal_cutover`
   - 在默认 host modules 路径下属于正式门禁。
   - 用于验证基础模块、叶子模块、中层模块、facade/pipeline 汇聚层，以及当前 module-first 内部测试都可被直接 `import` 消费。
-  - 其中 `modules_phase2_leaf_smoke` 会继续锁定 `audio_io.wav` module boundary 的多组 roundtrip contract 与缺失文件失败语义。
+  - 其中 `modules_phase2_leaf_smoke` 继续承担：
+    - `audio_io.wav` 的多组 roundtrip 与缺失文件失败语义
+    - `bag.flash.phy_clean` 的 `byte <-> PCM`、sample length、幅值范围、空输入与 snapshot 覆盖
+    - `bag.pro.codec` 的 ASCII payload/symbol encode/decode 与失败语义覆盖
+    - `bag.transport.compat.frame_codec` 的成功路径、畸形帧失败语义与单帧长度上限覆盖
+
+## 当前 post-legacy 结论
+- `bag/legacy/**` 已从 `libs/audio_core/include/` 删除。
+- Android package-private `C++17` native exception 继续作为独立平台偏差跟踪，但不再与 legacy surface 耦合。
+- 当前 testing / verify 口径会同时阻止 legacy 路径回流与 direct legacy include token 回流。
 
 ## 可见测试音频产物
 - `ctest` 默认门禁不保留人工查看用的 WAV 产物。
@@ -137,5 +170,3 @@
 - Android 自动化测试不在这套正式分层内。
 - 本文档不定义抗干扰、噪声、同步搜索、FEC、重传、流式多帧等鲁棒性测试。
 - `build/test-artifacts/` 属于人工查看产物目录，不属于正式门禁输出。
-
-

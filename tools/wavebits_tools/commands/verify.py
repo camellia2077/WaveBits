@@ -40,13 +40,18 @@ VERIFY_CHECK_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ),
     (
         "compatibility",
-        "Guard the current compatibility surface, direct consumers, and retired outer headers.",
-        ("compatibility_includes", "direct_consumers", "retired_outer_headers"),
+        "Guard the current compatibility surface, reserved-interface declaration boundary, direct consumers, and retired outer headers.",
+        (
+            "compatibility_includes",
+            "direct_consumers",
+            "reserved_interface_boundary",
+            "retired_outer_headers",
+        ),
     ),
     (
         "retirement",
-        "Guard boundary-adjacent host wiring, retired wrappers, and legacy carve-out ownership.",
-        ("boundary_hosts", "retired_wrappers", "legacy_carve_outs"),
+        "Guard boundary-adjacent host wiring, retired wrappers, and post-legacy deleted surfaces.",
+        ("boundary_hosts", "retired_wrappers", "post_legacy_surfaces"),
     ),
 )
 
@@ -58,7 +63,6 @@ VERIFY_STATIC_CHECK_RUNNERS: tuple[tuple[str, Callable[[], None]], ...] = (
     ("compatibility", run_compatibility_policy_checks),
     ("retirement", run_retirement_policy_checks),
 )
-
 
 def _print_verify_banner(message: str) -> None:
     print(f"\n[verify] {message}", flush=True)
@@ -85,7 +89,6 @@ def run_verify_steps(
     generator: str,
     skip_android: bool,
     experimental_modules: bool,
-    no_modules: bool,
 ) -> None:
     run_verify_static_checks()
 
@@ -95,7 +98,6 @@ def run_verify_steps(
             build_dir=str(build_dir),
             generator=generator,
             experimental_modules=experimental_modules,
-            no_modules=no_modules,
         )
     )
 
@@ -107,7 +109,6 @@ def run_verify_steps(
             generator=generator,
             target=None,
             experimental_modules=experimental_modules,
-            no_modules=no_modules,
         )
     )
 
@@ -138,5 +139,4 @@ def cmd_verify(args: argparse.Namespace) -> None:
         generator=args.generator,
         skip_android=args.skip_android,
         experimental_modules=getattr(args, "experimental_modules", False),
-        no_modules=getattr(args, "no_modules", False),
     )

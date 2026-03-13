@@ -6,36 +6,33 @@
 #include <string>
 #include <vector>
 
-#include "bag/legacy/common/config.h"
-#include "bag/legacy/transport/decoder.h"
+#include "android_bag/common/config.h"
+#include "android_bag/transport/decoder.h"
 
-namespace bag::ultra {
+namespace bag::pro {
 
-struct Mfsk16Config {
-    std::array<double, 16> freqs_hz = {
-        1000.0, 1140.0, 1280.0, 1420.0,
-        1560.0, 1700.0, 1840.0, 1980.0,
-        2120.0, 2260.0, 2400.0, 2540.0,
-        2680.0, 2820.0, 2960.0, 3100.0};
+struct DualToneConfig {
+    std::array<double, 4> low_freqs_hz = {697.0, 770.0, 852.0, 941.0};
+    std::array<double, 4> high_freqs_hz = {1209.0, 1336.0, 1477.0, 1633.0};
     int sample_rate_hz = 44100;
     int symbol_samples = 2205;
     double amplitude = 0.8;
 };
 
-Mfsk16Config MakeMfsk16Config(const CoreConfig& config);
+DualToneConfig MakeDualToneConfig(const CoreConfig& config);
 
 ErrorCode EncodeSymbolsToPcm16(const std::vector<std::uint8_t>& symbols,
-                               const Mfsk16Config& config,
+                               const DualToneConfig& config,
                                std::vector<std::int16_t>* out_pcm);
 ErrorCode DecodePcm16ToSymbols(const std::vector<std::int16_t>& pcm,
-                               const Mfsk16Config& config,
+                               const DualToneConfig& config,
                                std::vector<std::uint8_t>* out_symbols);
 
 ErrorCode EncodePayloadToPcm16(const std::vector<std::uint8_t>& payload,
-                               const Mfsk16Config& config,
+                               const DualToneConfig& config,
                                std::vector<std::int16_t>* out_pcm);
 ErrorCode DecodePcm16ToPayload(const std::vector<std::int16_t>& pcm,
-                               const Mfsk16Config& config,
+                               const DualToneConfig& config,
                                std::vector<std::uint8_t>* out_payload);
 
 ErrorCode EncodeTextToPcm16(const CoreConfig& config,
@@ -46,4 +43,4 @@ ErrorCode DecodePcm16ToText(const CoreConfig& config,
                             std::string* out_text);
 std::unique_ptr<ITransportDecoder> CreateDecoder(const CoreConfig& config);
 
-}  // namespace bag::ultra
+}  // namespace bag::pro

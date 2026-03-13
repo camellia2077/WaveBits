@@ -3,8 +3,6 @@
 module;
 
 module bag.common.version;
-#else
-#include "bag/legacy/common/version.h"
 #endif
 #endif
 

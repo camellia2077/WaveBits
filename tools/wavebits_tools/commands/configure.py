@@ -9,8 +9,6 @@ from ..process import run
 
 
 def _resolve_host_modules_enabled(args: argparse.Namespace) -> bool:
-    if getattr(args, "no_modules", False):
-        return False
     if getattr(args, "experimental_modules", False):
         return True
     return True

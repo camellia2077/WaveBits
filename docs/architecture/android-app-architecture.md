@@ -1,6 +1,6 @@
 # Android App Architecture
 
-更新时间：2026-03-12
+更新时间：2026-03-13
 
 ## 目的
 - 说明 `apps/audio_android` 的整体职责、目录边界与运行链路。
@@ -58,13 +58,16 @@
 ### JNI / Native 层
 - 路径：
   - `apps/audio_android/app/src/main/cpp/`
+  - `apps/audio_android/native_package/`
 - 作用：
   - JNI 导出函数
   - Android native `CMake` 接线
+  - Android 专用 native packaging target
   - 调用稳定 C API：`bag_api.h`
 - 关键文件：
   - `jni_bridge.cpp`
   - `CMakeLists.txt`
+  - `native_package/CMakeLists.txt`
 
 ### 平台音频层
 - 路径：
@@ -79,7 +82,7 @@
 2. `AudioAndroidViewModel` 调用 `AudioCodecGateway`。
 3. `NativeAudioCodecGateway` 通过 `NativeBagBridge` 进入 JNI。
 4. `jni_bridge.cpp` 调用 `bag_api.h` 暴露的稳定 C API。
-5. `libs/audio_api` 再调用 `libs/audio_core` 内部实现。
+5. `apps/audio_android/native_package/` 提供 `bag_android_native`，在 Android 专用 packaging target 中编译 package-private wrapper 与 `android_bag/**` 私有声明层，不再直接 source-own `bag_api.cpp + 8` 个 `audio_core` 原始实现文件。
 6. 编码结果返回 Android 层后，可在 UI 中展示或交给 `AudioPlayer` 播放。
 
 ## 目录说明
@@ -89,6 +92,8 @@
   - Kotlin / Java 应用代码
 - `apps/audio_android/app/src/main/cpp/`
   - JNI 桥接与 Android native `CMake` 接线
+- `apps/audio_android/native_package/`
+  - Android native packaging target、package-private wrapper 与 `android_bag/**` 私有声明层
 - `apps/audio_android/app/src/main/res/`
   - Android 资源文件
 
@@ -100,6 +105,8 @@
   - `CMake 3.22.1`
   - `C++17`
   - `bag_api.h`
+  - `app/src/main/cpp/CMakeLists.txt -> native_package/CMakeLists.txt -> bag_android_native`
+  - `native_package/src/*.cpp -> android_bag/**`
 - 更详细的 native 策略见：
   - `docs/architecture/android-native-strategy.md`
 
@@ -127,6 +134,7 @@
 - 先看：
   - `app/src/main/cpp/jni_bridge.cpp`
   - `app/src/main/cpp/CMakeLists.txt`
+  - `native_package/CMakeLists.txt`
   - `libs/audio_api/include/bag_api.h`
 
 ### 改 Android 构建 / 导出

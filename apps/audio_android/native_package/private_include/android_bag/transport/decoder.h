@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bag/legacy/common/error_code.h"
-#include "bag/legacy/common/types.h"
+#include "android_bag/common/error_code.h"
+#include "android_bag/common/types.h"
 
 namespace bag {
 

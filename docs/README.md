@@ -14,6 +14,8 @@
   - 记录仓库结构、模块边界、文件地图与建议阅读顺序。
 - `docs/design/`
   - 记录模式设计、编码方式、协议/PHY 方向与实现口径。
+- `docs/notes/`
+  - 记录构建命令、release gate 与持续追踪清单。
 - `docs/core/`
   - 记录内核版本发布说明。
 - `docs/presentation/`
@@ -26,6 +28,14 @@
   - 记录测试分层、语料和验证口径。
 - `docs/future.md`
   - 记录未来规划与待做事项。
+
+## 持续门禁与追踪
+- 构建命令速记：
+  - `docs/notes/build-commands.md`
+- `legacy` 相关 release gate：
+  - `docs/notes/legacy-release-gates.md`
+- `legacy` 退休前置条件追踪：
+  - `docs/notes/legacy-retirement-preconditions.md`
 
 ## 常见任务应该看哪里
 - 改 `flash / pro / ultra` 模式实现

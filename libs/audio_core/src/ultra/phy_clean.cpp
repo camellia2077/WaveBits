@@ -17,13 +17,6 @@ import std;
 module bag.ultra.phy_clean;
 
 import bag.ultra.codec;
-#else
-#include "bag/legacy/ultra/phy_clean.h"
-
-#include <algorithm>
-#include <cmath>
-
-#include "bag/legacy/ultra/codec.h"
 #endif
 #endif
 

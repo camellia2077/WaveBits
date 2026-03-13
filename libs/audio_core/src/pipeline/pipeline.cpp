@@ -12,10 +12,6 @@ import std;
 module bag.pipeline;
 
 import bag.transport.facade;
-#else
-#include "bag/legacy/pipeline/pipeline.h"
-
-#include "bag/legacy/transport/transport.h"
 #endif
 #endif
 

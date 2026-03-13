@@ -6,8 +6,10 @@
 - 处理 `libs/` 下任何代码前，先阅读：
   - `docs/README.md`
   - `docs/architecture/repo-map.md`
+  - `docs/architecture/compatibility-layer-inventory.md`
   - `docs/design/transports.md`
   - `docs/testing.md`
+  - `docs/notes/legacy-retirement-preconditions.md`
 
 ## 扫描策略
 - 不要先全量扫描 `libs/audio_core/`。

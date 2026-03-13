@@ -1,21 +1,20 @@
-set(bag_core_sources
-    src/common/version.cpp
-    src/flash/codec.cpp
-    src/flash/phy_clean.cpp
-    src/pro/codec.cpp
-    src/pro/phy_clean.cpp
-    src/pro/phy_compat.cpp
-    src/transport/compat/frame_codec.cpp
-    src/transport/transport.cpp
-    src/ultra/codec.cpp
-    src/ultra/phy_clean.cpp
-    src/ultra/phy_compat.cpp
-    src/pipeline/pipeline.cpp
-)
+set(bag_core_sources)
 
 if(WAVEBITS_HOST_MODULES)
     list(APPEND bag_core_sources
+        src/common/version.cpp
+        src/flash/codec.cpp
+        src/flash/phy_clean.cpp
         src/fsk/fsk_codec.cpp
+        src/pro/codec.cpp
+        src/pro/phy_clean.cpp
+        src/pro/phy_compat.cpp
+        src/pipeline/pipeline.cpp
+        src/transport/compat/frame_codec.cpp
+        src/transport/transport.cpp
+        src/ultra/codec.cpp
+        src/ultra/phy_clean.cpp
+        src/ultra/phy_compat.cpp
     )
 endif()
 
@@ -41,14 +40,13 @@ add_library(bag_core STATIC
     ${bag_core_sources}
 )
 
-target_compile_features(bag_core PUBLIC cxx_std_17)
+target_compile_features(bag_core PUBLIC cxx_std_20)
 target_include_directories(bag_core
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 if(WAVEBITS_HOST_MODULES)
-    target_compile_features(bag_core PUBLIC cxx_std_20)
     target_sources(
         bag_core
         PUBLIC

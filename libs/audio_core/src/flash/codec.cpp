@@ -11,8 +11,6 @@ import std;
 #endif
 
 module bag.flash.codec;
-#else
-#include "bag/legacy/flash/codec.h"
 #endif
 #endif
 

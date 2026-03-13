@@ -6,8 +6,8 @@
 import bag.common.error_code;
 import bag.common.types;
 #else
-#include "bag/legacy/common/error_code.h"
-#include "bag/legacy/common/types.h"
+#include "bag/interface/common/error_code.h"
+#include "bag/interface/common/types.h"
 #endif
 
 namespace bag::pro {

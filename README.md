@@ -49,12 +49,14 @@
 - 推荐统一使用 `python tools/run.py <command>`。
 - 常用命令：
   - `python tools/run.py build --build-dir build/dev`
-  - `python tools/run.py verify --build-dir build/dev`
+  - `python tools/run.py verify --build-dir build/dev --skip-android`
+  - `python tools/run.py android native-debug`
   - `python tools/run.py android assemble-debug`
   - `python tools/run.py export-apk`
 - 约定：
-  - host 根目录 CMake 构建默认开启 `WAVEBITS_HOST_MODULES=ON`。
-  - 如需回退旧的 header 兼容路径，可显式使用 `python tools/run.py verify --build-dir build/legacy-host --skip-android --no-modules`。
+  - host 根目录 CMake 只支持 `WAVEBITS_HOST_MODULES=ON`；root host `OFF` 已退休。
+  - `python tools/run.py verify --build-dir build/dev --skip-android` 只验证 host 默认 modules 主路径。
+  - Android native 侧通过 `apps/audio_android/native_package -> bag_android_native` 独立装配；剩余 `C++17` 例外被限制在 package-private wrapper 与 `android_bag/**` 私有声明层。
   - `build/` 继续保留给 CMake / Gradle 的原生构建输出与测试产物。
   - 根目录 `dist/` 只存放 Python 导出的最终交付物；当前 Android APK 默认导出到 `dist/android/`。
 

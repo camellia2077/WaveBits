@@ -12,8 +12,6 @@ import std;
 #endif
 
 module bag.pro.codec;
-#else
-#include "bag/legacy/pro/codec.h"
 #endif
 #endif
 

@@ -17,12 +17,6 @@ module bag.transport.facade;
 import bag.flash.phy_clean;
 import bag.pro.phy_clean;
 import bag.ultra.phy_clean;
-#else
-#include "bag/legacy/transport/transport.h"
-
-#include "bag/legacy/flash/phy_clean.h"
-#include "bag/legacy/pro/phy_clean.h"
-#include "bag/legacy/ultra/phy_clean.h"
 #endif
 #endif
 

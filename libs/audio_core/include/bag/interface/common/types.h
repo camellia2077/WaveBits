@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "bag/legacy/common/config.h"
+#include "bag/interface/common/config.h"
 
 namespace bag {
 

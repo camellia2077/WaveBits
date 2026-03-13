@@ -29,16 +29,10 @@ def add_common_build_dir_argument(parser: argparse.ArgumentParser) -> None:
 
 
 def add_host_modules_arguments(parser: argparse.ArgumentParser) -> None:
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
+    parser.add_argument(
         "--experimental-modules",
         action="store_true",
         help="Compatibility alias for the default host modules path. Host builds already enable WAVEBITS_HOST_MODULES=ON by default.",
-    )
-    group.add_argument(
-        "--no-modules",
-        action="store_true",
-        help="Configure or auto-configure the host build with WAVEBITS_HOST_MODULES=OFF to use the legacy header-compatible path.",
     )
 
 

@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "bag/legacy/common/config.h"
-#include "bag/legacy/transport/decoder.h"
+#include "android_bag/common/config.h"
+#include "android_bag/transport/decoder.h"
 
 namespace bag::flash {
 

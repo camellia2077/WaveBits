@@ -16,24 +16,23 @@ get_filename_component(
 )
 
 add_subdirectory(
-    "${WAVEBITS_ROOT}/libs/audio_core"
-    "${CMAKE_CURRENT_BINARY_DIR}/deps/audio_core"
-)
-add_subdirectory(
-    "${WAVEBITS_ROOT}/libs/audio_api"
-    "${CMAKE_CURRENT_BINARY_DIR}/deps/audio_api"
+    "${WAVEBITS_ROOT}/apps/audio_android/native_package"
+    "${CMAKE_CURRENT_BINARY_DIR}/deps/native_package"
 )
 
 add_library(audio_android_jni SHARED
     jni_bridge.cpp
 )
+
+# Keep the app-side JNI target on the bag_api.h consumer boundary.
 target_include_directories(audio_android_jni
     PRIVATE
         "${WAVEBITS_ROOT}/libs/audio_api/include"
 )
+
 target_link_libraries(audio_android_jni
     PRIVATE
-        bag_api
+        bag_android_native
         android
         log
 )

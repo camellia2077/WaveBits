@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "bag/legacy/common/error_code.h"
+#include "android_bag/common/error_code.h"
 
 namespace bag::flash {
 

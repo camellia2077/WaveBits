@@ -16,12 +16,6 @@ module bag.pro.phy_compat;
 import bag.flash.phy_clean;
 import bag.pro.codec;
 import bag.transport.compat.frame_codec;
-#else
-#include "bag/legacy/pro/phy_compat.h"
-
-#include "bag/legacy/flash/phy_clean.h"
-#include "bag/legacy/pro/codec.h"
-#include "bag/legacy/transport/compat/frame_codec.h"
 #endif
 #endif
 

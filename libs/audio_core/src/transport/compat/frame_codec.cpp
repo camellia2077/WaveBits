@@ -11,8 +11,6 @@ import std;
 #endif
 
 module bag.transport.compat.frame_codec;
-#else
-#include "bag/legacy/transport/compat/frame_codec.h"
 #endif
 #endif
 

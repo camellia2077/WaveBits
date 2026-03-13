@@ -1,3 +1,4 @@
+#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
 #include "bag_api.h"
 
 #if defined(WAVEBITS_API_IMPORT_STD)
@@ -11,14 +12,9 @@ import std;
 #include <vector>
 #endif
 
-#if __cplusplus >= 202002L
 import bag.common.config;
 import bag.common.version;
 import bag.transport.facade;
-#else
-#include "bag/legacy/common/config.h"
-#include "bag/legacy/common/version.h"
-#include "bag/legacy/transport/transport.h"
 #endif
 
 struct bag_decoder {

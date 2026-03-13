@@ -12,8 +12,6 @@ import std;
 #endif
 
 module bag.ultra.codec;
-#else
-#include "bag/legacy/ultra/codec.h"
 #endif
 #endif
 

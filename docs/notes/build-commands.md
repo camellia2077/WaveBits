@@ -1,6 +1,6 @@
 # 编译命令速记
 
-更新时间：2026-03-11
+更新时间：2026-03-13
 
 ## 约定
 - 仓库根目录：`C:\code\WaveBits`
@@ -9,9 +9,10 @@
 - 推荐统一使用：`python tools/run.py <command>`
 - host 默认编译器：`clang++`
 
-## CMake 本地构建
+## Host 本地构建
 
-host 默认走 C++20 modules：
+### host 默认 modules 主路径
+- 默认走 `WAVEBITS_HOST_MODULES=ON`：
 
 ```powershell
 python tools/run.py configure --build-dir build/dev
@@ -19,53 +20,32 @@ python tools/run.py build --build-dir build/dev
 python tools/run.py test --build-dir build/dev
 ```
 
-如需显式回退旧的 header 兼容路径：
-
-```powershell
-python tools/run.py configure --build-dir build/legacy-host --no-modules
-python tools/run.py build --build-dir build/legacy-host
-python tools/run.py test --build-dir build/legacy-host
-```
+- root host `WAVEBITS_HOST_MODULES=OFF` 已退休。
 
 ## 一键验证
 
-```powershell
-python tools/run.py verify --build-dir build/dev
-```
-
-如需跳过 Android：
+### host 默认主路径
 
 ```powershell
 python tools/run.py verify --build-dir build/dev --skip-android
 ```
 
-如需验证 legacy header fallback：
+## Android 验证与编译
+
+### Android focused gate
 
 ```powershell
-python tools/run.py verify --build-dir build/legacy-host --skip-android --no-modules
-```
-
-## Android 编译
-
-Debug：
-
-```powershell
+python tools/run.py android native-debug
 python tools/run.py android assemble-debug
 ```
 
-Release：
+### Release
 
 ```powershell
 python tools/run.py android assemble-release
 ```
 
-只编原生部分：
-
-```powershell
-python tools/run.py android native-debug
-```
-
-如果改了 Gradle / CMake / 依赖，建议先清理再编：
+### 如需先清理再编
 
 ```powershell
 python tools/run.py android assemble-debug --clean

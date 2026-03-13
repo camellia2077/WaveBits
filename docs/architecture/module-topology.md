@@ -1,6 +1,6 @@
 # WaveBits Host Module Topology
 
-更新时间：2026-03-12
+更新时间：2026-03-13
 
 ## 目标
 - 说明 host 默认 modules 路径下的层级拓扑。
@@ -11,8 +11,8 @@
 - host 根目录 CMake 构建默认开启 `WAVEBITS_HOST_MODULES=ON`
 - `libs/` 内部新增实现默认应优先 `import` 已有 modules
 - 不再新增横向公开 `#include` 依赖来替代已存在的 module 边界
-- 如需排障或兼容回退，可显式使用 `--no-modules`
-- `--no-modules` 继续只作为 retirement baseline，不代表正式默认主路径
+- root host `WAVEBITS_HOST_MODULES=OFF` 已退休
+- `bag/legacy/**` 已删除，不是当前拓扑的一部分，也不是新代码入口
 
 ## 模块分层
 
@@ -57,15 +57,19 @@
 - `wav_io.h` 继续作为稳定文件 I/O 边界，不并入 compatibility-only 清理面
 - `audio_io.wav` 是 host 内部优先入口，但不是唯一入口
 
-## Compatibility Layer
-- `libs/audio_core/include/bag/legacy/**/*.h`
+## Interface Headers
+- `libs/audio_core/include/bag/interface/common/*.h`
 - `libs/audio_core/include/bag/link/*.h`
 - `libs/audio_core/include/bag/phy/**/*.h`
 
 这些头文件当前的职责是：
 - `audio_core` 主线 bridge 语义已经结束
-- legacy header fallback 与 Android native 需要的声明，优先通过 `bag/legacy/**` 提供
+- 预留接口头所需的 `C++17` common declarations 通过 `bag/interface/common/*` 提供，并按长期保留的 reserved-interface boundary 管理
 - `link/*` 与 `phy/*` 继续只是预留接口层，不属于当前主线 bridge surface
+- 主仓 `bag/internal/**` owner 已归零，不再保留现役 declaration layer
+- `link/*` 与 `phy/*` 的 `C++17` fallback 已切到 `bag/interface/common/*`
+- `bag/interface/common/*` 不进入 host-only `import std;` 扩面，也不建立 `bag.interface.*` module mirror
+- 已删除的 `bag/legacy/**` 不再出现在 include 树里；legacy 路径与 include token 回流都会被静态门禁阻止
 
 它们不是优先新增能力的主入口；新增内部实现应优先落在：
 - `libs/audio_core/modules/`
@@ -96,6 +100,7 @@
 - Android native `externalNativeBuild`
   - 入口：`apps/audio_android/app/src/main/cpp/CMakeLists.txt`
   - 约束：`CMake 3.22.1 + C++17`
+  - 当前通过 `bag_api.h` 作为边界消费方接入，并在 `native_package` 下使用 package-private wrapper / `android_bag/**` 私有声明层
 - `bag_api.h`
   - 原因：它是稳定 C ABI，不适合改成 module-only 对外接口
 - `wav_io.h`
@@ -108,7 +113,14 @@
 ## 推荐验证命令
 - 默认 host modules 路径：
   - `python tools/run.py verify --build-dir build/dev --skip-android`
-- legacy header fallback：
-  - `python tools/run.py verify --build-dir build/legacy-host --skip-android --no-modules`
-- Android Gradle 配置检查：
-  - `./gradlew :app:help`
+- Android focused gate：
+  - `python tools/run.py android native-debug`
+  - `python tools/run.py android assemble-debug`
+
+## 当前 legacy 政策摘要
+- host 默认 modules 路径是正式主路径。
+- root host `WAVEBITS_HOST_MODULES=OFF` 已退休。
+- Android 是受支持例外路径，但不是 `bag/legacy/**` 的直接 consumer。
+- 主仓 `bag/internal/**` owner 已归零。
+- 预留接口头当前独立使用 `bag/interface/common/*` declaration layer；这层按长期保留的 internal boundary 管理。
+- `bag/legacy/**` 已删除；任何 legacy include 或路径回流都视为 regression。
