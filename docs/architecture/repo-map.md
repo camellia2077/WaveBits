@@ -1,6 +1,6 @@
 # 仓库结构与文件地图
 
-更新时间：2026-03-14
+更新时间：2026-03-15
 
 ## 目标
 这份文档用于快速回答两个问题：
@@ -11,7 +11,7 @@
 - 仓库根目录
   - 统一入口，包含 `CMakeLists.txt`、`tools/run.py`、Android `Gradle` root 与 CI/workflow。
 - `libs/`
-  - 共享库主区，包含 `audio_core`、`audio_api`、`audio_io`。
+  - 共享库主区，包含 `audio_core`、`audio_api`、`audio_io`、`audio_runtime`。
 - `apps/`
   - 平台表现层与集成，目前主要是 `audio_cli`、`audio_android`。
 - `Test/`
@@ -46,17 +46,30 @@
   - `bag_api.cpp` 的主仓实现已切到 modules-only host 形态
 
 ### `libs/audio_io`
-- 作用：WAV 读写与文件 I/O 边界。
+- 作用：WAV 读写边界，统一承接 `wav bytes <-> mono PCM16` 与 `path <-> WAV 文件`。
 - 最常先看的文件：
   - `libs/audio_io/modules/audio_io/wav.cppm`
   - `libs/audio_io/modules/audio_io/wav_impl.cpp`
   - `libs/audio_io/include/wav_io.h`
   - `libs/audio_io/src/wav_io.cpp`
+  - `libs/audio_io/src/wav_io_backend.h`
   - `libs/audio_io/src/wav_io_backend.cpp`
 - 当前边界：
-  - `wav_io.h` 是长期保留 header boundary
+  - `wav_io.h` 是长期保留 header boundary，同时对外暴露 bytes-based 与 path-based WAV 能力
   - `audio_io.wav` 是 host 内部优先入口
-  - `sndfile` 只允许停留在 `wav_io_backend.cpp`
+  - Android 如需复用 WAV bytes 逻辑，应通过 `native_package` 私有 wrapper 间接接入
+  - `sndfile` include token 只允许停留在 `wav_io_backend.cpp`
+
+### `libs/audio_runtime`
+- 作用：平台无关的播放会话状态机、样本位置/时间换算、seek 语义。
+- 最常先看的文件：
+  - `libs/audio_runtime/include/audio_runtime.h`
+  - `libs/audio_runtime/src/audio_runtime.cpp`
+  - `libs/audio_runtime/src/audio_runtime_impl.inc`
+- 当前边界：
+  - `audio_runtime.h` 是独立于 `bag_api.h` 的播放运行时边界
+  - 只承接纯状态迁移与纯计算，不承接 Android `AudioTrack`、UI 文案或编解码 API
+  - Android 当前通过独立 playback runtime JNI bridge 消费，不和 `jni_bridge.cpp` 混职责
 
 ## `audio_core` 模块级地图
 
@@ -146,9 +159,9 @@
 - Android native：
   - `apps/audio_android/app/src/main/cpp/CMakeLists.txt`
   - `apps/audio_android/native_package/CMakeLists.txt`
-  - 使用 `CMake 4.1.2 + C++23 + bag_api.h`
+  - 使用 `CMake 4.1.2 + C++23 + bag_api.h + audio_runtime.h + package-private audio_io wrapper`
   - app `CMake` 只链接 `bag_android_native`
-  - native package 只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层
+  - native package 只编译 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层
 - 对外 C ABI：
   - `libs/audio_api/include/bag_api.h` 不会改成 module-only 接口
 - 对外文件 I/O 边界：
@@ -200,6 +213,17 @@
   - `apps/audio_cli/windows/src/main.cpp`
   - `apps/audio_android/app/src/main/cpp/jni_bridge.cpp`
 
+### 改播放会话 runtime / seek 语义
+- 先看：
+  - `libs/audio_runtime/include/audio_runtime.h`
+  - `libs/audio_runtime/src/audio_runtime.cpp`
+  - `Test/runtime/runtime_tests.cpp`
+- Android 集成再看：
+  - `apps/audio_android/app/src/main/cpp/playback_runtime_jni.cpp`
+  - `apps/audio_android/app/src/main/java/com/bag/audioandroid/domain/PlaybackRuntimeGateway.kt`
+  - `apps/audio_android/app/src/main/java/com/bag/audioandroid/audio/AudioPlaybackCoordinator.kt`
+  - `apps/audio_android/app/src/main/java/com/bag/audioandroid/audio/AudioPlayer.kt`
+
 ### 改 Android Gradle / Studio 导入 / 构建编排
 - 先看：
   - `settings.gradle.kts`
@@ -220,6 +244,7 @@
   - `libs/audio_io/modules/audio_io/wav_impl.cpp`
   - `libs/audio_io/include/wav_io.h`
   - `libs/audio_io/src/wav_io.cpp`
+  - `libs/audio_io/src/wav_io_backend.h`
   - `libs/audio_io/src/wav_io_backend.cpp`
 - 再看：
   - `Test/unit/unit_tests.cpp`
@@ -227,7 +252,7 @@
 
 ## 测试地图
 - `Test/unit/`
-  - `wav_io.h` header-boundary smoke
+  - `wav_io.h` header-boundary smoke 与 bytes parse/serialize contract
 - `Test/api/`
   - C API 契约与错误语义
 - `Test/artifact/`

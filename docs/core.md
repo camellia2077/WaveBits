@@ -1,17 +1,17 @@
 # Audio Core 现状
 
-更新时间：2026-03-14
+更新时间：2026-03-15
 
 ## 版本更新说明
-- [v0.3.3](./core/v0.3.3.md)
-- [v0.3.2](./core/v0.3.2.md)
-- [v0.3.1](./core/v0.3.1.md)
-- [v0.3.0](./core/v0.3.0.md)
-- [v0.2.2](./core/v0.2.2.md)
-- [v0.2.1](./core/v0.2.1.md)
-- [v0.2.0](./core/v0.2.0.md)
-- [v0.1.1](./core/v0.1.1.md)
-- [v0.1.0](./core/v0.1.0.md)
+- [v0.3.3](./core/v0.3/v0.3.3.md)
+- [v0.3.2](./core/v0.3/v0.3.2.md)
+- [v0.3.1](./core/v0.3/v0.3.1.md)
+- [v0.3.0](./core/v0.3/v0.3.0.md)
+- [v0.2.2](./core/v0.2/v0.2.2.md)
+- [v0.2.1](./core/v0.2/v0.2.1.md)
+- [v0.2.0](./core/v0.2/v0.2.0.md)
+- [v0.1.1](./core/v0.1/v0.1.1.md)
+- [v0.1.0](./core/v0.1/v0.1.0.md)
 
 ## 相关文档
 - [文档索引](./README.md)
@@ -35,9 +35,9 @@
 - `libs/audio_api`
   - `bag_api.h` 继续作为稳定 C ABI；`bag_api.cpp` 的主仓实现已切到 modules-only host 形态，并已纳入当前 host-side `import std;` required baseline。
 - `apps/audio_android/native_package`
-  - Android 专用 packaging lane；当前通过 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层隔离剩余 Android 平台例外，并已固定到 Android `C++23` native baseline。
+  - Android 专用 packaging lane；当前通过 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层隔离剩余 Android 平台例外，并已固定到 Android `C++23` native baseline。
 - `libs/audio_io`
-  - `audio_io.wav` + `wav_io.h` 的双入口文件 I/O 边界；内部优先走 module front-end，但稳定 header boundary 与 third-party backend 不强推成 pure module。
+  - `audio_io.wav` + `wav_io.h` 的双入口 WAV 边界；同时承接“内存 bytes <-> mono PCM16 WAV”和“文件路径 <-> WAV 文件”两类能力，内部优先走 module front-end，但稳定 header boundary 与 backend containment 不强推成 pure module。
 
 ## 当前 `module-first` 程度
 1. 对 host 主线来说，当前已经是“明确的 `module-first`”，而不是“module 只是可选实验路径”。
@@ -68,6 +68,11 @@
    - `bag_reset`
    - `bag_destroy_decoder`
    - `bag_core_version`
+7. 稳定 WAV 边界能力：
+   - `SerializeMonoPcm16Wav`
+   - `ParseMonoPcm16Wav`
+   - `WriteMonoPcm16Wav`
+   - `ReadMonoPcm16Wav`
 
 ## 当前边界
 1. host 默认路径就是 named modules 主路径。
@@ -88,14 +93,16 @@
    - `libs/audio_io/src/wav_io.cpp`
    - `libs/audio_io/src/wav_io_backend.h`
    - `libs/audio_io/src/wav_io_backend.cpp`
+   - `libs/audio_io/src/wav_io_bytes_impl.inc`
 2. `audio_io.wav` 已经是 host 内部优先入口，所以 `audio_io` 已经纳入当前 `module-first` 主线。
 3. 没有继续强推成 pure module，主要是因为：
-   - `wav_io.h` 需要继续承担稳定文件 I/O 边界
-   - `wav_io_backend.cpp` 是 `sndfile` third-party C 边界的唯一 owner
-   - backend declaration 需要保持在适合 global-fragment / include-based 的位置，避免把第三方依赖直接抬进 exported module interface
+   - `wav_io.h` 需要继续承担稳定的 header boundary，同时对外暴露文件路径和内存 bytes 两类能力
+   - Android 需要复用同一套 WAV bytes 逻辑，但又不能直接公开依赖 `audio_io/include`
+   - `wav_io_backend.cpp` 仍是唯一批准的 backend owner / third-party containment 位置
+   - backend declaration 需要保持在适合 global-fragment / include-based 的位置，避免把 backend 细节直接抬进 exported module interface
 4. 当前设计目标不是“让 `audio_io` 看起来 100% module-only”，而是：
    - 让 host 内部消费优先走 `audio_io.wav`
-   - 同时把稳定 header boundary 和 third-party backend containment 维持在清晰、可控的位置
+   - 同时把稳定 header boundary、WAV bytes 纯逻辑和 backend containment 维持在清晰、可控的位置
 
 ## host-side `import std;` required baseline
 - 当前 required baseline 覆盖：
@@ -153,21 +160,29 @@
 
 ## 模式实现与编码
 
+### 字符集规则
+- `flash`
+  - 不限字符集，输入按原始字节处理。
+- `pro`
+  - 仅允许 ASCII。
+- `ultra`
+  - 面向 UTF-8 文本，输入按 UTF-8 byte 处理。
+
 ### `flash`
 - 定位：娱乐化、强调仪式感与二进制氛围的原始直通模式。
-- 信息层：输入文本直接按原始字节处理；当前实现对 `std::string` 中的 UTF-8 字节不做额外协议封装。
+- 信息层：输入文本直接按原始字节处理；不限字符集，当前实现对 `std::string` 中的 UTF-8 字节不做额外协议封装。
 - 编码方式：每个 bit 映射为一段固定时长的 `BFSK`，`0` 使用低频、`1` 使用高频。
 - 结构特征：`1 byte = 8 bit symbol`，无帧头、无校验、无长度字段。
 
 ### `pro`
 - 定位：ASCII-only 的正式模式。
-- 信息层：输入必须为 ASCII 文本；文本先转为 ASCII byte。
+- 信息层：输入必须为 ASCII 文本；文本先转为 ASCII byte；任何非 ASCII 输入都应拒绝。
 - 编码方式：每个 byte 拆成高 4 bit 和低 4 bit；每个 nibble 映射为一个 `DTMF-like` 双音 symbol。
 - 结构特征：`1 byte = 2 symbol`；每个 symbol 同时包含一组低频和一组高频，不使用额外 frame/CRC。
 
 ### `ultra`
 - 定位：面向 UTF-8 文本字节忠实传输的正式模式。
-- 信息层：输入文本直接按 UTF-8 byte 处理，不额外做人类语义转换。
+- 信息层：输入文本直接按 UTF-8 byte 处理，不额外做人类语义转换，也不沿用 `pro` 的 ASCII-only 约束。
 - 编码方式：每个 byte 拆成两个 nibble；每个 nibble 映射到 `16-FSK` 的一个固定频点。
 - 结构特征：`1 byte = 2 symbol`；每个 symbol 只发一个频点。
 
@@ -180,5 +195,5 @@
 
 ## 对外集成建议
 1. Android、Windows 等平台继续通过 `bag_api.h` 调用 core，不直接依赖内部 modules。
-2. 文件 I/O 继续通过 `wav_io.h` / `audio_io.wav` 承接，不把平台壳层拉进内部实现细节。
+2. WAV 读写继续通过 `wav_io.h` / `audio_io.wav` 承接，不把平台壳层拉进内部实现细节；Android 若需要 `wav <-> pcm bytes`，应继续通过 native package 私有 wrapper 间接消费，而不是直接暴露 `audio_io/include`。
 3. 新能力优先加在 `audio_core` modules 与对应 implementation units，平台层继续保持壳层职责。

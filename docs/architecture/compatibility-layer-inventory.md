@@ -1,6 +1,6 @@
 # Compatibility Layer Inventory
 
-更新时间：2026-03-14
+更新时间：2026-03-15
 
 ## 目标
 - 盘点当前仍保留在 `include/` 下的公开头文件。
@@ -22,7 +22,7 @@
 
 ### `libs/audio_io/include/wav_io.h`
 - 类型：长期保留
-- 作用：WAV / 文件 I/O 边界
+- 作用：WAV 边界，统一承接内存 bytes 与文件路径两类读写能力
 - 允许消费端：
   - CLI
   - 测试
@@ -31,8 +31,21 @@
   - `audio_io.wav` 已存在，并且已经是 host 内部优先入口；`audio_io` 不是“没走 modules”
   - 但 `audio_io` 的目标是 `module-first`，不是把文件 I/O 边界和 third-party backend owner 也硬收成 pure module
   - 因此 `wav_io.h` 继续作为稳定 header boundary 保留
-  - 当前 shared-header implementation chain 已退休；真正的 `sndfile` / 文件系统 owner 收回到 `libs/audio_io/src/wav_io_backend.cpp`
+  - 当前 shared-header implementation chain 已退休；bytes-based WAV 逻辑和 path-based wrapper 统一收口在 `audio_io` 自己的 backend/front-end 里
+  - `sndfile.h` 的 include token 仍只允许停留在 `libs/audio_io/src/wav_io_backend.cpp`
   - `wav_io.h` 现在只保留稳定声明，不再承担 module/header 双入口共享实现
+
+### `libs/audio_runtime/include/audio_runtime.h`
+- 类型：长期保留
+- 作用：播放运行时边界
+- 允许消费端：
+  - Android playback JNI bridge
+  - 测试
+  - 未来其他表现层 / 平台播放后端适配层
+- 说明：
+  - 这是独立于 `bag_api.h` 的播放会话边界，不并入编解码 ABI
+  - 只承接平台无关的播放状态迁移、样本位置换算与时间计算
+  - 不承接 `AudioTrack`、Compose/UI 文案或平台播放后端 owner
 
 ## 当前 `audio_core` 兼容层结论
 - `audio_core` 面向 host / Android / no-modules 的 shared bridge headers 已完成退休。
@@ -133,10 +146,14 @@
 ### Android JNI
 - 文件：
   - `apps/audio_android/app/src/main/cpp/jni_bridge.cpp`
+  - `apps/audio_android/app/src/main/cpp/audio_io_jni.cpp`
+  - `apps/audio_android/app/src/main/cpp/playback_runtime_jni.cpp`
   - `apps/audio_android/app/src/main/cpp/CMakeLists.txt`
   - `apps/audio_android/native_package/CMakeLists.txt`
 - 当前 allowed surface：
   - `bag_api.h`
+  - `audio_runtime.h`
+  - `apps/audio_android/native_package/private_include/android_audio_io/**`
 - 当前不允许：
   - 直接 `#include "bag/..."`
   - 直接 `#include "bag/legacy/..."`
@@ -144,9 +161,10 @@
   - 直接依赖 `audio_io/include`
   - 直接 `import bag.*`
 - 说明：
-  - Android 当前是 `bag_api.h` 的边界消费方，不是 `bag/legacy/**` 的直接 owner
+  - Android 当前分别通过 `bag_api.h` 消费编解码 ABI，通过 `audio_runtime.h` 消费播放运行时 ABI，通过 package-private `audio_io` wrapper 消费 WAV bytes 边界
+  - Android 不是 `bag/legacy/**` 的直接 owner
   - Android app `CMake` 当前只消费 `native_package -> bag_android_native`
-  - Android native package 现在只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层，不再直接 source-own 主仓原始实现文件
+  - Android native package 现在只编译 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层，不再直接 source-own 主仓原始实现文件
 
 ### Host tests
 - 文件：

@@ -22,3 +22,7 @@
 
 - Android 官方 `Gradle` 入口固定在仓库根目录，不在 `apps/audio_android/`。
 - Android Studio / IntelliJ 应直接打开仓库根目录，而不是单独打开 `apps/audio_android/`。
+- Android XML 多语言当前以 `app/src/main/res/values/strings.xml` 为英文基线，中文与日语分别位于：
+  - `app/src/main/res/values-zh/strings.xml`
+  - `app/src/main/res/values-ja/strings.xml`
+- 新增或修改可见 XML 文案时，需要同步更新以上三个目录，避免语言版本漂移。

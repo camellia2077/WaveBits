@@ -4,6 +4,7 @@
 - `audio_core`
 - `audio_api`
 - `audio_io`
+- `audio_runtime`
 
 在查看或修改 `libs/` 下代码前，优先先看文档，不要先递归扫描整个目录：
 - `docs/README.md`
@@ -16,3 +17,7 @@
 如果只是改某个 mode：
 - `flash` / `pro` / `ultra` 的设计与入口位置，优先看 `docs/design/transports.md`
 - 具体文件地图，优先看 `docs/architecture/repo-map.md`
+
+如果是改播放会话 / seek / 样本位置与时间换算：
+- 优先看 `libs/audio_runtime/include/audio_runtime.h`
+- 实现入口看 `libs/audio_runtime/src/audio_runtime.cpp`

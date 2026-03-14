@@ -1,10 +1,10 @@
 # WaveBits 测试说明
 
-更新时间：2026-03-14
+更新时间：2026-03-15
 
 ## 测试分层
 - `unit`
-  - `wav_io.h` header-boundary smoke 与缺失文件失败语义。
+  - `wav_io.h` header-boundary smoke、bytes roundtrip 与非法/不支持 WAV 失败语义。
 - `api contract`
   - `bag_api` 的 C ABI、错误语义、mode 透传与校验规则。
 - `artifact roundtrip`
@@ -29,8 +29,8 @@
   - `python tools/run.py android assemble-debug`
 - 当前含义：
   - Android 通过 `apps/audio_android/native_package/CMakeLists.txt -> bag_android_native` 独立装配
-  - Android JNI 继续只消费 `bag_api.h`
-  - Android native package 当前只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层
+  - Android JNI 编解码继续消费 `bag_api.h`，播放运行时消费 `audio_runtime.h`，WAV bytes 能力消费 package-private `audio_io` wrapper
+  - Android native package 当前只编译 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层
 
 ### Host 支持政策
 - host 根目录当前只保留一条正式主线：
@@ -75,7 +75,7 @@
 ## 为什么必须按模式分开测试
 三种模式共用部分底层链路，但业务语义不同，不能用同一套文本机械套用：
 - `flash`
-  - 原始直通模式，重点验证 clean raw-byte 语义。
+  - 不限字符集的原始直通模式，重点验证 clean raw-byte 语义。
 - `pro`
   - ASCII-only 正式模式，文本先转 ASCII byte，再按 nibble 进入 `DTMF-like` 双音 clean PHY。
 - `ultra`
@@ -85,6 +85,17 @@
 - 模式本身的成功语义
 - 模式特有的失败语义
 - 不同模式下的文本边界
+
+## 字符集规则
+- `flash`
+  - 不限字符集。
+  - 测试上应覆盖 ASCII 与中文 / emoji / 混合 UTF-8。
+- `pro`
+  - 仅允许 ASCII。
+  - 任何非 ASCII 文本都应走失败语义。
+- `ultra`
+  - 面向 UTF-8 文本。
+  - 测试上应覆盖 ASCII、中文、emoji 与混合 UTF-8。
 
 ## 正式测试语料
 
@@ -119,13 +130,13 @@
 
 | 模式 | ASCII | 中文 / Emoji / 混合 UTF-8 | 代表长文本 | 模式特有失败 |
 | --- | --- | --- | --- | --- |
-| `flash` | 必须成功 | 必须成功 | 可直接跑 UTF-8 长文本 | 暂无模式专属失败语义 |
+| `flash` | 必须成功 | 必须成功 | 可直接跑 UTF-8 长文本 | 不限字符集，暂无模式专属失败语义 |
 | `pro` | 必须成功 | 必须失败 | `170` / `171` ASCII 字符都应成功 | 非 ASCII 必须失败 |
 | `ultra` | 必须成功 | 必须成功 | `512` / `513` UTF-8 字节都应成功 | 暂无模式专属长度失败语义 |
 
 ## 当前门禁要求
 - `unit_tests`
-  - `wav_io.h` header boundary 的多组 mono roundtrip contract 与缺失文件失败语义。
+  - `wav_io.h` header boundary 的多组 mono roundtrip contract、bytes roundtrip、缺失文件失败语义，以及 invalid header / unsupported format 的失败语义。
 - `api_tests`
   - 三模式 roundtrip 必须通过。
   - `pro` 非 ASCII 必须返回 `BAG_INVALID_ARGUMENT`。
@@ -148,7 +159,7 @@
   - 在默认 host modules 路径下属于正式门禁。
   - 用于验证基础模块、叶子模块、中层模块、facade/pipeline 汇聚层，以及当前 module-first 内部测试都可被直接 `import` 消费。
   - 其中 `modules_phase2_leaf_smoke` 继续承担：
-    - `audio_io.wav` 的多组 roundtrip 与缺失文件失败语义
+    - `audio_io.wav` 的多组 roundtrip、bytes roundtrip 与 invalid header 失败语义
     - `bag.flash.phy_clean` 的 `byte <-> PCM`、sample length、幅值范围、空输入与 snapshot 覆盖
     - `bag.pro.codec` 的 ASCII payload/symbol encode/decode 与失败语义覆盖
     - `bag.transport.compat.frame_codec` 的成功路径、畸形帧失败语义与单帧长度上限覆盖

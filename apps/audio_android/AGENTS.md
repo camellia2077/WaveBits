@@ -2,6 +2,10 @@
 
 - `apps/audio_android` 只存放 Android 模块源码，不作为独立 `Gradle` root 使用。
 - Android 官方 `Gradle` 入口固定在仓库根目录 `C:\code\WaveBits`。
+- 修改 `app/src/main/res/values/strings.xml` 中的可见文案时，必须同步检查并更新：
+  - `app/src/main/res/values-zh/strings.xml`
+  - `app/src/main/res/values-ja/strings.xml`
+- 新增 XML 文案 key 时，不允许只落在单一语言目录；基线 `values`、中文 `values-zh`、日语 `values-ja` 需要一起补齐。
 - 修改 `apps/audio_android` 下的代码后，最小验证优先运行：
   - Windows: `.\gradlew.bat :app:assembleDebug`
   - macOS/Linux: `./gradlew :app:assembleDebug`

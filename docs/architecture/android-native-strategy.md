@@ -1,12 +1,12 @@
 # Android Native Strategy
 
-更新时间：2026-03-14
+更新时间：2026-03-15
 
 ## 当前固定路线
 - Android native 当前固定继续使用：
-  - `externalNativeBuild + CMake 4.1.2 + C++23 + bag_api.h`
+  - `externalNativeBuild + CMake 4.1.2 + C++23 + bag_api.h + audio_runtime.h + package-private audio_io wrapper`
   - app `CMake` 通过 `apps/audio_android/native_package/` 消费 `bag_android_native`
-- `native_package` 当前只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层，不再直接 source-own `bag_api.cpp + 8` 个 `audio_core` 原始实现文件
+- `native_package` 当前只编译 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层，不再直接 source-own 主仓原始实现文件
 - 这条路线是当前长期例外路径，不属于 host modules 主路径的一部分。
 - 当前不把 Android native 直接并入 named modules 迁移主线。
 
@@ -30,12 +30,15 @@
   - `docs/notes/android-ndk-cmake-upgrade-decision.md`
 
 ## 现阶段的硬规则
-- Android JNI 源码只通过 `bag_api.h` 访问内核能力
+- Android JNI 编解码能力继续通过 `bag_api.h` 访问
+- Android JNI 播放运行时能力继续通过 `audio_runtime.h` 访问
+- Android JNI 的 WAV bytes 能力只通过 `native_package` 私有 `audio_io` wrapper 访问
 - Android JNI 不直接 `#include "bag/..."`
 - Android JNI 不直接 `import bag.*`
 - Android app `CMake` 不再直接 `add_subdirectory(libs/audio_core)` 或 `add_subdirectory(libs/audio_api)`
 - Android native packaging target 不直接对 app 暴露 `audio_core/include` 或 `audio_io/include`
 - Android native packaging target 不直接编译 repo 原始 `bag_api.cpp + audio_core/src/*.cpp` source list
+- Android app 层不直接 `#include "wav_io.h"`；如需 `wav <-> pcm` 逻辑，必须经由 package-private wrapper
 
 ## 为什么当前不直接切 Android modules
 - Android `externalNativeBuild` 当前已固定到 `CMake 4.1.2 + C++23`，但这只解决 app-side native baseline，不等于 Android 已具备 host named modules 工作流
@@ -49,7 +52,7 @@
   - named modules
 - Android 不直接跟随这条主路径推进：
   - 不直接 `import bag.*`
-  - app JNI 只消费 `bag_android_native -> bag_api.h`
+  - app JNI 只消费 `bag_android_native -> bag_api.h / audio_runtime.h / package-private audio_io wrapper`
   - 不直接暴露 `audio_core/include`
   - 不直接暴露 `audio_io/include`
 - 这两条路线当前是明确分开的，而不是“暂时混用、以后再决定”。

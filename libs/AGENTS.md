@@ -28,3 +28,5 @@
   - API 入口：`libs/audio_api/src/bag_api.cpp`
 - `audio_io`
   - I/O 入口：`libs/audio_io/src/wav_io.cpp`
+- `audio_runtime`
+  - 播放运行时入口：`libs/audio_runtime/src/audio_runtime.cpp`

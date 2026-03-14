@@ -8,6 +8,10 @@
   - `docs/design/transports.md`
   - `docs/testing.md`
 - 若只想快速定位文件，不要先全量扫描 `libs/`，先按上面的索引文档跳到对应模块。
+- 模式字符集速记：
+  - `flash` 不限字符集
+  - `pro` 仅允许 ASCII
+  - `ultra` 面向 UTF-8
 
 ## 文档分层
 - `docs/architecture/`

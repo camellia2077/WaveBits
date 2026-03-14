@@ -1,6 +1,6 @@
 # WaveBits Host Module Topology
 
-更新时间：2026-03-14
+更新时间：2026-03-15
 
 ## 目标
 - 说明 host 默认 modules 路径下的层级拓扑。
@@ -98,19 +98,25 @@
   - `libs/audio_io/modules/audio_io/wav_impl.cpp`
 - header front-end：
   - `libs/audio_io/src/wav_io.cpp`
+- shared bytes implementation：
+  - `libs/audio_io/src/wav_io_bytes_impl.inc`
 - private backend：
   - `libs/audio_io/src/wav_io_backend.h`
   - `libs/audio_io/src/wav_io_backend.cpp`
 
 当前语义：
+ - `wav_io.h` / `audio_io.wav` 对外同时暴露两类能力：
+   - `wav bytes <-> mono PCM16`
+   - `path <-> WAV 文件`
 - `wav.cppm` 与 `wav_impl.cpp` 的当前 host 路径已纳入 host-side `import std;` required baseline
 - `wav_io.cpp` 继续保留为稳定 header boundary wrapper，不强收进当前 import-std baseline
-- `wav_io_backend.cpp` 继续保持 include-based，因为它是 `sndfile.h` 的唯一 owner
+- `wav_io_backend.cpp` 继续保持 include-based，因为它是 backend owner 与 `sndfile.h` include token 的唯一批准位置
 - `sndfile` third-party C 边界不进入 exported module interface，也不进入 `wav_io.h`
 - `audio_io` 因此不是“未模块化”，而是“只把适合进入 host 主线的 front-end 模块化”
 - `audio_io.wav` 是 host 内部优先入口，但 `wav_io.h` 继续保留为稳定 header boundary
 - 当前不把 `audio_io` 强收成 pure module，是为了同时满足：
   - host 内部消费优先走 module
+  - Android 可通过 package-private wrapper 复用同一套 WAV bytes 逻辑
   - 文件 I/O 对外边界保持稳定
   - third-party/backend owner 继续被限制在 private include-based surface
 
@@ -150,7 +156,7 @@
 - Android native `externalNativeBuild`
   - 入口：`apps/audio_android/app/src/main/cpp/CMakeLists.txt`
   - 约束：`CMake 4.1.2 + C++23`
-  - 当前通过 `bag_api.h` 作为边界消费方接入，并在 `native_package` 下使用 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层
+  - 当前通过 `bag_api.h`、`audio_runtime.h` 和 package-private `audio_io` wrapper 作为边界消费方接入，并在 `native_package` 下使用 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层
 - `bag_api.h`
   - 原因：它是稳定 C ABI，不适合改成 module-only 对外接口
 - `wav_io.h`
