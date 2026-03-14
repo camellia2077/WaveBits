@@ -1,5 +1,7 @@
 #pragma once
 
+#include "bag/common/version_generated.h"
+
 #if !defined(WAVEBITS_TEST_IMPORT_STD)
 #include <string>
 #include <vector>
@@ -101,6 +103,6 @@ inline std::string BuildTooLongUltraCorpus() {
     return text;
 }
 
-inline constexpr char kExpectedCoreVersion[] = "0.3.1";
+inline constexpr char kExpectedCoreVersion[] = WAVEBITS_CORE_VERSION_TEXT;
 
 }  // namespace test

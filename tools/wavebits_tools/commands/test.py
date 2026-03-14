@@ -9,7 +9,7 @@ from typing import Any
 
 from ..artifacts import test_artifacts_root, unique_directory, write_json, write_utf8
 from ..constants import ROOT_DIR
-from ..paths import resolve_build_dir
+from ..paths import configured_build_config, resolve_build_dir
 from ..process import quote, run_capture_streaming
 
 
@@ -138,6 +138,9 @@ def _build_log_content(
 def cmd_test(args: argparse.Namespace) -> None:
     build_dir = resolve_build_dir(args.build_dir)
     command = ["ctest", "--test-dir", str(build_dir)]
+    configured_build = configured_build_config(build_dir)
+    if configured_build:
+        command.extend(["-C", configured_build])
     if args.output_on_failure:
         command.append("--output-on-failure")
     if args.tests_regex:

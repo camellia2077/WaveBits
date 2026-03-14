@@ -1,18 +1,18 @@
 # 编译命令速记
 
-更新时间：2026-03-13
+更新时间：2026-03-14
 
 ## 约定
 - 仓库根目录：`C:\code\WaveBits`
 - `build/` 只保留 CMake / Gradle 的原生构建输出与测试产物
 - `dist/` 只保留 Python 复制出的最终导出物
 - 推荐统一使用：`python tools/run.py <command>`
-- host 默认编译器：`clang++`
+- host 唯一正式主线：`clang++ + Ninja + build/dev`
 
 ## Host 本地构建
 
 ### host 默认 modules 主路径
-- 默认走 `WAVEBITS_HOST_MODULES=ON`：
+- 默认直接走当前唯一受支持 host 主线：
 
 ```powershell
 python tools/run.py configure --build-dir build/dev
@@ -20,7 +20,7 @@ python tools/run.py build --build-dir build/dev
 python tools/run.py test --build-dir build/dev
 ```
 
-- root host `WAVEBITS_HOST_MODULES=OFF` 已退休。
+- root host 不再名义支持 GNU / MSVC / Visual Studio / Ninja Multi-Config 组合。
 
 ## 一键验证
 

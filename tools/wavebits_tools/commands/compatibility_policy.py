@@ -22,17 +22,17 @@ _PHASE15_CONSUMER_RULES: dict[Path, tuple[str, ...]] = {
         "TextResult",
     ),
     ROOT_DIR / "libs" / "audio_core" / "modules" / "bag" / "pipeline" / "pipeline.cppm": (
-        "WAVEBITS_CORE_IMPORT_STD",
+        "export module bag.pipeline;",
         "import std;",
         "std::unique_ptr<IPipeline>",
     ),
     ROOT_DIR / "libs" / "audio_core" / "modules" / "bag" / "transport" / "facade.cppm": (
-        "WAVEBITS_CORE_IMPORT_STD",
+        "export module bag.transport.facade;",
         "import std;",
         "std::vector<std::int16_t>* out_pcm",
     ),
     ROOT_DIR / "libs" / "audio_core" / "modules" / "bag" / "transport" / "compat" / "frame_codec.cppm": (
-        "WAVEBITS_CORE_IMPORT_STD",
+        "export module bag.transport.compat.frame_codec;",
         "import std;",
         "std::uint8_t",
         "std::uint16_t",
@@ -141,7 +141,7 @@ def _iter_repo_code_files() -> list[Path]:
     for root in (ROOT_DIR / "libs", ROOT_DIR / "Test", ROOT_DIR / "apps"):
         if not root.is_dir():
             continue
-        for pattern in ("*.cpp", "*.h", "*.hpp", "*.cppm", "*.cc", "*.cxx"):
+        for pattern in ("*.cpp", "*.h", "*.hpp", "*.cppm", "*.cc", "*.cxx", "*.inc"):
             code_files.update(path for path in root.rglob(pattern) if path.is_file())
     return sorted(code_files)
 

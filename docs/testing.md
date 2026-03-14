@@ -1,6 +1,6 @@
 # WaveBits 测试说明
 
-更新时间：2026-03-13
+更新时间：2026-03-14
 
 ## 测试分层
 - `unit`
@@ -30,11 +30,11 @@
 - 当前含义：
   - Android 通过 `apps/audio_android/native_package/CMakeLists.txt -> bag_android_native` 独立装配
   - Android JNI 继续只消费 `bag_api.h`
-  - Android native package 当前只编译 package-private wrapper 与 `android_bag/**` 私有声明层
+  - Android native package 当前只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层
 
 ### Host 支持政策
-- host 根目录 `CMake` 默认开启 `WAVEBITS_HOST_MODULES=ON`
-- root host `WAVEBITS_HOST_MODULES=OFF` 已退休
+- host 根目录当前只保留一条正式主线：
+  - `clang++ + Ninja + build/dev`
 
 ## `verify` 静态检查
 - `verify` 在构建前会执行 6 组静态检查：
@@ -43,19 +43,26 @@
   - `boundary`
     - 锁定 CLI / JNI / Android native / tests 的 allowed surface，不允许重新直接依赖内部 `bag/...` 头或 `import bag.*`
   - `host_import_std`
-    - 锁定已审过的 host-only `import std;` 覆盖范围，不允许回退到旧的标准库口径
+    - 锁定当前 host-side `import std;` required baseline，不允许 promoted files 回退，也不允许新增未入基线的 `import std;` source 漏口
+    - 当前显式覆盖 `audio_core` host implementations、`14` 个已 promoted 的 `audio_core` module interfaces、`bag.common.*` foundation baseline、`libs/audio_api/src/bag_api.cpp` 与 `audio_io` module front-ends
+    - 同时穷尽扫描 `libs/audio_core`、`libs/audio_api` 与 `libs/audio_io` 中所有实际采用 `import std;` 的 source，避免出现“实现已用了但 baseline 没锁到”的漂移
+    - 同时锁定当前 required baseline 的保留形态：
+      - `audio_core` promoted `import-std-only` module interfaces
+      - 已切成 single-path 的 core implementation、`audio_io.wav` module interface 与 boundary-host 这 `3` 类
+      - 唯一批准的 backend-bridge exception：`libs/audio_io/modules/audio_io/wav_impl.cpp`
   - `audio_io_boundary`
     - 锁定 `wav_io.h` 与 `audio_io.wav` 的双入口模型、private backend 拆分、`sndfile` containment 与 `wav_impl.cpp` 的 global-fragment backend 声明位置
   - `compatibility`
     - 锁定 compatibility headers、reserved-interface declaration boundary 与 direct consumers 的当前口径，不允许历史 include 链漂移回来
   - `retirement`
-    - 锁定 retired wrappers、shared bridge headers、已删除的 `bag/legacy/**` no-reintroduction 状态，以及 boundary-adjacent host wiring 不回退
+    - 锁定 retired wrappers、shared bridge headers、Android 私有头 self-contained 形态、已删除的 `bag/legacy/**` no-reintroduction 状态，以及 boundary-adjacent host wiring 不回退
 - 当前主仓 `bag/internal/**` owner 已为 `0`
 - `bag/interface/common/*` 当前按长期保留的 reserved-interface declaration boundary 管理：
   - 只允许预留接口头与该目录内部消费
   - 保持 include-based header 形态，不新增 `import std;`
   - 不新增 `bag.interface.*` module mirror
 - 当前不再有批准的 `bag/legacy/**` 直接消费者，legacy headers 也已从仓库删除
+- 当前 `host_import_std` required baseline 不扩到 Android lane、`bag_api.h`、`wav_io.h`、`libs/audio_io/src/wav_io.cpp` 与 reserved-interface declaration boundary
 
 ## CI 与发布前门禁
 - CI 当前通过 `.github/workflows/verify-host-and-legacy.yml` 持续执行：
@@ -148,7 +155,7 @@
 
 ## 当前 post-legacy 结论
 - `bag/legacy/**` 已从 `libs/audio_core/include/` 删除。
-- Android package-private `C++17` native exception 继续作为独立平台偏差跟踪，但不再与 legacy surface 耦合。
+- Android package-private native exception 继续作为独立平台偏差跟踪，但当前已固定到 Android `C++23` baseline，不再与 legacy surface 耦合。
 - 当前 testing / verify 口径会同时阻止 legacy 路径回流与 direct legacy include token 回流。
 
 ## 可见测试音频产物

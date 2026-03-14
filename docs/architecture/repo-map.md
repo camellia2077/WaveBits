@@ -1,6 +1,6 @@
 # 仓库结构与文件地图
 
-更新时间：2026-03-13
+更新时间：2026-03-14
 
 ## 目标
 这份文档用于快速回答两个问题：
@@ -146,9 +146,9 @@
 - Android native：
   - `apps/audio_android/app/src/main/cpp/CMakeLists.txt`
   - `apps/audio_android/native_package/CMakeLists.txt`
-  - 使用 `CMake 3.22.1 + C++17 + bag_api.h`
+  - 使用 `CMake 4.1.2 + C++23 + bag_api.h`
   - app `CMake` 只链接 `bag_android_native`
-  - native package 只编译 package-private wrapper 与 `android_bag/**` 私有声明层
+  - native package 只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层
 - 对外 C ABI：
   - `libs/audio_api/include/bag_api.h` 不会改成 module-only 接口
 - 对外文件 I/O 边界：
@@ -239,8 +239,7 @@
 
 ## 当前兼容政策快照
 - host 默认 modules 路径是唯一受支持的 host 主路径。
-- root host `WAVEBITS_HOST_MODULES=OFF` 已退休。
 - `bag/internal/**` 主仓 direct owner 当前为 `0`。
 - 预留接口头通过 `bag/interface/common/*` 保留独立 `C++17` 声明层。
 - `bag/legacy/**` 已删除，且不允许通过路径或 include token 回流。
-- Android 是 `bag_api.h` 的边界消费方；其剩余 `C++17` 例外被隔离在 `native_package` 私有包装层。
+- Android 是 `bag_api.h` 的边界消费方；其剩余 native 平台例外被隔离在 `native_package` 私有包装层，并已固定到 Android `C++23` baseline。

@@ -1,14 +1,33 @@
 # Android Native Strategy
 
-更新时间：2026-03-13
+更新时间：2026-03-14
 
 ## 当前固定路线
 - Android native 当前固定继续使用：
-  - `externalNativeBuild + CMake 3.22.1 + C++17 + bag_api.h`
+  - `externalNativeBuild + CMake 4.1.2 + C++23 + bag_api.h`
   - app `CMake` 通过 `apps/audio_android/native_package/` 消费 `bag_android_native`
-- `native_package` 当前只编译 package-private wrapper 与 `android_bag/**` 私有声明层，不再直接 source-own `bag_api.cpp + 8` 个 `audio_core` 原始实现文件
+- `native_package` 当前只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层，不再直接 source-own `bag_api.cpp + 8` 个 `audio_core` 原始实现文件
 - 这条路线是当前长期例外路径，不属于 host modules 主路径的一部分。
 - 当前不把 Android native 直接并入 named modules 迁移主线。
+
+## 当前实验入口
+- 当前额外保留一条 opt-in 实验线：
+  - `python tools/run.py android modules-smoke`
+- 这条线当前只证明两件事：
+  - Android packaging graph 可以直接编译并消费主仓 `bag.common.version` module/source
+  - `audio_core_common_version.cpp` 可以在 opt-in lane 下退出 Android package-owned source list
+- 这条线当前不证明：
+  - Android 已正式具备 host-style `import std;`
+  - Android 已可直接承接完整 `bag_core` target
+- 当前本机实测阻塞是：
+  - 基线环境里存在 `msys64` provider 污染
+  - 但 clean PATH + fresh `.cxx` 目录后的真实状态仍是：
+    - `blocked-missing-libcxx-modules-json`
+  - 因此 Android `import std;` 仍应继续作为后续独立 toolchain gate
+- 当前正式状态文档见：
+  - `docs/notes/android-import-std-toolchain-status.md`
+- 如需判断未来是否值得升级 Android `NDK/CMake`，见：
+  - `docs/notes/android-ndk-cmake-upgrade-decision.md`
 
 ## 现阶段的硬规则
 - Android JNI 源码只通过 `bag_api.h` 访问内核能力
@@ -19,14 +38,14 @@
 - Android native packaging target 不直接编译 repo 原始 `bag_api.cpp + audio_core/src/*.cpp` source list
 
 ## 为什么当前不直接切 Android modules
-- Android `externalNativeBuild` 仍固定在 `CMake 3.22.1`
+- Android `externalNativeBuild` 当前已固定到 `CMake 4.1.2 + C++23`，但这只解决 app-side native baseline，不等于 Android 已具备 host named modules 工作流
 - 当前 host modules 路径依赖的 named modules 工作流，不适合直接原样搬到这条 Android 工具链
 - JNI 层本身是平台边界，优先级应是稳定消费 `bag_api.h`，而不是直接碰内部实现模块
 
 ## 与 host modules 主线的关系
 - host 默认路径继续走：
-  - `WAVEBITS_HOST_MODULES=ON`
   - `clang++`
+  - `Ninja`
   - named modules
 - Android 不直接跟随这条主路径推进：
   - 不直接 `import bag.*`

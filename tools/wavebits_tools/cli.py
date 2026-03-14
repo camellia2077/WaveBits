@@ -7,6 +7,7 @@ from typing import Sequence
 from .commands import (
     cmd_android,
     cmd_build,
+    cmd_clean,
     cmd_configure,
     cmd_export_apk,
     cmd_roundtrip,
@@ -28,38 +29,29 @@ def add_common_build_dir_argument(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def add_host_modules_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        "--experimental-modules",
-        action="store_true",
-        help="Compatibility alias for the default host modules path. Host builds already enable WAVEBITS_HOST_MODULES=ON by default.",
-    )
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="run.py",
         description="WaveBits developer orchestration tools.",
+        epilog="Use `python tools/run.py <command> --help` to view detailed options for a specific command.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     configure_parser = subparsers.add_parser("configure", help="Configure the root CMake build.")
     add_common_build_dir_argument(configure_parser)
-    add_host_modules_arguments(configure_parser)
     configure_parser.add_argument(
         "--generator",
         default=DEFAULT_GENERATOR,
-        help="CMake generator to use. Defaults to Ninja.",
+        help="CMake generator to use. Defaults to Ninja. The only supported root-host generator is Ninja.",
     )
     configure_parser.set_defaults(func=cmd_configure)
 
     build_parser_cmd = subparsers.add_parser("build", help="Build the configured CMake tree.")
     add_common_build_dir_argument(build_parser_cmd)
-    add_host_modules_arguments(build_parser_cmd)
     build_parser_cmd.add_argument(
         "--generator",
         default=DEFAULT_GENERATOR,
-        help="CMake generator to use if auto-configuring.",
+        help="CMake generator to use if auto-configuring. The only supported root-host generator is Ninja.",
     )
     build_parser_cmd.add_argument(
         "--target",
@@ -74,9 +66,40 @@ def build_parser() -> argparse.ArgumentParser:
     )
     build_parser_cmd.set_defaults(configure_if_missing=True, func=cmd_build)
 
+    clean_parser = subparsers.add_parser(
+        "clean",
+        help="Remove generated host, Android, and artifact outputs.",
+        description=(
+            "Remove generated outputs.\n\n"
+            "Scopes:\n"
+            "- host: remove the selected CMake build directory.\n"
+            "- android: run the root Gradle wrapper with `clean`.\n"
+            "- artifacts: remove build/test-artifacts and dist/android.\n"
+            "- python: remove repository-local Python cache directories and bytecode.\n"
+            "- all: expand to host + android + artifacts + python.\n\n"
+            "Examples:\n"
+            "- python tools/run.py clean\n"
+            "- python tools/run.py clean --scope artifacts --scope python\n"
+            "- python tools/run.py clean --scope all --dry-run"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    add_common_build_dir_argument(clean_parser)
+    clean_parser.add_argument(
+        "--scope",
+        action="append",
+        choices=["host", "android", "artifacts", "python", "all"],
+        help="Clean scope to run. Repeat to combine scopes. Defaults to host.",
+    )
+    clean_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the planned removals without deleting anything.",
+    )
+    clean_parser.set_defaults(func=cmd_clean)
+
     test_parser = subparsers.add_parser("test", help="Run ctest for the configured build.")
     add_common_build_dir_argument(test_parser)
-    add_host_modules_arguments(test_parser)
     test_parser.add_argument(
         "--no-output-on-failure",
         dest="output_on_failure",
@@ -110,13 +133,15 @@ def build_parser() -> argparse.ArgumentParser:
             "Behavior:\n"
             "- Uses the root Gradle wrapper, not apps/audio_android as a separate Gradle root.\n"
             "- Resolves the action to the matching :app Gradle task.\n"
-            "- Optionally prepends `clean` before the selected task."
+            "- Optionally prepends `clean` before the selected task.\n"
+            "- `modules-smoke` enables the opt-in Android named-modules smoke target for the Phase 3A direct-owner shift.\n"
+            "- It does not claim Android host-style `import std;` readiness."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     android_parser.add_argument(
         "action",
-        choices=["assemble-debug", "assemble-release", "native-debug"],
+        choices=["assemble-debug", "assemble-release", "native-debug", "modules-smoke"],
         help="Android build action.",
     )
     android_parser.add_argument(
@@ -175,11 +200,10 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     add_common_build_dir_argument(verify_parser)
-    add_host_modules_arguments(verify_parser)
     verify_parser.add_argument(
         "--generator",
         default=DEFAULT_GENERATOR,
-        help="CMake generator to use for configure.",
+        help="CMake generator to use for configure. The only supported root-host generator is Ninja.",
     )
     verify_parser.add_argument(
         "--skip-android",
@@ -198,11 +222,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate a WAV artifact and decode it back to text via the CLI.",
     )
     add_common_build_dir_argument(roundtrip_parser)
-    add_host_modules_arguments(roundtrip_parser)
     roundtrip_parser.add_argument(
         "--generator",
         default=DEFAULT_GENERATOR,
-        help="CMake generator to use if auto-configuring/building the CLI target.",
+        help="CMake generator to use if auto-configuring/building the CLI target. The only supported root-host generator is Ninja.",
     )
     roundtrip_parser.add_argument(
         "--mode",
@@ -224,11 +247,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate visible roundtrip artifacts for representative flash/pro/ultra cases.",
     )
     add_common_build_dir_argument(smoke_parser)
-    add_host_modules_arguments(smoke_parser)
     smoke_parser.add_argument(
         "--generator",
         default=DEFAULT_GENERATOR,
-        help="CMake generator to use if auto-configuring/building the CLI target.",
+        help="CMake generator to use if auto-configuring/building the CLI target. The only supported root-host generator is Ninja.",
     )
     smoke_parser.add_argument(
         "--name",

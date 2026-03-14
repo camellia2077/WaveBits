@@ -1,7 +1,3 @@
-#if defined(WAVEBITS_AUDIO_IO_IMPORT_STD)
-import std;
-#endif
-
 #include "wav_io.h"
 #include "wav_io_backend.h"
 

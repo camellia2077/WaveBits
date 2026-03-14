@@ -1,19 +1,10 @@
-#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
-#if __cplusplus >= 202002L
 module;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#else
-#include <memory>
-#include <utility>
-#endif
 
 module bag.pipeline;
 
 import bag.transport.facade;
-#endif
-#endif
 
 namespace bag {
 namespace {

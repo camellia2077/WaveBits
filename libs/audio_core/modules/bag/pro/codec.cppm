@@ -1,17 +1,8 @@
 module;
 
-#if !defined(WAVEBITS_CORE_IMPORT_STD)
-#include <cstddef>
-#include <cstdint>
-#include <string>
-#include <vector>
-#endif
-
 export module bag.pro.codec;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#endif
 
 export import bag.common.error_code;
 

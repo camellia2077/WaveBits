@@ -1,6 +1,6 @@
 # Android App Architecture
 
-更新时间：2026-03-13
+更新时间：2026-03-14
 
 ## 目的
 - 说明 `apps/audio_android` 的整体职责、目录边界与运行链路。
@@ -82,7 +82,7 @@
 2. `AudioAndroidViewModel` 调用 `AudioCodecGateway`。
 3. `NativeAudioCodecGateway` 通过 `NativeBagBridge` 进入 JNI。
 4. `jni_bridge.cpp` 调用 `bag_api.h` 暴露的稳定 C API。
-5. `apps/audio_android/native_package/` 提供 `bag_android_native`，在 Android 专用 packaging target 中编译 package-private wrapper 与 `android_bag/**` 私有声明层，不再直接 source-own `bag_api.cpp + 8` 个 `audio_core` 原始实现文件。
+5. `apps/audio_android/native_package/` 提供 `bag_android_native`，在 Android 专用 packaging target 中编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层，不再直接 source-own `bag_api.cpp + 8` 个 `audio_core` 原始实现文件。
 6. 编码结果返回 Android 层后，可在 UI 中展示或交给 `AudioPlayer` 播放。
 
 ## 目录说明
@@ -93,7 +93,7 @@
 - `apps/audio_android/app/src/main/cpp/`
   - JNI 桥接与 Android native `CMake` 接线
 - `apps/audio_android/native_package/`
-  - Android native packaging target、package-private wrapper 与 `android_bag/**` 私有声明层
+  - Android native packaging target、`audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层
 - `apps/audio_android/app/src/main/res/`
   - Android 资源文件
 
@@ -102,8 +102,8 @@
 - Android Studio / IntelliJ 应直接打开仓库根目录。
 - Android native 当前继续走：
   - `externalNativeBuild`
-  - `CMake 3.22.1`
-  - `C++17`
+  - `CMake 4.1.2`
+  - `C++23`
   - `bag_api.h`
   - `app/src/main/cpp/CMakeLists.txt -> native_package/CMakeLists.txt -> bag_android_native`
   - `native_package/src/*.cpp -> android_bag/**`

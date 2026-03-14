@@ -8,9 +8,7 @@ module;
 
 module audio_io.wav;
 
-#if defined(WAVEBITS_AUDIO_IO_IMPORT_STD)
 import std;
-#endif
 
 namespace audio_io {
 

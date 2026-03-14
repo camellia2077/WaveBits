@@ -1,16 +1,8 @@
 module;
 
-#if !defined(WAVEBITS_CORE_IMPORT_STD)
-#include <cstdint>
-#include <string>
-#include <vector>
-#endif
-
 export module bag.fsk.codec;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#endif
 
 export namespace bag::fsk {
 

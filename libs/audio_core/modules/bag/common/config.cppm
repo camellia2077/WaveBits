@@ -1,14 +1,8 @@
 module;
 
-#if !defined(WAVEBITS_CORE_IMPORT_STD)
-#include <cstdint>
-#endif
-
 export module bag.common.config;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#endif
 
 export namespace bag {
 

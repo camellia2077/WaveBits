@@ -1,18 +1,8 @@
-#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
-#if __cplusplus >= 202002L
 module;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#else
-#include <cstddef>
-#include <cstdint>
-#include <vector>
-#endif
 
 module bag.transport.compat.frame_codec;
-#endif
-#endif
 
 namespace bag::transport::compat {
 

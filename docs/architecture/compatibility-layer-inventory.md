@@ -1,6 +1,6 @@
 # Compatibility Layer Inventory
 
-更新时间：2026-03-13
+更新时间：2026-03-14
 
 ## 目标
 - 盘点当前仍保留在 `include/` 下的公开头文件。
@@ -28,7 +28,8 @@
   - 测试
   - 其他 header-based 文件 I/O 消费端
 - 说明：
-  - `audio_io.wav` 已存在，但当前 GCC/libstdc++ modules-ts 路径下，不适合强推所有消费端改为 `import audio_io.wav`
+  - `audio_io.wav` 已存在，并且已经是 host 内部优先入口；`audio_io` 不是“没走 modules”
+  - 但 `audio_io` 的目标是 `module-first`，不是把文件 I/O 边界和 third-party backend owner 也硬收成 pure module
   - 因此 `wav_io.h` 继续作为稳定 header boundary 保留
   - 当前 shared-header implementation chain 已退休；真正的 `sndfile` / 文件系统 owner 收回到 `libs/audio_io/src/wav_io_backend.cpp`
   - `wav_io.h` 现在只保留稳定声明，不再承担 module/header 双入口共享实现
@@ -36,8 +37,8 @@
 ## 当前 `audio_core` 兼容层结论
 - `audio_core` 面向 host / Android / no-modules 的 shared bridge headers 已完成退休。
 - host 默认路径现在直接消费 modules。
-- root host `WAVEBITS_HOST_MODULES=OFF` 已退休，主仓剩余实现链现在按 modules-only 收口。
-- Android 当前通过 `apps/audio_android/native_package/ -> bag_android_native` 独立消费 package-private `C++17` 包装层。
+- root host 当前直接固定为单一 modules 主线，主仓剩余实现链现在按 modules-only 收口。
+- Android 当前通过 `apps/audio_android/native_package/ -> bag_android_native` 独立消费 package-private native 包装层，并已固定到 Android `C++23` baseline。
 - Android gate 与 host modules 主线已经彻底拆开，不再共享同一个 fallback 口径。
 - 主仓里的 `bag/internal/**` owner 已归零。
 - 预留接口头当前通过 `bag/interface/common/{config,error_code,types}.h` 维持独立 `C++17` 声明层，并按长期保留的 reserved-interface boundary 管理。
@@ -46,7 +47,7 @@
 ## 当前 post-legacy 状态
 - `bag/legacy/**` 已从 `libs/audio_core/include/` 删除，不再属于当前 compatibility surface。
 - 当前批准的 `bag/legacy/**` direct include owner 集合保持为空。
-- Android package-private `C++17` native exception 继续作为 Android 独立平台偏差跟踪，但不再与已删除的 legacy surface 绑定。
+- Android package-private native exception 继续作为 Android 独立平台偏差跟踪，但当前已固定到 Android `C++23` baseline，不再与已删除的 legacy surface 绑定。
 - `retirement_policy.py` 当前同时阻止两类回流：
   - deleted legacy header path 回流
   - direct `#include "bag/legacy/..."` token 回流
@@ -113,7 +114,7 @@
 - 说明：
   - 这些头代表接口层或预留概念，不是当前产品主链路
   - 其 `C++17` fallback 已切到 `bag/interface/common/*`
-  - `bag/interface/common/*` 是这组接口头的长期保留声明边界，不是下一笔 retirement 或 `import std;` 扩面目标
+  - `bag/interface/common/*` 是这组接口头的长期保留声明边界，不是下一笔 retirement 或 host-side `import std;` required-baseline 目标
   - 不建议把它们和已删除 legacy surface 或主线 compatibility header 混为一谈
 
 ## 当前消费端边界快照
@@ -145,7 +146,7 @@
 - 说明：
   - Android 当前是 `bag_api.h` 的边界消费方，不是 `bag/legacy/**` 的直接 owner
   - Android app `CMake` 当前只消费 `native_package -> bag_android_native`
-  - Android native package 现在只编译 package-private wrapper 与 `android_bag/**` 私有声明层，不再直接 source-own 主仓原始实现文件
+  - Android native package 现在只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层，不再直接 source-own 主仓原始实现文件
 
 ### Host tests
 - 文件：
@@ -165,8 +166,8 @@
 ## 收口原则
 - 不要把“compatibility layer inventory”理解成“立刻删头文件”
 - 长期边界头优先保证稳定，不追求 module-only
-- Android 当前仍是平台例外，但它的 `C++17` 包装层已被限制在 `native_package` 私有目录下
+- Android 当前仍是平台例外，但它的 package-private native 包装层已被限制在 `native_package` 私有目录下，并已固定到 Android `C++23` baseline
 - 主仓 `bag/internal/**` owner 已为 `0`；预留接口头通过 `bag/interface/common/*` 显式表达其非-modules 声明责任
-- `bag/interface/common/*` 保持 include-based header boundary，不进入 host-only `import std;` audited expansion
+- `bag/interface/common/*` 保持 include-based header boundary，不进入 host-side `import std;` required baseline
 - `bag/legacy/**` 保持已删除状态，既不属于现役 surface，也不应再回流任何 owner、路径或 include token
 - `audio_core` 的 shared bridge headers 已完成收口；不应再把它们带回主线

@@ -1,6 +1,12 @@
 import com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension
 import org.gradle.kotlin.dsl.configure
 
+val wavebitsAndroidModulesSmokeEnabled =
+    providers.gradleProperty("wavebits.android.modulesSmoke")
+        .orNull
+        ?.equals("true", ignoreCase = true)
+        ?: false
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -10,6 +16,7 @@ plugins {
 android {
     namespace = "com.bag.audioandroid"
     compileSdk = 35
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "com.bag.audioandroid"
@@ -17,14 +24,18 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "0.1.1"
-
-        externalNativeBuild {
-            cmake {
-                cppFlags += "-std=c++17"
-            }
-        }
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+        externalNativeBuild {
+            cmake {
+                val cmakeArguments = mutableListOf(
+                    "-DWAVEBITS_ANDROID_MODULES_SMOKE=${
+                        if (wavebitsAndroidModulesSmokeEnabled) "ON" else "OFF"
+                    }"
+                )
+                arguments += cmakeArguments
+            }
         }
     }
 
@@ -57,7 +68,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
+            version = "4.1.2"
         }
     }
 

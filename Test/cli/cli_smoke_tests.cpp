@@ -34,7 +34,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
         "`version` output should contain the presentation version.");
     test::AssertContains(
         version_result.output,
-        "core: v0.3.1",
+        std::string("core: v") + test::kExpectedCoreVersion,
         "`version` output should contain the core version.");
 
     const auto dash_version_result = RunCli(cli_path, {"--version"}, dir);
@@ -45,7 +45,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
         "`--version` output should contain the presentation version.");
     test::AssertContains(
         dash_version_result.output,
-        "core: v0.3.1",
+        std::string("core: v") + test::kExpectedCoreVersion,
         "`--version` output should contain the core version.");
 }
 

@@ -1,10 +1,8 @@
 #pragma once
 
-#if !defined(WAVEBITS_AUDIO_IO_IMPORT_STD)
 #include <cstdint>
 #include <filesystem>
 #include <vector>
-#endif
 
 namespace audio_io::detail {
 

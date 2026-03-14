@@ -1,0 +1,1 @@
+set(WAVEBITS_CORE_VERSION "0.3.3")

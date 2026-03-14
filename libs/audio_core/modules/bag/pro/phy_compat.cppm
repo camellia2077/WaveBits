@@ -1,17 +1,8 @@
 module;
 
-#if !defined(WAVEBITS_CORE_IMPORT_STD)
-#include <cstdint>
-#include <memory>
-#include <string>
-#include <vector>
-#endif
-
 export module bag.pro.phy_compat;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#endif
 
 export import bag.common.config;
 export import bag.common.error_code;

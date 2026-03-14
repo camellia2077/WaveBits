@@ -1,18 +1,8 @@
 module;
 
-#if !defined(WAVEBITS_CORE_IMPORT_STD)
-#include <cstdint>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <vector>
-#endif
-
 export module bag.transport.facade;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#endif
 
 export import bag.common.config;
 export import bag.common.error_code;

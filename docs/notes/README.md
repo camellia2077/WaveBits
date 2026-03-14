@@ -1,0 +1,13 @@
+## 持续门禁与追踪
+- 构建命令速记：
+  - `docs/notes/build-commands.md`
+- Android `import std;` 当前工具链状态：
+  - `1/2`
+  - `docs/notes/android-import-std-toolchain-status.md`
+- Android `NDK/CMake` 何时值得升级：
+  - `2/2`
+  - `docs/notes/android-ndk-cmake-upgrade-decision.md`
+- `legacy` 相关 release gate：
+  - `docs/notes/legacy-release-gates.md`
+- `legacy` 退休前置条件追踪：
+  - `docs/notes/legacy-retirement-preconditions.md`

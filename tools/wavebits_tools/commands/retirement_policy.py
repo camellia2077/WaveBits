@@ -1,24 +1,21 @@
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
-from ..constants import ROOT_DIR
+from ..constants import DEFAULT_CXX_COMPILER, ROOT_DIR
 from ..errors import ToolError
 
 
 _PHASE17_BOUNDARY_RULES: dict[Path, tuple[str, ...]] = {
     ROOT_DIR / "libs" / "audio_api" / "CMakeLists.txt": (
-        "WAVEBITS_API_IMPORT_STD=1",
         "CXX_MODULE_STD ON",
     ),
     ROOT_DIR / "libs" / "audio_api" / "src" / "bag_api.cpp": (
-        "WAVEBITS_API_IMPORT_STD",
         "import std;",
         "import bag.transport.facade;",
-        "std::vector<std::int16_t>",
-        "std::size_t",
-        "std::unique_ptr",
+        '#include "bag_api_impl.inc"',
     ),
 }
 
@@ -28,6 +25,19 @@ _RETIRED_WRAPPER_PATHS: tuple[Path, ...] = (
     ROOT_DIR / "libs" / "audio_core" / "include" / "bag" / "pro" / "frame_codec.h",
     ROOT_DIR / "libs" / "audio_core" / "src" / "pro" / "frame_codec.cpp",
     ROOT_DIR / "libs" / "audio_core" / "include" / "bag" / "fsk" / "fsk_codec.h",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "common" / "version.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "flash" / "codec.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "flash" / "phy_clean.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "fsk" / "fsk_codec.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "pipeline" / "pipeline.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "pro" / "codec.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "pro" / "phy_clean.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "pro" / "phy_compat.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "transport" / "transport.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "transport" / "compat" / "frame_codec.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "ultra" / "codec.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "ultra" / "phy_clean.clang.cpp",
+    ROOT_DIR / "libs" / "audio_core" / "src" / "ultra" / "phy_compat.clang.cpp",
 )
 
 _RETIRED_WRAPPER_INCLUDE_TOKENS: tuple[str, ...] = (
@@ -35,6 +45,7 @@ _RETIRED_WRAPPER_INCLUDE_TOKENS: tuple[str, ...] = (
     '#include "bag/pro/frame_codec.h"',
     '#include "bag/fsk/fsk_codec.h"',
 )
+_AUDIO_CORE_WRAPPER_MACRO_SCAN_ROOT = ROOT_DIR / "libs" / "audio_core" / "src"
 
 _MODULES_PHASE2_WRAPPER_EVICTION_REQUIRED_TOKENS: tuple[str, ...] = (
     '#include "test_std_support.h"',
@@ -51,31 +62,28 @@ _AUDIO_CORE_CMAKE_FORBIDDEN_TOKENS: tuple[str, ...] = (
     "src/pro/text_codec.cpp",
     "src/pro/frame_codec.cpp",
 )
-_AUDIO_CORE_MODULES_ONLY_PATTERN = re.compile(
-    r"if\(WAVEBITS_HOST_MODULES\)\s+"
-    r"list\(APPEND bag_core_sources\s+"
-    r"src/common/version\.cpp\s+"
-    r"src/flash/codec\.cpp\s+"
-    r"src/flash/phy_clean\.cpp\s+"
-    r"src/fsk/fsk_codec\.cpp\s+"
-    r"src/pro/codec\.cpp\s+"
-    r"src/pro/phy_clean\.cpp\s+"
-    r"src/pro/phy_compat\.cpp\s+"
-    r"src/pipeline/pipeline\.cpp\s+"
-    r"src/transport/compat/frame_codec\.cpp\s+"
-    r"src/transport/transport\.cpp\s+"
-    r"src/ultra/codec\.cpp\s+"
-    r"src/ultra/phy_clean\.cpp\s+"
-    r"src/ultra/phy_compat\.cpp\s+"
-    r"\)\s+"
-    r"endif\(\)",
-    re.MULTILINE,
+_AUDIO_CORE_SINGLE_LANE_REQUIRED_TOKENS: tuple[str, ...] = (
+    "set(bag_core_sources",
+    "src/common/version.cpp",
+    "src/flash/codec.cpp",
+    "src/flash/phy_clean.cpp",
+    "src/fsk/fsk_codec.cpp",
+    "src/pro/codec.cpp",
+    "src/pro/phy_clean.cpp",
+    "src/pro/phy_compat.cpp",
+    "src/pipeline/pipeline.cpp",
+    "src/transport/compat/frame_codec.cpp",
+    "src/transport/transport.cpp",
+    "src/ultra/codec.cpp",
+    "src/ultra/phy_clean.cpp",
+    "src/ultra/phy_compat.cpp",
+    "FILE_SET cxx_modules TYPE CXX_MODULES",
 )
 
 _ANDROID_NATIVE_PACKAGE_CMAKE_PATH = (
     ROOT_DIR / "apps" / "audio_android" / "native_package" / "CMakeLists.txt"
 )
-_ANDROID_NATIVE_WRAPPERS_CMAKE_PATH = (
+_ANDROID_NATIVE_PACKAGE_OBJECTS_CMAKE_PATH = (
     ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "CMakeLists.txt"
 )
 _ANDROID_NATIVE_PACKAGE_FORBIDDEN_TOKENS: tuple[str, ...] = (
@@ -106,13 +114,16 @@ _ANDROID_NATIVE_PACKAGE_FORBIDDEN_TOKENS: tuple[str, ...] = (
 )
 _ANDROID_NATIVE_PACKAGE_REQUIRED_TOKENS: tuple[str, ...] = (
     "bag_android_native_packaged",
-    "bag_android_native_wrappers",
-    "$<TARGET_OBJECTS:bag_android_native_wrappers>",
+    "bag_android_native_package_objects",
+    "$<TARGET_OBJECTS:bag_android_native_package_objects>",
     '"${CMAKE_CURRENT_LIST_DIR}/src"',
     "add_library(bag_android_native ALIAS bag_android_native_packaged)",
 )
-_ANDROID_NATIVE_WRAPPERS_REQUIRED_TOKENS: tuple[str, ...] = (
-    "bag_android_native_wrappers",
+_ANDROID_NATIVE_PACKAGE_OBJECTS_REQUIRED_TOKENS: tuple[str, ...] = (
+    'include("${WAVEBITS_ROOT}/cmake/wavebits_core_version.cmake")',
+    "WAVEBITS_ANDROID_NATIVE_PACKAGE_GENERATED_INCLUDE_DIR",
+    "version_generated.h",
+    "bag_android_native_package_objects",
     "bag_api_package.cpp",
     "audio_core_common_version.cpp",
     "audio_core_flash_codec.cpp",
@@ -125,17 +136,113 @@ _ANDROID_NATIVE_WRAPPERS_REQUIRED_TOKENS: tuple[str, ...] = (
     "../private_include",
     "libs/audio_api/include",
 )
+_ANDROID_NATIVE_PACKAGE_MACRO_SCAN_ROOT = ROOT_DIR / "apps" / "audio_android" / "native_package" / "src"
+_ANDROID_NATIVE_PRIVATE_INCLUDE_ROOT = (
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "private_include"
+)
+_ANDROID_BAG_API_PACKAGE_SOURCE_PATH = (
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "bag_api_package.cpp"
+)
+_ANDROID_BAG_API_PACKAGE_REQUIRED_TOKENS: tuple[str, ...] = (
+    '#include "bag_api.h"',
+    '#include "android_bag/common/version.h"',
+    '#include "android_bag/transport/facade.h"',
+    '#include "../../../../libs/audio_api/src/bag_api_impl.inc"',
+)
+_ANDROID_BAG_API_PACKAGE_FORBIDDEN_TOKENS: tuple[str, ...] = (
+    "WAVEBITS_MODULE_IMPL_WRAPPER",
+    'libs/audio_api/src/bag_api.cpp',
+)
+_ANDROID_AUDIO_CORE_PACKAGE_SOURCE_RULES: dict[Path, tuple[str, ...]] = {
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_common_version.cpp": (
+        '#include "android_bag/common/version.h"',
+        '#include "../../../../libs/audio_core/src/common/version_impl.inc"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_codec.cpp": (
+        '#include "android_bag/flash/codec.h"',
+        '#include "../../../../libs/audio_core/src/flash/codec_impl.inc"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_phy_clean.cpp": (
+        "#include <algorithm>",
+        "#include <cmath>",
+        "#include <stdexcept>",
+        '#include "android_bag/flash/codec.h"',
+        '#include "android_bag/flash/phy_clean.h"',
+        '#include "../../../../libs/audio_core/src/flash/phy_clean_impl.inc"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_pro_codec.cpp": (
+        '#include "android_bag/pro/codec.h"',
+        '#include "../../../../libs/audio_core/src/pro/codec_impl.inc"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_pro_phy_clean.cpp": (
+        "#include <algorithm>",
+        "#include <cmath>",
+        '#include "android_bag/pro/codec.h"',
+        '#include "android_bag/pro/phy_clean.h"',
+        '#include "../../../../libs/audio_core/src/pro/phy_clean_impl.inc"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_transport_transport.cpp": (
+        '#include "android_bag/flash/phy_clean.h"',
+        '#include "android_bag/pro/phy_clean.h"',
+        '#include "android_bag/transport/facade.h"',
+        '#include "android_bag/ultra/phy_clean.h"',
+        '#include "../../../../libs/audio_core/src/transport/transport_impl.inc"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_ultra_codec.cpp": (
+        '#include "android_bag/ultra/codec.h"',
+        '#include "../../../../libs/audio_core/src/ultra/codec_impl.inc"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_ultra_phy_clean.cpp": (
+        "#include <algorithm>",
+        "#include <cmath>",
+        '#include "android_bag/ultra/codec.h"',
+        '#include "android_bag/ultra/phy_clean.h"',
+        '#include "../../../../libs/audio_core/src/ultra/phy_clean_impl.inc"',
+    ),
+}
+_ANDROID_AUDIO_CORE_PACKAGE_SOURCE_FORBIDDEN_TOKENS: dict[Path, tuple[str, ...]] = {
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_common_version.cpp": (
+        '#include "../../../../libs/audio_core/src/common/version.cpp"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_codec.cpp": (
+        '#include "../../../../libs/audio_core/src/flash/codec.cpp"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_phy_clean.cpp": (
+        '#include "../../../../libs/audio_core/src/flash/phy_clean.cpp"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_pro_codec.cpp": (
+        '#include "../../../../libs/audio_core/src/pro/codec.cpp"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_pro_phy_clean.cpp": (
+        '#include "../../../../libs/audio_core/src/pro/phy_clean.cpp"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_transport_transport.cpp": (
+        '#include "../../../../libs/audio_core/src/transport/transport.cpp"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_ultra_codec.cpp": (
+        '#include "../../../../libs/audio_core/src/ultra/codec.cpp"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_ultra_phy_clean.cpp": (
+        '#include "../../../../libs/audio_core/src/ultra/phy_clean.cpp"',
+    ),
+}
 
 _ROOT_CMAKE_PATH = ROOT_DIR / "CMakeLists.txt"
-_ROOT_HOST_OFF_RETIREMENT_REQUIRED_TOKENS: tuple[str, ...] = (
-    "Root host WAVEBITS_HOST_MODULES=OFF has been retired.",
+_ROOT_SINGLE_LANE_REQUIRED_TOKENS: tuple[str, ...] = (
+    'set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")',
+    "Root host currently supports the single clang++ + Ninja lane only.",
+    "Current root host target requires C++23 import std support from the active Clang toolchain.",
     "set(CMAKE_CXX_STANDARD 20)",
+)
+_ROOT_SINGLE_LANE_FORBIDDEN_TOKENS: tuple[str, ...] = (
+    "WAVEBITS_HOST_MODULES",
 )
 
 _CLI_PATH = ROOT_DIR / "tools" / "wavebits_tools" / "cli.py"
 _CLI_HOST_OFF_RETIREMENT_FORBIDDEN_TOKENS: tuple[str, ...] = (
     '"--no-modules"',
     "WAVEBITS_HOST_MODULES=OFF",
+    "--experimental-modules",
 )
 
 _REMOVED_LEGACY_HEADER_PATHS: tuple[Path, ...] = (
@@ -329,9 +436,15 @@ def _iter_code_files() -> list[Path]:
     for root in (ROOT_DIR / "libs", ROOT_DIR / "Test", ROOT_DIR / "apps"):
         if not root.is_dir():
             continue
-        for pattern in ("*.cpp", "*.h", "*.hpp", "*.cppm", "*.cc", "*.cxx"):
+        for pattern in ("*.cpp", "*.h", "*.hpp", "*.cppm", "*.cc", "*.cxx", "*.inc"):
             code_files.update(path for path in root.rglob(pattern) if path.is_file())
     return sorted(code_files)
+
+
+def _iter_android_private_headers() -> list[Path]:
+    if not _ANDROID_NATIVE_PRIVATE_INCLUDE_ROOT.is_dir():
+        return []
+    return sorted(path for path in _ANDROID_NATIVE_PRIVATE_INCLUDE_ROOT.rglob("*.h") if path.is_file())
 
 
 def _is_allowed_legacy_include_owner(path: Path) -> bool:
@@ -395,11 +508,14 @@ def run_phase18_compatibility_eviction_policy_checks() -> None:
             "libs/audio_core/CMakeLists.txt still lists retired wrapper sources: "
             + ", ".join(present_cmake_forbidden)
         )
-    if not _AUDIO_CORE_MODULES_ONLY_PATTERN.search(cmake_content):
+    missing_audio_core_required = [
+        token for token in _AUDIO_CORE_SINGLE_LANE_REQUIRED_TOKENS if token not in cmake_content
+    ]
+    if missing_audio_core_required:
         failures.append(
-            "libs/audio_core/CMakeLists.txt no longer documents src/fsk/fsk_codec.cpp, "
-            "src/pro/phy_compat.cpp, src/ultra/phy_compat.cpp, src/pipeline/pipeline.cpp, "
-            "and src/transport/compat/frame_codec.cpp as WAVEBITS_HOST_MODULES-only sources"
+            "libs/audio_core/CMakeLists.txt no longer documents the direct single-lane "
+            "module implementation and module file-set wiring: "
+            + ", ".join(missing_audio_core_required)
         )
 
     android_native_package_content = _ANDROID_NATIVE_PACKAGE_CMAKE_PATH.read_text(encoding="utf-8")
@@ -425,17 +541,59 @@ def run_phase18_compatibility_eviction_policy_checks() -> None:
             + ", ".join(present_android_forbidden)
         )
 
-    android_native_wrappers_content = _ANDROID_NATIVE_WRAPPERS_CMAKE_PATH.read_text(encoding="utf-8")
-    missing_android_wrapper_required = [
+    android_native_package_objects_content = _ANDROID_NATIVE_PACKAGE_OBJECTS_CMAKE_PATH.read_text(encoding="utf-8")
+    missing_android_package_objects_required = [
         token
-        for token in _ANDROID_NATIVE_WRAPPERS_REQUIRED_TOKENS
-        if token not in android_native_wrappers_content
+        for token in _ANDROID_NATIVE_PACKAGE_OBJECTS_REQUIRED_TOKENS
+        if token not in android_native_package_objects_content
     ]
-    if missing_android_wrapper_required:
+    if missing_android_package_objects_required:
         failures.append(
-            "apps/audio_android/native_package/src/CMakeLists.txt missing wrapper-target tokens: "
-            + ", ".join(missing_android_wrapper_required)
+            "apps/audio_android/native_package/src/CMakeLists.txt missing package-object target tokens: "
+            + ", ".join(missing_android_package_objects_required)
         )
+
+    android_bag_api_package_content = _ANDROID_BAG_API_PACKAGE_SOURCE_PATH.read_text(encoding="utf-8")
+    missing_android_bag_api_required = [
+        token
+        for token in _ANDROID_BAG_API_PACKAGE_REQUIRED_TOKENS
+        if token not in android_bag_api_package_content
+    ]
+    if missing_android_bag_api_required:
+        failures.append(
+            "apps/audio_android/native_package/src/bag_api_package.cpp missing package-owned "
+            "boundary implementation tokens: "
+            + ", ".join(missing_android_bag_api_required)
+        )
+    present_android_bag_api_forbidden = [
+        token
+        for token in _ANDROID_BAG_API_PACKAGE_FORBIDDEN_TOKENS
+        if token in android_bag_api_package_content
+    ]
+    if present_android_bag_api_forbidden:
+        failures.append(
+            "apps/audio_android/native_package/src/bag_api_package.cpp still uses the retired "
+            "source-wrapper entry path: "
+            + ", ".join(present_android_bag_api_forbidden)
+        )
+
+    for path, required_tokens in sorted(_ANDROID_AUDIO_CORE_PACKAGE_SOURCE_RULES.items()):
+        content = path.read_text(encoding="utf-8")
+        missing_required = [token for token in required_tokens if token not in content]
+        if missing_required:
+            failures.append(
+                f"{path.relative_to(ROOT_DIR)} missing package-owned implementation tokens: "
+                + ", ".join(missing_required)
+            )
+
+        present_forbidden = [
+            token for token in _ANDROID_AUDIO_CORE_PACKAGE_SOURCE_FORBIDDEN_TOKENS[path] if token in content
+        ]
+        if present_forbidden:
+            failures.append(
+                f"{path.relative_to(ROOT_DIR)} still includes retired module source entry paths: "
+                + ", ".join(present_forbidden)
+            )
 
     for path in _iter_code_files():
         content = path.read_text(encoding="utf-8")
@@ -448,10 +606,69 @@ def run_phase18_compatibility_eviction_policy_checks() -> None:
                 + ", ".join(present_tokens)
             )
 
+    for path in sorted(_AUDIO_CORE_WRAPPER_MACRO_SCAN_ROOT.rglob("*.cpp")):
+        if "WAVEBITS_MODULE_IMPL_WRAPPER" in path.read_text(encoding="utf-8"):
+            failures.append(
+                f"{path.relative_to(ROOT_DIR)} still references the retired audio_core wrapper macro"
+            )
+
+    for path in sorted(_ANDROID_NATIVE_PACKAGE_MACRO_SCAN_ROOT.rglob("*.cpp")):
+        if "WAVEBITS_MODULE_IMPL_WRAPPER" in path.read_text(encoding="utf-8"):
+            failures.append(
+                f"{path.relative_to(ROOT_DIR)} still references the retired Android package wrapper macro"
+            )
+
     if failures:
         joined = "\n".join(f"- {failure}" for failure in failures)
         raise ToolError(
             "Retired wrapper regression detected:\n"
+            f"{joined}"
+        )
+
+
+def run_android_private_header_self_contained_policy_checks() -> None:
+    failures: list[str] = []
+
+    for header_path in _iter_android_private_headers():
+        relative_include = header_path.relative_to(_ANDROID_NATIVE_PRIVATE_INCLUDE_ROOT).as_posix()
+        probe_source = f'#include "{relative_include}"\nint main() {{ return 0; }}\n'
+
+        try:
+            result = subprocess.run(
+                (
+                    DEFAULT_CXX_COMPILER,
+                    "-std=c++23",
+                    "-x",
+                    "c++",
+                    "-fsyntax-only",
+                    "-I",
+                    str(_ANDROID_NATIVE_PRIVATE_INCLUDE_ROOT),
+                    "-",
+                ),
+                input=probe_source,
+                text=True,
+                capture_output=True,
+                check=False,
+                cwd=ROOT_DIR,
+            )
+        except FileNotFoundError as exc:
+            raise ToolError(
+                "Android private header self-contained check requires `clang++` on PATH."
+            ) from exc
+
+        if result.returncode == 0:
+            continue
+
+        stderr_lines = [line.strip() for line in result.stderr.splitlines() if line.strip()]
+        first_error = stderr_lines[0] if stderr_lines else "syntax check failed with no stderr output"
+        failures.append(
+            f"{header_path.relative_to(ROOT_DIR)} is not self-contained under C++23: {first_error}"
+        )
+
+    if failures:
+        joined = "\n".join(f"- {failure}" for failure in failures)
+        raise ToolError(
+            "Android private header self-contained regression detected:\n"
             f"{joined}"
         )
 
@@ -461,12 +678,20 @@ def run_phase19_bridge_retirement_policy_checks() -> None:
 
     root_cmake_content = _ROOT_CMAKE_PATH.read_text(encoding="utf-8")
     missing_root_required = [
-        token for token in _ROOT_HOST_OFF_RETIREMENT_REQUIRED_TOKENS if token not in root_cmake_content
+        token for token in _ROOT_SINGLE_LANE_REQUIRED_TOKENS if token not in root_cmake_content
     ]
     if missing_root_required:
         failures.append(
-            f"{_ROOT_CMAKE_PATH.relative_to(ROOT_DIR)} missing retired-host-off guard tokens: "
+            f"{_ROOT_CMAKE_PATH.relative_to(ROOT_DIR)} missing direct single-lane host tokens: "
             + ", ".join(missing_root_required)
+        )
+    present_root_forbidden = [
+        token for token in _ROOT_SINGLE_LANE_FORBIDDEN_TOKENS if token in root_cmake_content
+    ]
+    if present_root_forbidden:
+        failures.append(
+            f"{_ROOT_CMAKE_PATH.relative_to(ROOT_DIR)} still exposes retired root host switch tokens: "
+            + ", ".join(present_root_forbidden)
         )
 
     cli_content = _CLI_PATH.read_text(encoding="utf-8")
@@ -603,4 +828,5 @@ def run_phase19_bridge_retirement_policy_checks() -> None:
 def run_retirement_policy_checks() -> None:
     run_phase17_boundary_host_standardization_policy_checks()
     run_phase18_compatibility_eviction_policy_checks()
+    run_android_private_header_self_contained_policy_checks()
     run_phase19_bridge_retirement_policy_checks()

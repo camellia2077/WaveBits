@@ -1,16 +1,8 @@
 module;
 
-#if !defined(WAVEBITS_AUDIO_IO_IMPORT_STD)
-#include <cstdint>
-#include <filesystem>
-#include <vector>
-#endif
-
 export module audio_io.wav;
 
-#if defined(WAVEBITS_AUDIO_IO_IMPORT_STD)
 import std;
-#endif
 
 export namespace audio_io {
 

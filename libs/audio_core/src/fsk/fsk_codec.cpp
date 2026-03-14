@@ -1,20 +1,10 @@
-#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
-#if __cplusplus >= 202002L
 module;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#else
-#include <cstdint>
-#include <string>
-#include <vector>
-#endif
 
 module bag.fsk.codec;
 
 import bag.flash.phy_clean;
-#endif
-#endif
 
 namespace bag::fsk {
 

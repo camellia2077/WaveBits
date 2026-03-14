@@ -1,23 +1,12 @@
-#if !defined(WAVEBITS_MODULE_IMPL_WRAPPER)
-#if __cplusplus >= 202002L
 module;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#else
-#include <cstdint>
-#include <memory>
-#include <string>
-#include <vector>
-#endif
 
 module bag.ultra.phy_compat;
 
 import bag.flash.phy_clean;
 import bag.transport.compat.frame_codec;
 import bag.ultra.codec;
-#endif
-#endif
 
 namespace bag::ultra {
 

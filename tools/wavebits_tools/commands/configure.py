@@ -8,12 +8,6 @@ from ..paths import cmake_cache_exists, resolve_build_dir
 from ..process import run
 
 
-def _resolve_host_modules_enabled(args: argparse.Namespace) -> bool:
-    if getattr(args, "experimental_modules", False):
-        return True
-    return True
-
-
 def _configured_cxx_compiler(build_dir: Path) -> str | None:
     cache_path = build_dir / "CMakeCache.txt"
     if not cache_path.exists():
@@ -51,8 +45,5 @@ def cmd_configure(args: argparse.Namespace) -> None:
         "-G",
         args.generator,
     ])
-    command.append(
-        f"-DWAVEBITS_HOST_MODULES={'ON' if _resolve_host_modules_enabled(args) else 'OFF'}"
-    )
     command.append(f"-DCMAKE_CXX_COMPILER={DEFAULT_CXX_COMPILER}")
     run(command)

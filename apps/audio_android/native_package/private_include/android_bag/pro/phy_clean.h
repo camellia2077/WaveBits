@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "android_bag/common/config.h"
+#include "android_bag/common/error_code.h"
 #include "android_bag/transport/decoder.h"
 
 namespace bag::pro {

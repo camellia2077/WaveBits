@@ -30,8 +30,15 @@ VERIFY_CHECK_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ),
     (
         "host_import_std",
-        "Guard the current host-only import-std footprint across core, foundation, boundary-adjacent, and audio_io front-ends.",
-        ("core_implementations", "core_interfaces", "foundation_modules", "boundary_hosts", "audio_io_frontends"),
+        "Guard the current host-side import-std required baseline across promoted interfaces, retained dual-path shapes, boundary hosts, and audio_io front-ends.",
+        (
+            "core_implementations",
+            "promoted_interfaces",
+            "foundation_modules",
+            "boundary_hosts",
+            "audio_io_frontends",
+            "baseline_shape",
+        ),
     ),
     (
         "audio_io_boundary",
@@ -50,8 +57,8 @@ VERIFY_CHECK_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ),
     (
         "retirement",
-        "Guard boundary-adjacent host wiring, retired wrappers, and post-legacy deleted surfaces.",
-        ("boundary_hosts", "retired_wrappers", "post_legacy_surfaces"),
+        "Guard boundary-adjacent host wiring, retired wrappers, Android private header self-containment, and post-legacy deleted surfaces.",
+        ("boundary_hosts", "retired_wrappers", "android_private_headers", "post_legacy_surfaces"),
     ),
 )
 
@@ -88,7 +95,6 @@ def run_verify_steps(
     build_dir: Path,
     generator: str,
     skip_android: bool,
-    experimental_modules: bool,
 ) -> None:
     run_verify_static_checks()
 
@@ -97,7 +103,6 @@ def run_verify_steps(
         argparse.Namespace(
             build_dir=str(build_dir),
             generator=generator,
-            experimental_modules=experimental_modules,
         )
     )
 
@@ -108,7 +113,6 @@ def run_verify_steps(
             configure_if_missing=False,
             generator=generator,
             target=None,
-            experimental_modules=experimental_modules,
         )
     )
 
@@ -138,5 +142,4 @@ def cmd_verify(args: argparse.Namespace) -> None:
         build_dir=build_dir,
         generator=args.generator,
         skip_android=args.skip_android,
-        experimental_modules=getattr(args, "experimental_modules", False),
     )

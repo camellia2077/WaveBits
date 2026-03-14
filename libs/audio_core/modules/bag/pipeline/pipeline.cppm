@@ -1,14 +1,8 @@
 module;
 
-#if !defined(WAVEBITS_CORE_IMPORT_STD)
-#include <memory>
-#endif
-
 export module bag.pipeline;
 
-#if defined(WAVEBITS_CORE_IMPORT_STD)
 import std;
-#endif
 
 export import bag.common.config;
 export import bag.common.error_code;

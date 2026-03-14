@@ -61,7 +61,7 @@
 - 负责确认：
   - Android `native_package -> bag_android_native` 装配链仍可独立 configure/build
   - app `CMake` 不会回退到直接 `add_subdirectory(libs/audio_core)` 或 `add_subdirectory(libs/audio_api)`
-  - Android native package 继续只编译 package-private wrapper 与 `android_bag/**` 私有声明层
+  - Android native package 继续只编译 `audio_core` package-owned implementation sources、`bag_api` package-owned boundary implementation 与 `android_bag/**` 私有声明层
 
 ### `android assemble-debug`
 - 负责确认：
