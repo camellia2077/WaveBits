@@ -82,6 +82,7 @@
   - `CMakeLists.txt`
   - `native_package/CMakeLists.txt`
   - `native_package/src/audio_io_package.cpp`
+  - `native_package/src/audio_core_flash_voicing.cpp`
 
 ### 平台音频层
 - 路径：
@@ -97,10 +98,10 @@
    - `AudioCodecGateway` 处理文本编解码
    - `PlaybackRuntimeGateway` 处理播放状态机与 seek 语义
    - `SavedAudioRepository` 处理导出、音频库读取、重命名、删除与分享
-3. `NativeAudioCodecGateway` 通过 `NativeBagBridge` 进入 `jni_bridge.cpp -> bag_api.h`。
+3. `NativeAudioCodecGateway` 通过 `NativeBagBridge` 进入 `jni_bridge.cpp -> bag_api.h`；`flash / pro / ultra` 共用同一组稳定 encode/decode/validate 入口，其中 `flash` 的 style 通过 config 中的 `flash_style` 字段透传，不再额外分叉 flash-only JNI 方法。
 4. `NativePlaybackRuntimeGateway` 通过 `NativePlaybackRuntimeBridge` 进入 `playback_runtime_jni.cpp -> audio_runtime.h`。
 5. `NativeAudioIoGateway` 通过 `NativeAudioIoBridge` 进入 `audio_io_jni.cpp -> native_package audio_io wrapper -> libs/audio_io`，统一复用 `wav bytes <-> pcm` 逻辑。
-6. `apps/audio_android/native_package/` 提供 `bag_android_native`，在 Android 专用 packaging target 中编译 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层。
+6. `apps/audio_android/native_package/` 提供 `bag_android_native`，在 Android 专用 packaging target 中编译 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层；当前 Android package lane 已补齐 `flash signal + voicing + phy_clean` 的 package-owned source owner，使 Android formal `flash` 输出与 host 保持一致。
 7. 结果返回 Android 层后，可在 UI 中展示、播放、保存到 `MediaStore` 或从媒体库重新加载。
 
 ## 目录说明

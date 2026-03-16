@@ -36,6 +36,8 @@
 ### Layer 2：叶子能力
 - `audio_io.wav`
 - `bag.flash.codec`
+- `bag.flash.signal`
+- `bag.flash.voicing`
 - `bag.pro.codec`
 - `bag.ultra.codec`
 - `bag.transport.compat.frame_codec`
@@ -121,10 +123,12 @@
   - third-party/backend owner 继续被限制在 private include-based surface
 
 ## Host `import std;` Required Baseline
-- 当前 required baseline 已包含全部 `14` 个 promoted `audio_core` module interfaces：
+- 当前 required baseline 已包含全部 `16` 个 promoted `audio_core` module interfaces：
   - `libs/audio_core/modules/bag/common/config.cppm`
   - `libs/audio_core/modules/bag/common/types.cppm`
   - `libs/audio_core/modules/bag/flash/codec.cppm`
+  - `libs/audio_core/modules/bag/flash/signal.cppm`
+  - `libs/audio_core/modules/bag/flash/voicing.cppm`
   - `libs/audio_core/modules/bag/flash/phy_clean.cppm`
   - `libs/audio_core/modules/bag/fsk/codec.cppm`
   - `libs/audio_core/modules/bag/pro/codec.cppm`

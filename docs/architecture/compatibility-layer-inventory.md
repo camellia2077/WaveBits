@@ -80,7 +80,7 @@
   - 这不是对外 consumer boundary，也不是 shared bridge headers 或 `bag/internal/**` 的回流
   - 这层是 intentional、长期保留的仓库内部声明边界，只承接预留接口头仍需保留的 `common/*` 声明
   - 主仓 `bag/internal/**` owner 已为 `0`
-  - `bag.common.version`、`bag.transport.facade`、`flash/pro/ultra` clean/codec、`bag.pipeline`、`bag.pro.phy_compat`、`bag.ultra.phy_compat` 与 `bag.transport.compat.frame_codec` 已切到 modules-only host 主线，不再通过主仓 `bag/internal/**` 暴露 fallback declarations
+  - `bag.common.version`、`bag.transport.facade`、`bag.flash.signal`、`bag.flash.voicing`、`flash/pro/ultra` clean/codec、`bag.pipeline`、`bag.pro.phy_compat`、`bag.ultra.phy_compat` 与 `bag.transport.compat.frame_codec` 已切到 modules-only host 主线，不再通过主仓 `bag/internal/**` 暴露 fallback declarations
   - `compatibility_policy.py` 当前锁定它的存在性、allowed-owner 集合、include-based 形态，以及不新增 `bag.interface.*` module mirror
   - 当前直接使用它的路径包括：
     - `libs/audio_core/include/bag/link/link_layer.h`
@@ -95,7 +95,7 @@
 - `libs/audio_core/include/bag/fsk/fsk_codec.h`
 - 说明：
   - 这批文件只承担历史命名包装或 host 过渡桥接，不再属于当前 inventory
-  - `modules_phase2_leaf_smoke` 已直接覆盖 `bag.flash.phy_clean`、`bag.pro.codec` 与 `bag.transport.compat.frame_codec`
+  - `modules_leaf_smoke` 已直接覆盖 `bag.flash.signal`、`bag.flash.voicing`、`bag.flash.phy_clean`、`bag.pro.codec` 与 `bag.transport.compat.frame_codec`
   - `src/fsk/fsk_codec.cpp` 仍保留为 `bag.fsk.codec` 的 module implementation，但不再通过 header wrapper 暴露
 
 ## 已退休的 shared bridge headers
@@ -172,7 +172,7 @@
 - 说明：
   - 测试属于内部验证面，不纳入 consumer-boundary 限制
   - `unit_tests.cpp` 当前只保留 `wav_io.h` header-boundary smoke，不再直接持有 `bag/internal/**` owner
-  - `modules_phase2_leaf_smoke` 继续承担 `bag.flash.phy_clean`、`bag.pro.codec` 与 `bag.transport.compat.frame_codec` 的低层 module-first 覆盖
+  - `modules_leaf_smoke` 继续承担 `bag.flash.signal`、`bag.flash.voicing`、`bag.flash.phy_clean`、`bag.pro.codec` 与 `bag.transport.compat.frame_codec` 的低层 module-first 覆盖
   - modules 路径仍可继续直接 `import bag.*`
   - 当前测试不再有批准的 `bag/legacy/**` 直接 owner；其余测试同样不应新增 legacy include
 

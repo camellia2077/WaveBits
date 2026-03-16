@@ -1,6 +1,6 @@
 # `flash / pro / ultra` 模式设计
 
-更新时间：2026-03-14
+更新时间：2026-03-15
 
 ## 总体原则
 - 三种模式按 mode-first 架构解耦。
@@ -8,7 +8,7 @@
   - 信息层：文本 / 字节 / symbol 的变换
   - clean PHY：symbol 与 PCM 的互转
 - 当前先保证“生成音频 -> 解析生成音频”闭环。
-- 当前不做风格层、抗干扰、FEC、自动拆帧或复杂同步搜索。
+- 当前不做复杂风格层、抗干扰、FEC、自动拆帧或复杂同步搜索。
 
 ## 字符集约束一览
 - `flash`
@@ -67,9 +67,17 @@
 - `0` 对应低频
 - `1` 对应高频
 - `1 byte = 8 bit symbol`
+- `bag.flash.signal` 负责 clean payload render / decode 与 payload layout
+- `bag.flash.signal` 当前会按 `CoreConfig.flash_style` / `bag_api.h` 里的 `flash_style` 派生 payload timing：`coded_burst` 继续使用 `frame_samples` 作为每 bit 样本数，`ritual_chant` 则固定为 `3x` 的每 bit 时长。
+- `bag.flash.voicing` 负责 payload voicing、固定 preamble / epilogue 与 trim 相关描述信息，并已接入正式 `flash` 输出；当前内部已拆出 `coded_burst` 与 `ritual_chant` 两种 style，其中 `coded_burst` 保留 grouped burst preamble / epilogue、非语义化的唤起 / 闭锁外观、nibble / byte 层级 accent、轻度带通 / 低噪声底 / 软削波，以及 payload 内部的轻量金属层、空气层和微弱 AM 脉动，`ritual_chant` 则在更长 payload timing 的基础上继续走更连续、更具共鸣感的风格路径，并通过更长 release、更高 payload floor、更弱边界 click、更强 resonance、显著更长前后壳，以及 preamble 三段式 / epilogue 两段式的短停顿外壳弱化 bit 之间的断开感
+- formal `flash` 当前已对外暴露 preset 选择，但仍只保留 `coded_burst` / `ritual_chant` 这一组统一 style，不拆 signal / voicing 两套独立配置
+- `bag.flash.phy_clean` 负责 text facade 与 decoder 组合
+- decode 入口当前会先按 voicing trim descriptor 去掉非 payload 区域，再进入 `bag.flash.signal` 解调
 
 ### 主链路文件
 - `libs/audio_core/src/flash/codec.cpp`
+- `libs/audio_core/src/flash/signal.cpp`
+- `libs/audio_core/src/flash/voicing.cpp`
 - `libs/audio_core/src/flash/phy_clean.cpp`
 
 ## `pro`
@@ -127,7 +135,7 @@
   - `libs/audio_api/src/bag_api.cpp`
 
 ## 当前明确不做
-- style layer
+- 随机化或不可预测的 style layer，例如可变长度背景层、随机前导/收尾
 - FEC / CRC / 重传
 - 多帧拆分与长文本协议
 - 真实环境同步搜索

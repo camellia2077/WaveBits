@@ -9,7 +9,9 @@
   - `bag_api` 的 C ABI、错误语义、mode 透传与校验规则。
 - `artifact roundtrip`
   - `text -> PCM/WAV -> text` 的产品主链路。
-- `modules phase smokes`
+- `flash voicing focused`
+  - 独立验证 `bag.flash.voicing` 的 no-op、长度保持、范围安全与确定性。
+- `module smokes`
   - 直接 `import bag.*` / `import audio_io.wav` 的 host module-first 验证，覆盖基础模块、叶子模块、中层模块与汇聚层。
 - `cli smoke`
   - 真实执行 `binary_audio_cpp`，验证命令行参数、产物文件与 roundtrip。
@@ -37,23 +39,13 @@
   - `clang++ + Ninja + build/dev`
 
 ## `verify` 静态检查
-- `verify` 在构建前会执行 6 组静态检查：
+- `verify` 在构建前会执行 4 组静态检查：
   - `module_structure`
     - 锁定 named-module implementation units 与 module-first wiring 不回退
   - `boundary`
     - 锁定 CLI / JNI / Android native / tests 的 allowed surface，不允许重新直接依赖内部 `bag/...` 头或 `import bag.*`
-  - `host_import_std`
-    - 锁定当前 host-side `import std;` required baseline，不允许 promoted files 回退，也不允许新增未入基线的 `import std;` source 漏口
-    - 当前显式覆盖 `audio_core` host implementations、`14` 个已 promoted 的 `audio_core` module interfaces、`bag.common.*` foundation baseline、`libs/audio_api/src/bag_api.cpp` 与 `audio_io` module front-ends
-    - 同时穷尽扫描 `libs/audio_core`、`libs/audio_api` 与 `libs/audio_io` 中所有实际采用 `import std;` 的 source，避免出现“实现已用了但 baseline 没锁到”的漂移
-    - 同时锁定当前 required baseline 的保留形态：
-      - `audio_core` promoted `import-std-only` module interfaces
-      - 已切成 single-path 的 core implementation、`audio_io.wav` module interface 与 boundary-host 这 `3` 类
-      - 唯一批准的 backend-bridge exception：`libs/audio_io/modules/audio_io/wav_impl.cpp`
   - `audio_io_boundary`
     - 锁定 `wav_io.h` 与 `audio_io.wav` 的双入口模型、private backend 拆分、`sndfile` containment 与 `wav_impl.cpp` 的 global-fragment backend 声明位置
-  - `compatibility`
-    - 锁定 compatibility headers、reserved-interface declaration boundary 与 direct consumers 的当前口径，不允许历史 include 链漂移回来
   - `retirement`
     - 锁定 retired wrappers、shared bridge headers、Android 私有头 self-contained 形态、已删除的 `bag/legacy/**` no-reintroduction 状态，以及 boundary-adjacent host wiring 不回退
 - 当前主仓 `bag/internal/**` owner 已为 `0`
@@ -62,7 +54,6 @@
   - 保持 include-based header 形态，不新增 `import std;`
   - 不新增 `bag.interface.*` module mirror
 - 当前不再有批准的 `bag/legacy/**` 直接消费者，legacy headers 也已从仓库删除
-- 当前 `host_import_std` required baseline 不扩到 Android lane、`bag_api.h`、`wav_io.h`、`libs/audio_io/src/wav_io.cpp` 与 reserved-interface declaration boundary
 
 ## CI 与发布前门禁
 - CI 当前通过 `.github/workflows/verify-host-and-legacy.yml` 持续执行：
@@ -149,18 +140,22 @@
   - `pro` 的 PCM 长度必须按 `ASCII byte * 2 nibble symbol * frame_samples` 断言。
   - `ultra` 的 PCM 长度必须按 `UTF-8 byte * 2 nibble symbol * frame_samples` 断言。
   - `ultra` 的中文 / emoji / 混合 UTF-8 必须在产物级往返一致。
+- `flash_voicing_tests`
+  - `bag.flash.voicing` 的 no-op、envelope-only、harmonic-only、click-only、trim descriptor / trim payload、固定 preamble / epilogue 与 styled 确定性测试。
 - `cli_smoke_tests`
   - `encode/decode --mode flash|pro|ultra` 代表性语料必须通过。
   - `pro` 非 ASCII 失败提示必须包含 `ASCII`。
   - `pro` 的 extended ASCII 文本文件 roundtrip 必须通过。
   - `ultra` 的 extended UTF-8 文本文件 roundtrip 必须通过。
   - 属于额外产品 smoke，不在默认 `verify` 最小集里。
-- `modules_phase0_smoke / modules_phase2_leaf_smoke / modules_phase3_mid_layer_smoke / modules_phase4_facade_pipeline_smoke / modules_phase10_internal_cutover`
+- `modules_foundation_smoke / modules_leaf_smoke / modules_mid_layer_smoke / modules_facade_pipeline_smoke / modules_end_to_end_smoke`
   - 在默认 host modules 路径下属于正式门禁。
   - 用于验证基础模块、叶子模块、中层模块、facade/pipeline 汇聚层，以及当前 module-first 内部测试都可被直接 `import` 消费。
-  - 其中 `modules_phase2_leaf_smoke` 继续承担：
+  - 其中 `modules_leaf_smoke` 继续承担：
     - `audio_io.wav` 的多组 roundtrip、bytes roundtrip 与 invalid header 失败语义
-    - `bag.flash.phy_clean` 的 `byte <-> PCM`、sample length、幅值范围、空输入与 snapshot 覆盖
+    - `bag.flash.signal` 的 payload layout、`byte <-> PCM`、sample length、幅值范围、空输入与 snapshot 覆盖
+    - `bag.flash.voicing` 的 no-op 输出、safe styled 输出与 descriptor 覆盖
+    - `bag.flash.phy_clean` 的 text facade roundtrip 覆盖
     - `bag.pro.codec` 的 ASCII payload/symbol encode/decode 与失败语义覆盖
     - `bag.transport.compat.frame_codec` 的成功路径、畸形帧失败语义与单帧长度上限覆盖
 

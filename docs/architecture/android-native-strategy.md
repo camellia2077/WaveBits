@@ -7,6 +7,7 @@
   - `externalNativeBuild + CMake 4.1.2 + C++23 + bag_api.h + audio_runtime.h + package-private audio_io wrapper`
   - app `CMake` 通过 `apps/audio_android/native_package/` 消费 `bag_android_native`
 - `native_package` 当前只编译 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层，不再直接 source-own 主仓原始实现文件
+- 当前 `flash` 路径下，Android package lane 已补齐 `signal + voicing + phy_clean` 的 package-owned source owner；Android 继续通过 `bag_api.h` 复用 formal `flash` 的 style-aware signal + voicing 语义，并通过同一份稳定 config 中的 `flash_style` 字段选择 `coded_burst / ritual_chant`。
 - 这条路线是当前长期例外路径，不属于 host modules 主路径的一部分。
 - 当前不把 Android native 直接并入 named modules 迁移主线。
 
@@ -33,6 +34,7 @@
 - Android JNI 编解码能力继续通过 `bag_api.h` 访问
 - Android JNI 播放运行时能力继续通过 `audio_runtime.h` 访问
 - Android JNI 的 WAV bytes 能力只通过 `native_package` 私有 `audio_io` wrapper 访问
+- Android `flash` style 继续通过稳定 `bag_api.h` 配置面进入 core，不新增 flash-only 私有 encode/decode JNI 入口，也不回退到 Android-only 参数分叉
 - Android JNI 不直接 `#include "bag/..."`
 - Android JNI 不直接 `import bag.*`
 - Android app `CMake` 不再直接 `add_subdirectory(libs/audio_core)` 或 `add_subdirectory(libs/audio_api)`

@@ -98,11 +98,17 @@
 - 先看：
   - `libs/audio_core/modules/bag/flash/codec.cppm`
   - `libs/audio_core/src/flash/codec.cpp`
+  - `libs/audio_core/modules/bag/flash/signal.cppm`
+  - `libs/audio_core/src/flash/signal.cpp`
+  - `libs/audio_core/modules/bag/flash/voicing.cppm`
+  - `libs/audio_core/src/flash/voicing.cpp`
   - `libs/audio_core/modules/bag/flash/phy_clean.cppm`
   - `libs/audio_core/src/flash/phy_clean.cpp`
 - 当前语义：
   - 原始字节直通
-  - clean `BFSK`
+  - `bag.flash.signal` 负责 clean `BFSK` payload 与 payload layout
+  - `bag.flash.voicing` 负责 payload voicing、固定 preamble / epilogue 与 trim descriptor
+  - `bag.flash.phy_clean` 负责 text facade 与 decoder 组合
   - 无 frame / CRC / 长度字段
 
 ### `pro`
@@ -181,9 +187,11 @@
 ### 改 `flash` 编解码
 - 先看：
   - `libs/audio_core/src/flash/codec.cpp`
+  - `libs/audio_core/src/flash/signal.cpp`
+  - `libs/audio_core/src/flash/voicing.cpp`
   - `libs/audio_core/src/flash/phy_clean.cpp`
 - 再看：
-  - `Test/modules/phase2_leaf_smoke.cpp`
+  - `Test/modules/leaf_module_smoke.cpp`
   - `Test/artifact/artifact_tests.cpp`
 
 ### 改 `pro` 编解码
@@ -192,7 +200,7 @@
   - `libs/audio_core/src/pro/phy_clean.cpp`
   - `libs/audio_core/src/transport/transport.cpp`
 - 再看：
-  - `Test/modules/phase2_leaf_smoke.cpp`
+  - `Test/modules/leaf_module_smoke.cpp`
   - `Test/api/api_tests.cpp`
   - `Test/cli/cli_smoke_tests.cpp`
 

@@ -49,7 +49,11 @@ _AUDIO_CORE_WRAPPER_MACRO_SCAN_ROOT = ROOT_DIR / "libs" / "audio_core" / "src"
 
 _MODULES_PHASE2_WRAPPER_EVICTION_REQUIRED_TOKENS: tuple[str, ...] = (
     '#include "test_std_support.h"',
+    "import bag.flash.signal;",
+    "import bag.flash.voicing;",
     "import bag.flash.phy_clean;",
+    "bag::flash::BuildPayloadLayout",
+    "bag::flash::ApplyVoicingToPayload",
     "bag::flash::EncodeBytesToPcm16",
     "bag::flash::DecodePcm16ToBytes",
     "bag::pro::EncodeTextToPayload",
@@ -67,6 +71,8 @@ _AUDIO_CORE_SINGLE_LANE_REQUIRED_TOKENS: tuple[str, ...] = (
     "src/common/version.cpp",
     "src/flash/codec.cpp",
     "src/flash/phy_clean.cpp",
+    "src/flash/signal.cpp",
+    "src/flash/voicing.cpp",
     "src/fsk/fsk_codec.cpp",
     "src/pro/codec.cpp",
     "src/pro/phy_clean.cpp",
@@ -127,6 +133,7 @@ _ANDROID_NATIVE_PACKAGE_OBJECTS_REQUIRED_TOKENS: tuple[str, ...] = (
     "bag_api_package.cpp",
     "audio_core_common_version.cpp",
     "audio_core_flash_codec.cpp",
+    "audio_core_flash_signal.cpp",
     "audio_core_flash_phy_clean.cpp",
     "audio_core_pro_codec.cpp",
     "audio_core_pro_phy_clean.cpp",
@@ -162,10 +169,14 @@ _ANDROID_AUDIO_CORE_PACKAGE_SOURCE_RULES: dict[Path, tuple[str, ...]] = {
         '#include "android_bag/flash/codec.h"',
         '#include "../../../../libs/audio_core/src/flash/codec_impl.inc"',
     ),
-    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_phy_clean.cpp": (
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_signal.cpp": (
         "#include <algorithm>",
         "#include <cmath>",
         "#include <stdexcept>",
+        '#include "android_bag/flash/signal.h"',
+        '#include "../../../../libs/audio_core/src/flash/signal_impl.inc"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_phy_clean.cpp": (
         '#include "android_bag/flash/codec.h"',
         '#include "android_bag/flash/phy_clean.h"',
         '#include "../../../../libs/audio_core/src/flash/phy_clean_impl.inc"',
@@ -206,6 +217,9 @@ _ANDROID_AUDIO_CORE_PACKAGE_SOURCE_FORBIDDEN_TOKENS: dict[Path, tuple[str, ...]]
     ),
     ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_codec.cpp": (
         '#include "../../../../libs/audio_core/src/flash/codec.cpp"',
+    ),
+    ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_signal.cpp": (
+        '#include "../../../../libs/audio_core/src/flash/signal.cpp"',
     ),
     ROOT_DIR / "apps" / "audio_android" / "native_package" / "src" / "audio_core_flash_phy_clean.cpp": (
         '#include "../../../../libs/audio_core/src/flash/phy_clean.cpp"',
@@ -409,9 +423,13 @@ _UNIT_TEST_LEGACY_FORBIDDEN_TOKENS: tuple[str, ...] = (
     '#include "bag/legacy/transport/compat/frame_codec.h"',
 )
 
-_MODULES_PHASE2_LEAF_SMOKE_PATH = ROOT_DIR / "Test" / "modules" / "phase2_leaf_smoke.cpp"
-_MODULES_PHASE2_LEAF_REQUIRED_TOKENS: tuple[str, ...] = (
+_MODULES_LEAF_SMOKE_PATH = ROOT_DIR / "Test" / "modules" / "leaf_module_smoke.cpp"
+_MODULES_LEAF_REQUIRED_TOKENS: tuple[str, ...] = (
+    "import bag.flash.signal;",
+    "import bag.flash.voicing;",
     "import bag.flash.phy_clean;",
+    "bag::flash::BuildPayloadLayout",
+    "bag::flash::ApplyVoicingToPayload",
     "bag::flash::EncodeBytesToPcm16",
     "bag::flash::DecodePcm16ToBytes",
     "bag::pro::EncodeTextToPayload",
@@ -477,16 +495,16 @@ def run_phase18_compatibility_eviction_policy_checks() -> None:
         if path.exists():
             failures.append(f"retired wrapper still exists: {path.relative_to(ROOT_DIR)}")
 
-    modules_phase2_content = _MODULES_PHASE2_LEAF_SMOKE_PATH.read_text(encoding="utf-8")
-    missing_phase2_required = [
+    modules_leaf_content = _MODULES_LEAF_SMOKE_PATH.read_text(encoding="utf-8")
+    missing_leaf_required = [
         token
         for token in _MODULES_PHASE2_WRAPPER_EVICTION_REQUIRED_TOKENS
-        if token not in modules_phase2_content
+        if token not in modules_leaf_content
     ]
-    if missing_phase2_required:
+    if missing_leaf_required:
         failures.append(
-            "Test/modules/phase2_leaf_smoke.cpp missing required wrapper-eviction coverage tokens: "
-            + ", ".join(missing_phase2_required)
+            "Test/modules/leaf_module_smoke.cpp missing required wrapper-eviction coverage tokens: "
+            + ", ".join(missing_leaf_required)
         )
 
     unit_tests_content = _UNIT_TESTS_PATH.read_text(encoding="utf-8")
@@ -769,17 +787,17 @@ def run_phase19_bridge_retirement_policy_checks() -> None:
             + ", ".join(present_unit_test_owner_tokens)
         )
 
-    modules_phase2_content = _MODULES_PHASE2_LEAF_SMOKE_PATH.read_text(encoding="utf-8")
-    missing_phase2_required = [
+    modules_leaf_content = _MODULES_LEAF_SMOKE_PATH.read_text(encoding="utf-8")
+    missing_leaf_required = [
         token
-        for token in _MODULES_PHASE2_LEAF_REQUIRED_TOKENS
-        if token not in modules_phase2_content
+        for token in _MODULES_LEAF_REQUIRED_TOKENS
+        if token not in modules_leaf_content
     ]
-    if missing_phase2_required:
+    if missing_leaf_required:
         failures.append(
-            f"{_MODULES_PHASE2_LEAF_SMOKE_PATH.relative_to(ROOT_DIR)} missing required "
+            f"{_MODULES_LEAF_SMOKE_PATH.relative_to(ROOT_DIR)} missing required "
             "bag.transport.compat.frame_codec module coverage tokens: "
-            + ", ".join(missing_phase2_required)
+            + ", ".join(missing_leaf_required)
         )
 
     for path, required_tokens in sorted(_AUDIO_CORE_SOURCE_REQUIRED_TOKENS.items()):

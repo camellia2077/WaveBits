@@ -13,6 +13,17 @@ _PHASE7_IMPORT_RULES: dict[Path, tuple[str, ...]] = {
     ROOT_DIR / "libs" / "audio_core" / "src" / "flash" / "codec.cpp": (
         "module bag.flash.codec;",
     ),
+    ROOT_DIR / "libs" / "audio_core" / "src" / "flash" / "signal.cpp": (
+        "module bag.flash.signal;",
+    ),
+    ROOT_DIR / "libs" / "audio_core" / "src" / "flash" / "voicing.cpp": (
+        "module bag.flash.voicing;",
+    ),
+    ROOT_DIR / "libs" / "audio_core" / "src" / "flash" / "phy_clean.cpp": (
+        "module bag.flash.phy_clean;",
+        "import bag.flash.codec;",
+        "import bag.flash.signal;",
+    ),
     ROOT_DIR / "libs" / "audio_core" / "src" / "fsk" / "fsk_codec.cpp": (
         "module bag.fsk.codec;",
         "import bag.flash.phy_clean;",

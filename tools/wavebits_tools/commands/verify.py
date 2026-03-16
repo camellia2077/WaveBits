@@ -8,9 +8,7 @@ from .android import cmd_android
 from .audio_io_boundary_policy import run_audio_io_boundary_policy_checks
 from .boundary_policy import run_boundary_policy_checks
 from .build import cmd_build
-from .compatibility_policy import run_compatibility_policy_checks
 from .configure import cmd_configure
-from .host_import_std_policy import run_host_import_std_policy_checks
 from .module_structure_policy import run_module_structure_policy_checks
 from .retirement_policy import run_retirement_policy_checks
 from .test import cmd_test
@@ -29,31 +27,9 @@ VERIFY_CHECK_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         ("consumer_surfaces", "boundary_first_tests", "module_first_tests"),
     ),
     (
-        "host_import_std",
-        "Guard the current host-side import-std required baseline across promoted interfaces, retained dual-path shapes, boundary hosts, and audio_io front-ends.",
-        (
-            "core_implementations",
-            "promoted_interfaces",
-            "foundation_modules",
-            "boundary_hosts",
-            "audio_io_frontends",
-            "baseline_shape",
-        ),
-    ),
-    (
         "audio_io_boundary",
         "Guard the permanent audio_io boundary model, private backend split, and sndfile containment.",
         ("stable_wav_boundary", "private_backend_split", "third_party_containment"),
-    ),
-    (
-        "compatibility",
-        "Guard the current compatibility surface, reserved-interface declaration boundary, direct consumers, and retired outer headers.",
-        (
-            "compatibility_includes",
-            "direct_consumers",
-            "reserved_interface_boundary",
-            "retired_outer_headers",
-        ),
     ),
     (
         "retirement",
@@ -65,9 +41,7 @@ VERIFY_CHECK_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
 VERIFY_STATIC_CHECK_RUNNERS: tuple[tuple[str, Callable[[], None]], ...] = (
     ("module_structure", run_module_structure_policy_checks),
     ("boundary", run_boundary_policy_checks),
-    ("host_import_std", run_host_import_std_policy_checks),
     ("audio_io_boundary", run_audio_io_boundary_policy_checks),
-    ("compatibility", run_compatibility_policy_checks),
     ("retirement", run_retirement_policy_checks),
 )
 

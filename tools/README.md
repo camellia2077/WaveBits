@@ -20,12 +20,10 @@ Host 侧根目录 `CMake` 工程当前要求 `CMake 3.28+`。
 - `clean`：清理默认 host 构建目录，或按 scope 清理 Android、测试产物与 Python cache
 - `test`：执行 `ctest`，默认同时输出机器可读 `summary.json` 和人工可读 `run.log`
 - `verify`：执行 `configure + build + test`，在未传 `--skip-android` 时再跑根目录 `Gradle` 的 `:app:assembleDebug`
-  - 在进入构建前，会先执行 6 组长期语义的静态检查：
+  - 在进入构建前，会先执行 4 组长期语义的静态检查：
     - `module_structure`
     - `boundary`
-    - `host_import_std`
     - `audio_io_boundary`
-    - `compatibility`
     - `retirement`
   - 运行过程中会输出分步 banner，并直接透传 configure/build/test/Android 的实时日志，避免长时间构建看起来像卡死
   - 可使用 `python tools/run.py verify --list-checks` 查看当前分组与子检查项

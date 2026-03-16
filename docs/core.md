@@ -3,6 +3,7 @@
 更新时间：2026-03-15
 
 ## 版本更新说明
+- [v0.4.0](./core/v0.4/v0.4.0.md)
 - [v0.3.3](./core/v0.3/v0.3.3.md)
 - [v0.3.2](./core/v0.3/v0.3.2.md)
 - [v0.3.1](./core/v0.3/v0.3.1.md)
@@ -55,11 +56,12 @@
 
 ## 当前已实现能力
 1. `transport facade + flash/pro/ultra` 的 mode-first 内部主线。
-2. `flash` 的原始文本/字节直通 + clean `BFSK` PHY。
-3. `pro` 的 ASCII byte + `DTMF-like` 双音 clean PHY。
-4. `ultra` 的 UTF-8 byte + clean `16-FSK` PHY。
-5. Pipeline 最小闭环：`PushPcm -> PollTextResult -> Reset`。
-6. 稳定 C API 编码/解码入口：
+2. `flash` 的原始文本/字节直通 + clean `BFSK` signal 层 + `phy_clean` facade。
+3. `flash` 当前已通过 `CoreConfig.flash_style` / `bag_api.h` 正式公开 `coded_burst` 与 `ritual_chant` 两种 style：`bag.flash.signal` 负责按 style 派生不同的 payload `samples_per_bit`，`bag.flash.voicing` 负责按同一 style 派生固定 preamble / epilogue、payload voicing、三段式/两段式短停顿与 trim descriptor。正式默认仍为 `coded_burst`；`ritual_chant` 则在保留 decode 自洽的前提下，同时拉长 payload timing、前后壳时长与仪式化外观。
+4. `pro` 的 ASCII byte + `DTMF-like` 双音 clean PHY。
+5. `ultra` 的 UTF-8 byte + clean `16-FSK` PHY。
+6. Pipeline 最小闭环：`PushPcm -> PollTextResult -> Reset`。
+7. 稳定 C API 编码/解码入口：
    - `bag_encode_text`
    - `bag_free_pcm16_result`
    - `bag_create_decoder`
@@ -68,7 +70,7 @@
    - `bag_reset`
    - `bag_destroy_decoder`
    - `bag_core_version`
-7. 稳定 WAV 边界能力：
+8. 稳定 WAV 边界能力：
    - `SerializeMonoPcm16Wav`
    - `ParseMonoPcm16Wav`
    - `WriteMonoPcm16Wav`
@@ -110,6 +112,8 @@
   - `libs/audio_core/modules/bag/common/config.cppm`
   - `libs/audio_core/modules/bag/common/types.cppm`
   - `libs/audio_core/modules/bag/flash/codec.cppm`
+  - `libs/audio_core/modules/bag/flash/signal.cppm`
+  - `libs/audio_core/modules/bag/flash/voicing.cppm`
   - `libs/audio_core/modules/bag/flash/phy_clean.cppm`
   - `libs/audio_core/modules/bag/fsk/codec.cppm`
   - `libs/audio_core/modules/bag/pro/codec.cppm`
@@ -129,13 +133,14 @@
   - `bag.common.config.cppm`
   - `bag.common.types.cppm`
   - `flash/pro/ultra codec.cppm`
+  - `flash signal/voicing.cppm`
   - `flash/pro/ultra phy_clean.cppm`
   - `fsk/codec.cppm`
   - `pro/ultra phy_compat.cppm`
   - `transport/compat/frame_codec.cppm`
   - `transport/facade.cppm`
   - `pipeline.cppm`
-  - 以上 `14` 个 `audio_core` module interface 已收成 `import-std-only`，不再保留 fallback `#include <...>` guard
+  - 以上 `16` 个 `audio_core` module interface 已收成 `import-std-only`，不再保留 fallback `#include <...>` guard
 - 在 promoted set 全部收口后，当前 required baseline 只保留以下受控形态：
   - core module implementation single-path
     - `module;` + `import std;` + `module bag.*;`
@@ -190,8 +195,10 @@
 - [x] `pro` 当前只做 `ASCII byte -> nibble -> DTMF-like 双音` 的 clean 闭环。
 - [x] `ultra` 当前只做 `UTF-8 byte -> nibble -> clean 16-FSK` 的 clean 闭环。
 - [ ] 自动拆帧、多帧重组、长文本流式会话管理不在当前 MVP 范围内。
-- [ ] style layer 暂不实现。
-- [x] `flash` 当前不做 style layer，不加入频率变化、立体声、节奏强化、音色设计或背景氛围处理。
+- [x] 用户可感知的最小 style layer 已在正式 `flash` 输出中启用，当前包括安全 payload voicing 与固定 preamble / epilogue。
+- [x] `bag.flash.voicing` 已接入正式 `flash` 输出，同时仍保留默认 no-op 口径供 clean 验证使用。
+- [x] formal `flash` 当前已通过 `CoreConfig` / `bag_api.h` 公开 `flash_style`，并统一用同一配置同时驱动 signal timing、voicing、trim 与 decode；`coded_burst` 仍作为默认 style 和零值语义。
+- [x] `flash` 当前仍不做随机化、立体声、可变长度背景层或不可预测的风格处理。
 
 ## 对外集成建议
 1. Android、Windows 等平台继续通过 `bag_api.h` 调用 core，不直接依赖内部 modules。
