@@ -3,6 +3,7 @@ package com.bag.audioandroid.ui.screen
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.selection.selectable
@@ -19,18 +19,12 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -40,21 +34,35 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.R
 import com.bag.audioandroid.ui.model.AppLanguageOption
+import com.bag.audioandroid.ui.model.PaletteFamily
 import com.bag.audioandroid.ui.model.PaletteOption
+import com.bag.audioandroid.ui.model.ThemeModeOption
 import com.bag.audioandroid.ui.theme.MaterialPalettes
 
 @Composable
 fun ConfigTabScreen(
     selectedLanguage: AppLanguageOption,
     onLanguageSelected: (AppLanguageOption) -> Unit,
+    selectedThemeMode: ThemeModeOption,
+    onThemeModeSelected: (ThemeModeOption) -> Unit,
     selectedPalette: PaletteOption,
     onPaletteSelected: (PaletteOption) -> Unit,
     onOpenAboutPage: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var paletteExpanded by remember { mutableStateOf(false) }
-    val paletteRows = MaterialPalettes.chunked(PALETTE_COLUMNS)
-    val visibleRows = if (paletteExpanded) paletteRows else paletteRows.take(COLLAPSED_PALETTE_ROWS)
+    val paletteGroups = remember {
+        PaletteFamily.entries.mapNotNull { family ->
+            val options = MaterialPalettes.filter { it.family == family }
+            if (options.isEmpty()) {
+                null
+            } else {
+                PaletteGroupUi(
+                    family = family,
+                    options = options
+                )
+            }
+        }
+    }
 
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
@@ -87,34 +95,42 @@ fun ConfigTabScreen(
                 }
 
                 AppLanguageOption.entries.forEach { option ->
-                    val selected = option == selectedLanguage
-                    Surface(
-                        tonalElevation = if (selected) 6.dp else 1.dp,
-                        shadowElevation = if (selected) 2.dp else 0.dp,
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onLanguageSelected(option) }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 10.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(option.labelResId),
-                                fontWeight = FontWeight.Medium
-                            )
-                            if (selected) {
-                                Text(
-                                    stringResource(R.string.config_palette_selected),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
+                    SelectionRow(
+                        label = stringResource(option.labelResId),
+                        selected = option == selectedLanguage,
+                        onClick = { onLanguageSelected(option) }
+                    )
+                }
+            }
+        }
+
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 2.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = stringResource(R.string.config_theme_mode_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = stringResource(R.string.config_theme_mode_subtitle),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                ThemeModeOption.entries.forEach { option ->
+                    SelectionRow(
+                        label = stringResource(option.labelResId),
+                        selected = option == selectedThemeMode,
+                        onClick = { onThemeModeSelected(option) }
+                    )
                 }
             }
         }
@@ -138,56 +154,23 @@ fun ConfigTabScreen(
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold
                     )
-                    if (paletteRows.size > COLLAPSED_PALETTE_ROWS) {
-                        IconButton(onClick = { paletteExpanded = !paletteExpanded }) {
-                            Icon(
-                                imageVector = if (paletteExpanded) {
-                                    Icons.Rounded.KeyboardArrowUp
-                                } else {
-                                    Icons.Rounded.KeyboardArrowDown
-                                },
-                                contentDescription = stringResource(
-                                    if (paletteExpanded) {
-                                        R.string.config_palette_collapse
-                                    } else {
-                                        R.string.config_palette_expand
-                                    }
-                                )
-                            )
-                        }
-                    }
                 }
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .selectableGroup(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    visibleRows.forEach { rowOptions ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            rowOptions.forEach { option ->
-                                Box(
-                                    modifier = Modifier.weight(1f),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    PaletteSwatch(
-                                        option = option,
-                                        selected = option.id == selectedPalette.id,
-                                        onClick = { onPaletteSelected(option) }
-                                    )
-                                }
-                            }
-                            repeat(PALETTE_COLUMNS - rowOptions.size) {
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
-                        }
+                    paletteGroups.forEach { group ->
+                        PaletteGroupSection(
+                            group = group,
+                            selectedPalette = selectedPalette,
+                            onPaletteSelected = onPaletteSelected
+                        )
                     }
                 }
                 Text(
-                    text = stringResource(selectedPalette.titleResId),
+                    text = "${stringResource(selectedPalette.family.titleResId)} · ${stringResource(selectedPalette.titleResId)}",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium
                 )
@@ -220,8 +203,45 @@ fun ConfigTabScreen(
     }
 }
 
-private const val PALETTE_COLUMNS = 4
-private const val COLLAPSED_PALETTE_ROWS = 2
+private data class PaletteGroupUi(
+    val family: PaletteFamily,
+    val options: List<PaletteOption>
+)
+
+@Composable
+private fun SelectionRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        tonalElevation = if (selected) 6.dp else 1.dp,
+        shadowElevation = if (selected) 2.dp else 0.dp,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                fontWeight = FontWeight.Medium
+            )
+            if (selected) {
+                Text(
+                    stringResource(R.string.config_palette_selected),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun PaletteSwatch(
@@ -268,6 +288,45 @@ private fun PaletteSwatch(
                         imageVector = Icons.Filled.Check,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaletteGroupSection(
+    group: PaletteGroupUi,
+    selectedPalette: PaletteOption,
+    onPaletteSelected: (PaletteOption) -> Unit
+) {
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.24f)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = stringResource(group.family.titleResId),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.SemiBold
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                group.options.forEach { option ->
+                    PaletteSwatch(
+                        option = option,
+                        selected = option.id == selectedPalette.id,
+                        onClick = { onPaletteSelected(option) }
                     )
                 }
             }

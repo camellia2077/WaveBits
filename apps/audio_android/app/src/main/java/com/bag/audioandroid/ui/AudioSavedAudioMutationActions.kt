@@ -1,6 +1,7 @@
 package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.R
+import com.bag.audioandroid.domain.SavedAudioImportResult
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRenameResult
 import com.bag.audioandroid.domain.SavedAudioRepository
@@ -99,6 +100,30 @@ internal class AudioSavedAudioMutationActions(
 
             SavedAudioRenameResult.Failed -> uiState.update {
                 it.copy(libraryStatusText = UiText.Resource(R.string.library_status_rename_failed))
+            }
+        }
+    }
+
+    fun onImportAudio(uriString: String) {
+        when (val result = savedAudioRepository.importAudio(uriString)) {
+            is SavedAudioImportResult.Success -> {
+                refreshSavedAudioItems()
+                uiState.update {
+                    it.copy(
+                        libraryStatusText = UiText.Resource(
+                            R.string.library_status_imported,
+                            listOf(result.importedItem.displayName)
+                        )
+                    )
+                }
+            }
+
+            SavedAudioImportResult.UnsupportedFormat -> uiState.update {
+                it.copy(libraryStatusText = UiText.Resource(R.string.library_status_import_unsupported))
+            }
+
+            SavedAudioImportResult.Failed -> uiState.update {
+                it.copy(libraryStatusText = UiText.Resource(R.string.library_status_import_failed))
             }
         }
     }

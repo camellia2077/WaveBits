@@ -6,8 +6,11 @@ import com.bag.audioandroid.ui.model.AppLanguageOption
 import com.bag.audioandroid.ui.model.AppTab
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.PaletteOption
+import com.bag.audioandroid.ui.model.PlaybackSequenceMode
+import com.bag.audioandroid.ui.model.ThemeModeOption
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import com.bag.audioandroid.ui.state.LibrarySelectionUiState
+import com.bag.audioandroid.ui.theme.DefaultMaterialPalette
 import com.bag.audioandroid.ui.theme.MaterialPalettes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,10 +85,42 @@ internal class AudioAndroidChromeActions(
         }
     }
 
+    fun onThemeModeSelected(themeMode: ThemeModeOption) {
+        uiState.update { it.copy(selectedThemeMode = themeMode) }
+        scope.launch {
+            appSettingsRepository.setSelectedThemeModeId(themeMode.id)
+        }
+    }
+
     fun onFlashVoicingStyleSelected(style: FlashVoicingStyleOption) {
         uiState.update { it.copy(selectedFlashVoicingStyle = style) }
         scope.launch {
             appSettingsRepository.setSelectedFlashVoicingStyleId(style.id)
+        }
+    }
+
+    fun onPlaybackSequenceModeSelected(mode: PlaybackSequenceMode) {
+        uiState.update { it.copy(playbackSequenceMode = mode) }
+        scope.launch {
+            appSettingsRepository.setSelectedPlaybackSequenceModeId(mode.id)
+        }
+    }
+
+    fun onOpenPlayerDetailSheet() {
+        uiState.update { it.copy(showPlayerDetailSheet = true, showSavedAudioSheet = false) }
+    }
+
+    fun onClosePlayerDetailSheet() {
+        uiState.update { it.copy(showPlayerDetailSheet = false) }
+    }
+
+    fun onSnackbarMessageShown(messageId: Long) {
+        uiState.update { state ->
+            if (state.snackbarMessage?.id == messageId) {
+                state.copy(snackbarMessage = null)
+            } else {
+                state
+            }
         }
     }
 
@@ -94,12 +129,29 @@ internal class AudioAndroidChromeActions(
             appSettingsRepository.selectedPaletteId
                 .distinctUntilChanged()
                 .collect { paletteId ->
-                    val palette = MaterialPalettes.firstOrNull { it.id == paletteId } ?: MaterialPalettes.first()
+                    val palette = MaterialPalettes.firstOrNull { it.id == paletteId } ?: DefaultMaterialPalette
                     uiState.update { state ->
                         if (state.selectedPalette.id == palette.id) {
                             state
                         } else {
                             state.copy(selectedPalette = palette)
+                        }
+                    }
+                }
+        }
+    }
+
+    fun observeSelectedThemeMode() {
+        scope.launch {
+            appSettingsRepository.selectedThemeModeId
+                .distinctUntilChanged()
+                .collect { themeModeId ->
+                    val themeMode = ThemeModeOption.fromId(themeModeId)
+                    uiState.update { state ->
+                        if (state.selectedThemeMode == themeMode) {
+                            state
+                        } else {
+                            state.copy(selectedThemeMode = themeMode)
                         }
                     }
                 }
@@ -117,6 +169,23 @@ internal class AudioAndroidChromeActions(
                             state
                         } else {
                             state.copy(selectedFlashVoicingStyle = style)
+                        }
+                    }
+                }
+        }
+    }
+
+    fun observeSelectedPlaybackSequenceMode() {
+        scope.launch {
+            appSettingsRepository.selectedPlaybackSequenceModeId
+                .distinctUntilChanged()
+                .collect { modeId ->
+                    val mode = PlaybackSequenceMode.fromId(modeId)
+                    uiState.update { state ->
+                        if (state.playbackSequenceMode == mode) {
+                            state
+                        } else {
+                            state.copy(playbackSequenceMode = mode)
                         }
                     }
                 }

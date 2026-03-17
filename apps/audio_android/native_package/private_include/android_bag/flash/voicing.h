@@ -44,10 +44,16 @@ std::vector<std::int16_t> TrimToPayloadPcm(const std::vector<std::int16_t>& voic
 FlashVoicingResult ApplyVoicingToPayloadWithFlavor(const std::vector<std::int16_t>& clean_payload_pcm,
                                                   const FlashPayloadLayout& payload_layout,
                                                   FlashVoicingFlavor flavor,
-                                                  const FlashVoicingConfig& config = {});
+                                                  const FlashVoicingConfig& config = {},
+                                                  const EncodeProgressSink* progress_sink = nullptr,
+                                                  float progress_begin = 0.0f,
+                                                  float progress_end = 1.0f);
 
 FlashVoicingResult ApplyVoicingToPayload(const std::vector<std::int16_t>& clean_payload_pcm,
                                          const FlashPayloadLayout& payload_layout,
-                                         const FlashVoicingConfig& config = {});
+                                         const FlashVoicingConfig& config = {},
+                                         const EncodeProgressSink* progress_sink = nullptr,
+                                         float progress_begin = 0.0f,
+                                         float progress_end = 1.0f);
 
 }  // namespace bag::flash

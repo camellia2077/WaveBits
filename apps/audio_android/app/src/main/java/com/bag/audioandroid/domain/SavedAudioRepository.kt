@@ -7,12 +7,14 @@ interface SavedAudioRepository {
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
-        sampleRateHz: Int
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata
     ): AudioExportResult
 
     fun listSavedAudio(): List<SavedAudioItem>
     fun loadSavedAudio(itemId: String): SavedAudioContent?
     fun deleteSavedAudio(itemId: String): Boolean
     fun renameSavedAudio(itemId: String, newBaseName: String): SavedAudioRenameResult
+    fun importAudio(uriString: String): SavedAudioImportResult
     fun shareSavedAudio(item: SavedAudioItem): Boolean
 }

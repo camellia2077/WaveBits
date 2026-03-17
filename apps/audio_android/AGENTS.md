@@ -2,10 +2,29 @@
 
 - `apps/audio_android` 只存放 Android 模块源码，不作为独立 `Gradle` root 使用。
 - Android 官方 `Gradle` 入口固定在仓库根目录 `C:\code\WaveBits`。
+- 先读 `apps/audio_android/README.md` 的“快速定位 / 常见改动入口”，再决定是否需要全局 `rg`。
+- 优先按职责找入口，不要默认从最大文件开始搜。
+- 常见入口速查：
+  - App 壳层与路由：`ui/AudioAndroidAppShell.kt`
+  - `ViewModel` 总入口：`ui/AudioAndroidViewModel.kt`
+  - 编码/解码/导出：`ui/AudioSessionEncodeActions.kt`、`ui/AudioSessionDecodeActions.kt`、`ui/AudioSessionExportActions.kt`
+  - 播放抽屉：`ui/screen/PlayerDetailSheet.kt`
+  - 播放控制与进度：`ui/screen/AudioPlaybackTransportControls.kt`、`ui/screen/AudioPlaybackProgressSection.kt`
+  - Flash 可视化：`ui/screen/AudioFlashSignalVisualizer.kt`、`ui/screen/FlashSignalVisualizationAnalysis.kt`、`ui/screen/FlashSignalVisualizationDrawing.kt`
+  - PCM 波形：`ui/screen/AudioPcmWaveform.kt`、`ui/screen/AudioPcmWaveformAnalysis.kt`
+  - 数据层：`data/MediaStoreSavedAudioLibraryGateway.kt`、`data/MediaStoreAudioExportGateway.kt`、`data/NativeAudioCodecGateway.kt`、`data/NativeAudioIoGateway.kt`
+  - JNI：`app/src/main/cpp/jni_bridge.cpp`、`app/src/main/cpp/audio_io_jni.cpp`
+  - WAV 元数据：`libs/audio_io/include/wav_io.h`、`libs/audio_io/src/wav_io_bytes_impl.inc`
+  - Palette：`ui/theme/PaletteCatalog.kt`、`ui/theme/PaletteFactory.kt`
 - 修改 `app/src/main/res/values/strings.xml` 中的可见文案时，必须同步检查并更新：
   - `app/src/main/res/values-zh/strings.xml`
   - `app/src/main/res/values-ja/strings.xml`
+  - `app/src/main/res/values-zh-rTW/strings.xml`
 - 新增 XML 文案 key 时，不允许只落在单一语言目录；基线 `values`、中文 `values-zh`、日语 `values-ja` 需要一起补齐。
+- 如果改动涉及语言切换、随机样例或默认文案，还要同步检查：
+  - `data/AndroidSampleInputTextProvider.kt`
+  - `ui/SampleInputSessionUpdater.kt`
+- 如果改动涉及保存音频识别，不要再从文件名设计新解析逻辑；优先看 WAV 内嵌 metadata 链路。
 - 修改 `apps/audio_android` 下的代码后，最小验证优先运行：
   - Windows: `.\gradlew.bat :app:assembleDebug`
   - macOS/Linux: `./gradlew :app:assembleDebug`

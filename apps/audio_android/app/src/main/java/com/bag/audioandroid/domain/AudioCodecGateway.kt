@@ -10,14 +10,15 @@ interface AudioCodecGateway {
         flashVoicingFlavor: Int
     ): Int
 
-    fun encodeTextToPcm(
+    suspend fun encodeTextToPcm(
         text: String,
         sampleRateHz: Int,
         frameSamples: Int,
         mode: Int,
         flashSignalProfile: Int,
-        flashVoicingFlavor: Int
-    ): ShortArray
+        flashVoicingFlavor: Int,
+        onProgress: (EncodeProgressUpdate) -> Unit = {}
+    ): EncodeAudioResult
 
     fun validateDecodeConfig(
         sampleRateHz: Int,
@@ -35,15 +36,6 @@ interface AudioCodecGateway {
         flashSignalProfile: Int,
         flashVoicingFlavor: Int
     ): String
-
-    fun analyzeVisualization(
-        pcm: ShortArray,
-        sampleRateHz: Int,
-        frameSamples: Int,
-        mode: Int,
-        flashSignalProfile: Int,
-        flashVoicingFlavor: Int
-    ): AudioVisualizationTrack?
 
     fun getCoreVersion(): String
 }

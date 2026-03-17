@@ -1,0 +1,28 @@
+# Hand-curated baseline profile for the single-activity app shell.
+# This biases startup and the first audio workflow toward the app's
+# activity, Compose shell, state/view-model path, and native bridges.
+
+HSPLcom/bag/audioandroid/MainActivity;->onCreate(Landroid/os/Bundle;)V
+Lcom/bag/audioandroid/MainActivity;
+
+Lcom/bag/audioandroid/NativeAudioIoBridge;
+Lcom/bag/audioandroid/NativeBagBridge;
+Lcom/bag/audioandroid/NativePlaybackRuntimeBridge;
+
+Lcom/bag/audioandroid/ui/AudioAndroidAppKt;
+Lcom/bag/audioandroid/ui/AudioAndroidAppShellKt;
+Lcom/bag/audioandroid/ui/AudioAndroidViewModel;
+Lcom/bag/audioandroid/ui/AudioAndroidViewModelFactory;
+Lcom/bag/audioandroid/ui/AudioAndroidChromeActions;
+Lcom/bag/audioandroid/ui/AudioAndroidPlaybackActions;
+Lcom/bag/audioandroid/ui/AudioAndroidSessionActions;
+Lcom/bag/audioandroid/ui/PlaybackSessionReducer;
+Lcom/bag/audioandroid/ui/PlaybackSourceCoordinator;
+
+Lcom/bag/audioandroid/ui/screen/**;
+Lcom/bag/audioandroid/ui/model/**;
+Lcom/bag/audioandroid/ui/state/**;
+
+Lcom/bag/audioandroid/audio/**;
+Lcom/bag/audioandroid/data/**;
+Lcom/bag/audioandroid/domain/**;

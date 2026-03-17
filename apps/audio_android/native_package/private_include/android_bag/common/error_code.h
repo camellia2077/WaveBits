@@ -8,6 +8,7 @@ enum class ErrorCode {
     kNotReady = 2,
     kNotImplemented = 3,
     kInternal = 4,
+    kCancelled = 5,
 };
 
 }  // namespace bag

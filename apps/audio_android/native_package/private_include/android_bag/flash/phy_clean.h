@@ -17,9 +17,19 @@ ErrorCode EncodeTextToPcm16WithSignalProfileAndFlavor(const CoreConfig& config,
                                      FlashSignalProfile signal_profile,
                                      FlashVoicingFlavor flavor,
                                      std::vector<std::int16_t>* out_pcm);
+ErrorCode EncodeTextToPcm16WithSignalProfileAndFlavor(const CoreConfig& config,
+                                     const std::string& text,
+                                     FlashSignalProfile signal_profile,
+                                     FlashVoicingFlavor flavor,
+                                     std::vector<std::int16_t>* out_pcm,
+                                     const EncodeProgressSink* progress_sink);
 ErrorCode EncodeTextToPcm16(const CoreConfig& config,
                             const std::string& text,
                             std::vector<std::int16_t>* out_pcm);
+ErrorCode EncodeTextToPcm16(const CoreConfig& config,
+                            const std::string& text,
+                            std::vector<std::int16_t>* out_pcm,
+                            const EncodeProgressSink* progress_sink);
 ErrorCode DecodePcm16ToTextWithSignalProfileAndFlavor(const CoreConfig& config,
                                      const std::vector<std::int16_t>& pcm,
                                      FlashSignalProfile signal_profile,

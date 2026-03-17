@@ -3,7 +3,9 @@ package com.bag.audioandroid.data
 import com.bag.audioandroid.domain.AudioExportGateway
 import com.bag.audioandroid.domain.AudioExportResult
 import com.bag.audioandroid.domain.AudioShareGateway
+import com.bag.audioandroid.domain.GeneratedAudioMetadata
 import com.bag.audioandroid.domain.SavedAudioContent
+import com.bag.audioandroid.domain.SavedAudioImportResult
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioLibraryGateway
 import com.bag.audioandroid.domain.SavedAudioRenameResult
@@ -19,9 +21,10 @@ class DefaultSavedAudioRepository(
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
-        sampleRateHz: Int
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata
     ): AudioExportResult =
-        audioExportGateway.exportGeneratedAudio(mode, inputText, pcm, sampleRateHz)
+        audioExportGateway.exportGeneratedAudio(mode, inputText, pcm, sampleRateHz, metadata)
 
     override fun listSavedAudio(): List<SavedAudioItem> =
         savedAudioLibraryGateway.listSavedAudio()
@@ -34,6 +37,9 @@ class DefaultSavedAudioRepository(
 
     override fun renameSavedAudio(itemId: String, newBaseName: String): SavedAudioRenameResult =
         savedAudioLibraryGateway.renameSavedAudio(itemId, newBaseName)
+
+    override fun importAudio(uriString: String): SavedAudioImportResult =
+        savedAudioLibraryGateway.importAudio(uriString)
 
     override fun shareSavedAudio(item: SavedAudioItem): Boolean =
         audioShareGateway.shareSavedAudio(item)

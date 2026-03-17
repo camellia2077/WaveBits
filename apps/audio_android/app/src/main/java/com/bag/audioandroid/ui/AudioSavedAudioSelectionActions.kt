@@ -21,8 +21,13 @@ internal class AudioSavedAudioSelectionActions(
 ) {
     fun onSavedAudioSelected(itemId: String) {
         stopPlayback()
-        if (!prepareSavedAudioSelection(itemId, switchToAudioTab = true, clearLibrarySelection = true)) {
-            uiState.update { it.copy(showSavedAudioSheet = false) }
+        if (!prepareSavedAudioSelection(
+                itemId,
+                switchToAudioTab = false,
+                clearLibrarySelection = true,
+                closeSavedAudioSheet = false
+            )
+        ) {
             setCurrentStatusText(UiText.Resource(R.string.status_saved_audio_load_failed))
             return
         }
@@ -38,13 +43,14 @@ internal class AudioSavedAudioSelectionActions(
     fun prepareSavedAudioSelection(
         itemId: String,
         switchToAudioTab: Boolean = false,
-        clearLibrarySelection: Boolean = false
+        clearLibrarySelection: Boolean = false,
+        closeSavedAudioSheet: Boolean = false
     ): Boolean {
         val savedAudio = savedAudioRepository.loadSavedAudio(itemId) ?: return false
         uiState.update { state ->
             state.copy(
                 selectedTab = if (switchToAudioTab) AppTab.Audio else state.selectedTab,
-                showSavedAudioSheet = if (switchToAudioTab) false else state.showSavedAudioSheet,
+                showSavedAudioSheet = if (closeSavedAudioSheet || switchToAudioTab) false else state.showSavedAudioSheet,
                 currentPlaybackSource = AudioPlaybackSource.Saved(savedAudio.item.itemId),
                 selectedSavedAudio = SavedAudioPlaybackSelection(
                     item = savedAudio.item,
@@ -60,6 +66,22 @@ internal class AudioSavedAudioSelectionActions(
             )
         }
         return true
+    }
+
+    fun onShellSavedAudioSelected(itemId: String) {
+        stopPlayback()
+        if (!prepareSavedAudioSelection(itemId, closeSavedAudioSheet = true)) {
+            uiState.update { it.copy(showSavedAudioSheet = false) }
+            setCurrentStatusText(UiText.Resource(R.string.status_saved_audio_load_failed))
+            return
+        }
+        val savedAudio = uiState.value.selectedSavedAudio ?: return
+        setCurrentStatusText(
+            UiText.Resource(
+                R.string.status_saved_audio_loaded,
+                listOf(savedAudio.item.displayName)
+            )
+        )
     }
 
     fun onEnterLibrarySelection(itemId: String) {

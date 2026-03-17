@@ -1,10 +1,13 @@
 #include "bag_api.h"
 
 #include <algorithm>
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <new>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "android_bag/transport/facade.h"

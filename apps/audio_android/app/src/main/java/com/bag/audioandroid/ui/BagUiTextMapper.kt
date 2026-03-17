@@ -1,6 +1,7 @@
 package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.R
+import com.bag.audioandroid.domain.AudioEncodePhase
 import com.bag.audioandroid.domain.BagApiCodes
 import com.bag.audioandroid.ui.model.UiText
 
@@ -29,7 +30,30 @@ class BagUiTextMapper {
         BagApiCodes.ERROR_INVALID_ARGUMENT -> UiText.Resource(R.string.error_invalid_argument)
         BagApiCodes.ERROR_NOT_READY -> UiText.Resource(R.string.error_not_ready)
         BagApiCodes.ERROR_NOT_IMPLEMENTED -> UiText.Resource(R.string.error_not_implemented)
+        BagApiCodes.ERROR_CANCELLED -> UiText.Resource(R.string.error_cancelled)
         BagApiCodes.ERROR_INTERNAL -> UiText.Resource(R.string.error_internal)
         else -> UiText.Resource(R.string.error_internal)
+    }
+
+    fun encodePhaseStatus(modeWireName: String, phase: AudioEncodePhase): UiText = when (phase) {
+        AudioEncodePhase.PreparingInput -> UiText.Resource(
+            R.string.status_mode_audio_generating_preparing_input,
+            listOf(modeWireName)
+        )
+
+        AudioEncodePhase.RenderingPcm -> UiText.Resource(
+            R.string.status_mode_audio_generating_rendering_pcm,
+            listOf(modeWireName)
+        )
+
+        AudioEncodePhase.Postprocessing -> UiText.Resource(
+            R.string.status_mode_audio_generating_postprocessing,
+            listOf(modeWireName)
+        )
+
+        AudioEncodePhase.Finalizing -> UiText.Resource(
+            R.string.status_mode_audio_generating_finalizing,
+            listOf(modeWireName)
+        )
     }
 }

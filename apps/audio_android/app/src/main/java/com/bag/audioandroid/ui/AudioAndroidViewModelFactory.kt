@@ -1,6 +1,6 @@
 package com.bag.audioandroid.ui
 
-import com.bag.audioandroid.data.AndroidSampleInputTextProvider
+import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.data.AppSettingsRepository
 import androidx.lifecycle.ViewModel
@@ -10,7 +10,7 @@ import com.bag.audioandroid.domain.SavedAudioRepository
 
 class AudioAndroidViewModelFactory(
     private val audioCodecGateway: AudioCodecGateway,
-    private val sampleInputTextProvider: AndroidSampleInputTextProvider,
+    private val sampleInputTextProvider: SampleInputTextProvider,
     private val appSettingsRepository: AppSettingsRepository,
     private val playbackRuntimeGateway: PlaybackRuntimeGateway,
     private val savedAudioRepository: SavedAudioRepository

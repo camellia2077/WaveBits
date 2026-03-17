@@ -1,11 +1,15 @@
 package com.bag.audioandroid.data
 
 import com.bag.audioandroid.NativeBagBridge
+import com.bag.audioandroid.domain.AudioEncodePhase
+import com.bag.audioandroid.domain.BagApiCodes
 import com.bag.audioandroid.domain.AudioCodecGateway
-import com.bag.audioandroid.domain.AudioVisualizationFrame
-import com.bag.audioandroid.domain.AudioVisualizationRegion
-import com.bag.audioandroid.domain.AudioVisualizationTrack
-import kotlin.math.roundToInt
+import com.bag.audioandroid.domain.EncodeAudioResult
+import com.bag.audioandroid.domain.EncodeProgressUpdate
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 
 class NativeAudioCodecGateway : AudioCodecGateway {
     override fun validateEncodeRequest(
@@ -24,21 +28,55 @@ class NativeAudioCodecGateway : AudioCodecGateway {
         flashVoicingFlavor
     )
 
-    override fun encodeTextToPcm(
+    override suspend fun encodeTextToPcm(
         text: String,
         sampleRateHz: Int,
         frameSamples: Int,
         mode: Int,
         flashSignalProfile: Int,
-        flashVoicingFlavor: Int
-    ): ShortArray = NativeBagBridge.nativeEncodeTextToPcm(
-        text,
-        sampleRateHz,
-        frameSamples,
-        mode,
-        flashSignalProfile,
-        flashVoicingFlavor
-    )
+        flashVoicingFlavor: Int,
+        onProgress: (EncodeProgressUpdate) -> Unit
+    ): EncodeAudioResult {
+        val handle = NativeBagBridge.nativeStartEncodeTextJob(
+            text,
+            sampleRateHz,
+            frameSamples,
+            mode,
+            flashSignalProfile,
+            flashVoicingFlavor
+        )
+        handle.toStartFailureResultOrNull()?.let { return it }
+
+        try {
+            while (true) {
+                currentCoroutineContext().ensureActive()
+                val snapshot = NativeBagBridge.nativePollEncodeTextJob(handle).toEncodeJobSnapshot()
+                onProgress(
+                    EncodeProgressUpdate(
+                        phase = snapshot.phase,
+                        progress0To1 = snapshot.progress0To1
+                    )
+                )
+                when (snapshot.state) {
+                    EncodeJobState.Queued,
+                    EncodeJobState.Running -> delay(ENCODE_JOB_POLL_INTERVAL_MS)
+
+                    EncodeJobState.Succeeded ->
+                        return NativeBagBridge.nativeTakeEncodeTextJobResult(handle)
+                            .toEncodeSuccessOrFailureResult()
+
+                    EncodeJobState.Failed -> return EncodeAudioResult.Failed(snapshot.terminalCode)
+                    EncodeJobState.Cancelled -> return EncodeAudioResult.Cancelled
+                }
+            }
+        } catch (cancelled: CancellationException) {
+            NativeBagBridge.nativeCancelEncodeTextJob(handle)
+            throw cancelled
+        } finally {
+            NativeBagBridge.nativeCancelEncodeTextJob(handle)
+            NativeBagBridge.nativeDestroyEncodeTextJob(handle)
+        }
+    }
 
     override fun validateDecodeConfig(
         sampleRateHz: Int,
@@ -70,68 +108,56 @@ class NativeAudioCodecGateway : AudioCodecGateway {
         flashVoicingFlavor
     )
 
-    override fun analyzeVisualization(
-        pcm: ShortArray,
-        sampleRateHz: Int,
-        frameSamples: Int,
-        mode: Int,
-        flashSignalProfile: Int,
-        flashVoicingFlavor: Int
-    ): AudioVisualizationTrack? {
-        val packed = NativeBagBridge.nativeAnalyzeVisualization(
-            pcm,
-            sampleRateHz,
-            frameSamples,
-            mode,
-            flashSignalProfile,
-            flashVoicingFlavor
-        )
-        return decodeVisualizationTrack(packed)
-    }
-
     override fun getCoreVersion(): String = NativeBagBridge.nativeGetCoreVersion()
 
-    private fun decodeVisualizationTrack(raw: FloatArray): AudioVisualizationTrack? {
-        if (raw.size < VISUALIZATION_HEADER_COUNT) {
-            return null
-        }
-        val frameCount = raw[0].roundToInt()
-        val totalSamples = raw[1].roundToInt()
-        val sampleRateHz = raw[2].roundToInt()
-        val frameStrideSamples = raw[3].roundToInt()
-        if (frameCount < 0) {
-            return null
-        }
-        val expectedCount = VISUALIZATION_HEADER_COUNT + frameCount * VISUALIZATION_FRAME_FIELD_COUNT
-        if (raw.size < expectedCount) {
-            return null
-        }
-
-        val frames = buildList(frameCount) {
-            for (index in 0 until frameCount) {
-                val base = VISUALIZATION_HEADER_COUNT + index * VISUALIZATION_FRAME_FIELD_COUNT
-                add(
-                    AudioVisualizationFrame(
-                        sampleOffset = raw[base + 0].roundToInt(),
-                        sampleCount = raw[base + 1].roundToInt(),
-                        rms = raw[base + 2],
-                        peak = raw[base + 3],
-                        brightness = raw[base + 4],
-                        region = AudioVisualizationRegion.fromNativeValue(raw[base + 5].roundToInt())
-                    )
-                )
-            }
-        }
-        return AudioVisualizationTrack(
-            frames = frames,
-            totalSamples = totalSamples,
-            sampleRateHz = sampleRateHz,
-            frameStrideSamples = frameStrideSamples
-        )
-    }
-
     private companion object {
-        const val VISUALIZATION_HEADER_COUNT = 4
-        const val VISUALIZATION_FRAME_FIELD_COUNT = 6
+        const val ENCODE_JOB_POLL_INTERVAL_MS = 33L
     }
 }
+
+internal data class EncodeJobSnapshot(
+    val state: EncodeJobState,
+    val phase: AudioEncodePhase,
+    val progress0To1: Float,
+    val terminalCode: Int
+)
+
+internal enum class EncodeJobState(val nativeValue: Int) {
+    Queued(0),
+    Running(1),
+    Succeeded(2),
+    Failed(3),
+    Cancelled(4);
+
+    companion object {
+        fun fromNative(value: Int): EncodeJobState =
+            entries.firstOrNull { it.nativeValue == value } ?: Failed
+    }
+}
+
+internal fun FloatArray.toEncodeJobSnapshot(): EncodeJobSnapshot {
+    val stateValue = getOrNull(0)?.toInt() ?: EncodeJobState.Failed.nativeValue
+    val phaseValue = getOrNull(1)?.toInt() ?: AudioEncodePhase.Finalizing.nativeValue
+    val progress = getOrNull(2)?.coerceIn(0f, 1f) ?: 0f
+    val terminalCode = getOrNull(3)?.toInt() ?: BagApiCodes.ERROR_INTERNAL
+    return EncodeJobSnapshot(
+        state = EncodeJobState.fromNative(stateValue),
+        phase = AudioEncodePhase.fromNative(phaseValue),
+        progress0To1 = progress,
+        terminalCode = terminalCode
+    )
+}
+
+internal fun Long.toStartFailureResultOrNull(): EncodeAudioResult? =
+    if (this == 0L) {
+        EncodeAudioResult.Failed(BagApiCodes.ERROR_INTERNAL)
+    } else {
+        null
+    }
+
+internal fun ShortArray.toEncodeSuccessOrFailureResult(): EncodeAudioResult =
+    if (isEmpty()) {
+        EncodeAudioResult.Failed(BagApiCodes.ERROR_INTERNAL)
+    } else {
+        EncodeAudioResult.Success(this)
+    }

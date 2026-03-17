@@ -3,10 +3,10 @@ package com.bag.audioandroid.ui
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bag.audioandroid.BuildConfig
 import com.bag.audioandroid.audio.AudioPlaybackCoordinator
-import com.bag.audioandroid.data.AndroidSampleInputTextProvider
+import com.bag.audioandroid.BuildConfig
 import com.bag.audioandroid.data.AppSettingsRepository
+import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.SavedAudioItem
@@ -16,6 +16,7 @@ import com.bag.audioandroid.ui.model.AppLanguageOption
 import com.bag.audioandroid.ui.model.AppTab
 import com.bag.audioandroid.ui.model.PaletteOption
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
+import com.bag.audioandroid.ui.model.ThemeModeOption
 import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,7 @@ import kotlinx.coroutines.flow.update
 
 class AudioAndroidViewModel(
     audioCodecGateway: AudioCodecGateway,
-    sampleInputTextProvider: AndroidSampleInputTextProvider,
+    sampleInputTextProvider: SampleInputTextProvider,
     appSettingsRepository: AppSettingsRepository,
     playbackRuntimeGateway: PlaybackRuntimeGateway,
     savedAudioRepository: SavedAudioRepository
@@ -59,7 +60,9 @@ class AudioAndroidViewModel(
     )
     private val sessionActions = AudioAndroidSessionActions(
         uiState = uiStateFlow,
+        scope = viewModelScope,
         audioCodecGateway = audioCodecGateway,
+        sampleInputTextProvider = sampleInputTextProvider,
         sessionStateStore = sessionStateStore,
         uiTextMapper = uiTextMapper,
         playbackRuntimeGateway = playbackRuntimeGateway,
@@ -91,7 +94,9 @@ class AudioAndroidViewModel(
             )
         }
         chromeActions.observeSelectedPalette()
+        chromeActions.observeSelectedThemeMode()
         chromeActions.observeSelectedFlashVoicingStyle()
+        chromeActions.observeSelectedPlaybackSequenceMode()
     }
 
     fun onTabSelected(tab: AppTab) {
@@ -122,12 +127,32 @@ class AudioAndroidViewModel(
         chromeActions.onPaletteSelected(palette)
     }
 
+    fun onThemeModeSelected(themeMode: ThemeModeOption) {
+        chromeActions.onThemeModeSelected(themeMode)
+    }
+
     fun onFlashVoicingStyleSelected(style: com.bag.audioandroid.ui.model.FlashVoicingStyleOption) {
         chromeActions.onFlashVoicingStyleSelected(style)
     }
 
+    fun onOpenPlayerDetailSheet() {
+        chromeActions.onOpenPlayerDetailSheet()
+    }
+
+    fun onClosePlayerDetailSheet() {
+        chromeActions.onClosePlayerDetailSheet()
+    }
+
+    fun onSnackbarMessageShown(messageId: Long) {
+        chromeActions.onSnackbarMessageShown(messageId)
+    }
+
     fun onInputTextChange(value: String) {
         sessionActions.onInputTextChange(value)
+    }
+
+    fun onRandomizeSampleInput() {
+        sessionActions.onRandomizeSampleInput()
     }
 
     fun onTransportModeSelected(mode: TransportModeOption) {
@@ -138,20 +163,16 @@ class AudioAndroidViewModel(
         sessionActions.onEncode()
     }
 
+    fun onCancelEncode() {
+        sessionActions.onCancelEncode()
+    }
+
     fun onTogglePlayback() {
         playbackActions.onTogglePlayback()
     }
 
     fun onPlaybackSequenceModeSelected(mode: PlaybackSequenceMode) {
-        uiStateFlow.update { state ->
-            state.copy(
-                playbackSequenceMode = if (state.playbackSequenceMode == mode) {
-                    PlaybackSequenceMode.Normal
-                } else {
-                    mode
-                }
-            )
-        }
+        chromeActions.onPlaybackSequenceModeSelected(mode)
     }
 
     fun onSkipToPreviousTrack() {
@@ -214,6 +235,14 @@ class AudioAndroidViewModel(
 
     fun onSavedAudioSelected(itemId: String) {
         libraryActions.onSavedAudioSelected(itemId)
+    }
+
+    fun onImportAudio(uriString: String) {
+        libraryActions.onImportAudio(uriString)
+    }
+
+    fun onShellSavedAudioSelected(itemId: String) {
+        libraryActions.onShellSavedAudioSelected(itemId)
     }
 
     fun onEnterLibrarySelection(itemId: String) {

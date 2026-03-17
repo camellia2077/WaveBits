@@ -37,6 +37,10 @@ internal class AudioAndroidLibraryActions(
         selectionActions.onSavedAudioSelected(itemId)
     }
 
+    fun onShellSavedAudioSelected(itemId: String) {
+        selectionActions.onShellSavedAudioSelected(itemId)
+    }
+
     fun prepareSavedAudioSelection(
         itemId: String,
         switchToAudioTab: Boolean = false,
@@ -73,6 +77,10 @@ internal class AudioAndroidLibraryActions(
 
     fun onRenameSavedAudio(itemId: String, newBaseName: String) {
         mutationActions.onRenameSavedAudio(itemId, newBaseName)
+    }
+
+    fun onImportAudio(uriString: String) {
+        mutationActions.onImportAudio(uriString)
     }
 
     fun onShareCurrentSavedAudio() {

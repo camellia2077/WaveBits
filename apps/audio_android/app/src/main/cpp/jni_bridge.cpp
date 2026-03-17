@@ -64,6 +64,30 @@ bag_decoder_config MakeDecoderConfig(int sample_rate_hz,
     config.reserved = 0;
     return config;
 }
+
+bag_encode_job* HandleToEncodeJob(jlong handle) {
+    return reinterpret_cast<bag_encode_job*>(static_cast<intptr_t>(handle));
+}
+
+jfloatArray NewEncodeJobProgressArray(JNIEnv* env,
+                                      bag_encode_job_state state,
+                                      bag_encode_job_phase phase,
+                                      float progress_0_to_1,
+                                      bag_error_code terminal_code) {
+    jfloatArray out = env->NewFloatArray(4);
+    if (out == nullptr) {
+        return nullptr;
+    }
+
+    const jfloat values[4] = {
+        static_cast<jfloat>(state),
+        static_cast<jfloat>(phase),
+        progress_0_to_1,
+        static_cast<jfloat>(terminal_code),
+    };
+    env->SetFloatArrayRegion(out, 0, 4, values);
+    return out;
+}
 }  // namespace
 
 extern "C" JNIEXPORT jshortArray JNICALL
@@ -121,6 +145,106 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeValidateEncodeRequest(
     return static_cast<jint>(issue);
 }
 
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativeStartEncodeTextJob(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jstring text,
+    jint sample_rate_hz,
+    jint frame_samples,
+    jint mode,
+    jint flash_signal_profile,
+    jint flash_voicing_flavor) {
+    const std::string input = JStringToStdString(env, text);
+    bag_encoder_config config =
+        MakeEncoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
+    config.mode = static_cast<bag_transport_mode>(mode);
+
+    bag_encode_job* job = nullptr;
+    if (bag_start_encode_text_job(&config, input.c_str(), &job) != BAG_OK || job == nullptr) {
+        return 0L;
+    }
+
+    return static_cast<jlong>(reinterpret_cast<intptr_t>(job));
+}
+
+extern "C" JNIEXPORT jfloatArray JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativePollEncodeTextJob(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jlong handle) {
+    bag_encode_job* job = HandleToEncodeJob(handle);
+    if (job == nullptr) {
+        return NewEncodeJobProgressArray(
+            env,
+            BAG_ENCODE_JOB_FAILED,
+            BAG_ENCODE_JOB_PHASE_PREPARING_INPUT,
+            0.0f,
+            BAG_INVALID_ARGUMENT);
+    }
+
+    bag_encode_job_progress progress{};
+    if (bag_poll_encode_text_job(job, &progress) != BAG_OK) {
+        return NewEncodeJobProgressArray(
+            env,
+            BAG_ENCODE_JOB_FAILED,
+            BAG_ENCODE_JOB_PHASE_PREPARING_INPUT,
+            0.0f,
+            BAG_INVALID_ARGUMENT);
+    }
+
+    return NewEncodeJobProgressArray(
+        env,
+        progress.state,
+        progress.phase,
+        progress.progress_0_to_1,
+        progress.terminal_code);
+}
+
+extern "C" JNIEXPORT jshortArray JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativeTakeEncodeTextJobResult(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jlong handle) {
+    bag_encode_job* job = HandleToEncodeJob(handle);
+    if (job == nullptr) {
+        return env->NewShortArray(0);
+    }
+
+    bag_pcm16_result pcm{};
+    if (bag_take_encode_text_job_result(job, &pcm) != BAG_OK) {
+        return env->NewShortArray(0);
+    }
+
+    jshortArray out = env->NewShortArray(static_cast<jsize>(pcm.sample_count));
+    if (out != nullptr && pcm.sample_count > 0) {
+        env->SetShortArrayRegion(
+            out, 0, static_cast<jsize>(pcm.sample_count), reinterpret_cast<const jshort*>(pcm.samples));
+    }
+    bag_free_pcm16_result(&pcm);
+    return out;
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativeCancelEncodeTextJob(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jlong handle) {
+    bag_encode_job* job = HandleToEncodeJob(handle);
+    if (job == nullptr) {
+        return static_cast<jint>(BAG_INVALID_ARGUMENT);
+    }
+    return static_cast<jint>(bag_cancel_encode_text_job(job));
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativeDestroyEncodeTextJob(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jlong handle) {
+    bag_destroy_encode_text_job(HandleToEncodeJob(handle));
+}
+
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_bag_audioandroid_NativeBagBridge_nativeDecodeGeneratedPcm(
     JNIEnv* env,
@@ -176,63 +300,6 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeValidateDecodeConfig(
     config.mode = static_cast<bag_transport_mode>(mode);
     const bag_validation_issue issue = bag_validate_decoder_config(&config);
     return static_cast<jint>(issue);
-}
-
-extern "C" JNIEXPORT jfloatArray JNICALL
-Java_com_bag_audioandroid_NativeBagBridge_nativeAnalyzeVisualization(
-    JNIEnv* env,
-    jobject /*thiz*/,
-    jshortArray pcm,
-    jint sample_rate_hz,
-    jint frame_samples,
-    jint mode,
-    jint flash_signal_profile,
-    jint flash_voicing_flavor) {
-    if (pcm == nullptr) {
-        return env->NewFloatArray(0);
-    }
-
-    const jsize len = env->GetArrayLength(pcm);
-    if (len <= 0) {
-        return env->NewFloatArray(0);
-    }
-
-    std::vector<int16_t> buffer(static_cast<size_t>(len), 0);
-    env->GetShortArrayRegion(pcm, 0, len, reinterpret_cast<jshort*>(buffer.data()));
-
-    bag_decoder_config config =
-        MakeDecoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
-    config.mode = static_cast<bag_transport_mode>(mode);
-
-    bag_visualization_result visualization{};
-    if (bag_analyze_visualization(&config, buffer.data(), buffer.size(), &visualization) != BAG_OK) {
-        return env->NewFloatArray(0);
-    }
-
-    const size_t packed_count = static_cast<size_t>(4) + visualization.frame_count * static_cast<size_t>(6);
-    std::vector<jfloat> packed(packed_count, 0.0f);
-    packed[0] = static_cast<jfloat>(visualization.frame_count);
-    packed[1] = static_cast<jfloat>(visualization.total_samples);
-    packed[2] = static_cast<jfloat>(visualization.sample_rate_hz);
-    packed[3] = static_cast<jfloat>(visualization.frame_stride_samples);
-
-    for (size_t index = 0; index < visualization.frame_count; ++index) {
-        const size_t base = static_cast<size_t>(4) + index * static_cast<size_t>(6);
-        const bag_visualization_frame& frame = visualization.frames[index];
-        packed[base + 0] = static_cast<jfloat>(frame.sample_offset);
-        packed[base + 1] = static_cast<jfloat>(frame.sample_count);
-        packed[base + 2] = frame.rms;
-        packed[base + 3] = frame.peak;
-        packed[base + 4] = frame.brightness;
-        packed[base + 5] = static_cast<jfloat>(frame.region_kind);
-    }
-
-    jfloatArray out = env->NewFloatArray(static_cast<jsize>(packed.size()));
-    if (out != nullptr && !packed.empty()) {
-        env->SetFloatArrayRegion(out, 0, static_cast<jsize>(packed.size()), packed.data());
-    }
-    bag_free_visualization_result(&visualization);
-    return out;
 }
 
 extern "C" JNIEXPORT jstring JNICALL

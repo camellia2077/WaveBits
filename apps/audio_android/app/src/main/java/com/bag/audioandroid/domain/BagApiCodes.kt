@@ -6,6 +6,7 @@ object BagApiCodes {
     const val ERROR_NOT_READY = 2
     const val ERROR_NOT_IMPLEMENTED = 3
     const val ERROR_INTERNAL = 4
+    const val ERROR_CANCELLED = 5
 
     const val VALIDATION_OK = 0
     const val VALIDATION_NULL_CONFIG = 1

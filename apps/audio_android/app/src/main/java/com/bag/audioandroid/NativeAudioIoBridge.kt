@@ -1,6 +1,7 @@
 package com.bag.audioandroid
 
 import com.bag.audioandroid.domain.DecodedAudioData
+import com.bag.audioandroid.domain.GeneratedAudioMetadata
 
 object NativeAudioIoBridge {
     init {
@@ -9,7 +10,8 @@ object NativeAudioIoBridge {
 
     external fun nativeEncodeMonoPcm16ToWavBytes(
         sampleRateHz: Int,
-        pcm: ShortArray
+        pcm: ShortArray,
+        metadata: GeneratedAudioMetadata?
     ): ByteArray
 
     external fun nativeDecodeMonoPcm16WavBytes(

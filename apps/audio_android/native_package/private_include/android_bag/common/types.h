@@ -9,12 +9,38 @@
 
 namespace bag {
 
-enum class VisualizationRegionKind : std::uint8_t {
-    kUnknown = 0,
-    kLeadingShell = 1,
-    kPayload = 2,
-    kTrailingShell = 3,
+enum class EncodeProgressPhase {
+    kPreparingInput = 0,
+    kRenderingPcm = 1,
+    kPostprocessing = 2,
+    kFinalizing = 3,
 };
+
+using EncodeProgressCallback = void (*)(void* user_data,
+                                        EncodeProgressPhase phase,
+                                        float progress_0_to_1);
+using EncodeShouldCancelCallback = bool (*)(void* user_data);
+
+struct EncodeProgressSink {
+    void* user_data = nullptr;
+    EncodeProgressCallback on_progress = nullptr;
+    EncodeShouldCancelCallback should_cancel = nullptr;
+};
+
+struct EncodeCancelled {};
+
+inline bool ShouldCancelEncode(const EncodeProgressSink* sink) {
+    return sink != nullptr && sink->should_cancel != nullptr &&
+           sink->should_cancel(sink->user_data);
+}
+
+inline void ReportEncodeProgress(const EncodeProgressSink* sink,
+                                 EncodeProgressPhase phase,
+                                 float progress_0_to_1) {
+    if (sink != nullptr && sink->on_progress != nullptr) {
+        sink->on_progress(sink->user_data, phase, progress_0_to_1);
+    }
+}
 
 struct PcmBlock {
     const std::int16_t* samples = nullptr;
@@ -33,22 +59,6 @@ struct TextResult {
     bool complete = false;
     float confidence = 0.0f;
     TransportMode mode = TransportMode::kFlash;
-};
-
-struct VisualizationFrame {
-    int sample_offset = 0;
-    int sample_count = 0;
-    float rms = 0.0f;
-    float peak = 0.0f;
-    float brightness = 0.0f;
-    VisualizationRegionKind region_kind = VisualizationRegionKind::kUnknown;
-};
-
-struct VisualizationResult {
-    std::vector<VisualizationFrame> frames;
-    int total_samples = 0;
-    int sample_rate_hz = 0;
-    int frame_stride_samples = 0;
 };
 
 }  // namespace bag

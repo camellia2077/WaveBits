@@ -23,6 +23,23 @@ object NativeBagBridge {
         flashVoicingFlavor: Int
     ): Int
 
+    external fun nativeStartEncodeTextJob(
+        text: String,
+        sampleRateHz: Int,
+        frameSamples: Int,
+        mode: Int,
+        flashSignalProfile: Int,
+        flashVoicingFlavor: Int
+    ): Long
+
+    external fun nativePollEncodeTextJob(handle: Long): FloatArray
+
+    external fun nativeTakeEncodeTextJobResult(handle: Long): ShortArray
+
+    external fun nativeCancelEncodeTextJob(handle: Long): Int
+
+    external fun nativeDestroyEncodeTextJob(handle: Long)
+
     external fun nativeDecodeGeneratedPcm(
         pcm: ShortArray,
         sampleRateHz: Int,
@@ -39,15 +56,6 @@ object NativeBagBridge {
         flashSignalProfile: Int,
         flashVoicingFlavor: Int
     ): Int
-
-    external fun nativeAnalyzeVisualization(
-        pcm: ShortArray,
-        sampleRateHz: Int,
-        frameSamples: Int,
-        mode: Int,
-        flashSignalProfile: Int,
-        flashVoicingFlavor: Int
-    ): FloatArray
 
     external fun nativeGetCoreVersion(): String
 }

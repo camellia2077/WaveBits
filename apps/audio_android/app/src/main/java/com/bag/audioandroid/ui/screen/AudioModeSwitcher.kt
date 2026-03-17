@@ -15,6 +15,7 @@ import com.bag.audioandroid.ui.model.TransportModeOption
 internal fun AudioModeSwitcher(
     transportMode: TransportModeOption,
     onTransportModeSelected: (TransportModeOption) -> Unit,
+    enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     SingleChoiceSegmentedButtonRow(
@@ -24,6 +25,7 @@ internal fun AudioModeSwitcher(
             SegmentedButton(
                 selected = transportMode == option,
                 onClick = { onTransportModeSelected(option) },
+                enabled = enabled,
                 shape = SegmentedButtonDefaults.itemShape(
                     index = index,
                     count = TransportModeOption.entries.size

@@ -6,7 +6,9 @@ import androidx.compose.ui.graphics.Color
 
 data class PaletteOption(
     val id: String,
+    val family: PaletteFamily,
     @param:StringRes val titleResId: Int,
     val previewColor: Color,
-    val scheme: ColorScheme
+    val lightScheme: ColorScheme,
+    val darkScheme: ColorScheme
 )

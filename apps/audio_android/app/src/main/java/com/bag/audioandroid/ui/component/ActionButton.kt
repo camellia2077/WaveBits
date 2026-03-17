@@ -16,20 +16,32 @@ import androidx.compose.ui.unit.dp
 fun ActionButton(
     text: String,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Surface(
         shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.primaryContainer,
+        color = if (enabled) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(enabled = enabled) { onClick() }
     ) {
         Row(
             modifier = Modifier.padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(text, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Text(
+                text = text,
+                color = if (enabled) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
         }
     }
 }

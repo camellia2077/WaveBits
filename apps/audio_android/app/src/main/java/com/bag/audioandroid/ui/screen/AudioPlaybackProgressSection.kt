@@ -17,12 +17,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.bag.audioandroid.domain.AudioVisualizationFrame
-import com.bag.audioandroid.domain.AudioVisualizationTrack
+import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import kotlin.math.roundToInt
 
 @Composable
@@ -30,8 +30,10 @@ internal fun AudioPlaybackProgressSection(
     displayedSamples: Int,
     totalSamples: Int,
     isScrubbing: Boolean,
-    visualizationTrack: AudioVisualizationTrack?,
-    currentVisualizationFrame: AudioVisualizationFrame?,
+    waveformPcm: ShortArray,
+    sampleRateHz: Int,
+    isFlashMode: Boolean,
+    flashVoicingStyle: FlashVoicingStyleOption?,
     displayedTime: String,
     totalTime: String,
     isPlaying: Boolean,
@@ -42,6 +44,9 @@ internal fun AudioPlaybackProgressSection(
 ) {
     val sliderUpperBound = totalSamples.coerceAtLeast(1)
     var userScrubbing by remember { mutableStateOf(false) }
+    var flashVisualizationModeName by rememberSaveable(isFlashMode) {
+        mutableStateOf(FlashSignalVisualizationMode.ToneTracks.name)
+    }
     val clampedDisplayedSamples = displayedSamples.coerceIn(0, sliderUpperBound)
     val shouldAnimateSlider = isPlaying && !isScrubbing && !userScrubbing && totalSamples > 0
     val animatedSliderValue by animateFloatAsState(
@@ -67,13 +72,47 @@ internal fun AudioPlaybackProgressSection(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        visualizationTrack?.takeIf { it.frames.isNotEmpty() }?.let { track ->
-            AudioVisualizationStrip(
-                track = track,
-                currentFrame = currentVisualizationFrame,
-                displayedSamples = displayedSamples,
-                isPlaying = isPlaying,
-                modifier = Modifier.fillMaxWidth()
+        waveformPcm.takeIf { it.isNotEmpty() }?.let { pcm ->
+            if (isFlashMode) {
+                val flashVisualizationMode = FlashSignalVisualizationMode.entries.firstOrNull {
+                    it.name == flashVisualizationModeName
+                } ?: FlashSignalVisualizationMode.ToneTracks
+                FlashSignalVisualizationModeSwitcher(
+                    selectedMode = flashVisualizationMode,
+                    onModeSelected = { flashVisualizationModeName = it.name },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                AudioFlashSignalVisualizer(
+                    pcm = pcm,
+                    sampleRateHz = sampleRateHz,
+                    displayedSamples = displayedSamples,
+                    isPlaying = isPlaying,
+                    mode = flashVisualizationMode,
+                    flashVoicingStyle = flashVoicingStyle,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                AudioPcmWaveform(
+                    pcm = pcm,
+                    sampleRateHz = sampleRateHz,
+                    displayedSamples = displayedSamples,
+                    isPlaying = isPlaying,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = displayedTime,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = totalTime,
+                style = MaterialTheme.typography.bodySmall
             )
         }
         Slider(
@@ -107,20 +146,6 @@ internal fun AudioPlaybackProgressSection(
             ),
             modifier = Modifier.fillMaxWidth()
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = displayedTime,
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                text = totalTime,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
     }
 }
 

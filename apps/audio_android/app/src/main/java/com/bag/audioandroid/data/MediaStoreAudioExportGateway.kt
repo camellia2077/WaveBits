@@ -6,6 +6,7 @@ import android.provider.MediaStore
 import com.bag.audioandroid.domain.AudioExportGateway
 import com.bag.audioandroid.domain.AudioExportResult
 import com.bag.audioandroid.domain.AudioIoGateway
+import com.bag.audioandroid.domain.GeneratedAudioMetadata
 import com.bag.audioandroid.ui.model.TransportModeOption
 import java.io.IOException
 import java.time.LocalDateTime
@@ -22,9 +23,10 @@ class MediaStoreAudioExportGateway(
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
-        sampleRateHz: Int
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata
     ): AudioExportResult {
-        val wavBytes = audioIoGateway.encodeMonoPcm16ToWavBytes(sampleRateHz, pcm)
+        val wavBytes = audioIoGateway.encodeMonoPcm16ToWavBytes(sampleRateHz, pcm, metadata)
         if (wavBytes.isEmpty()) {
             return AudioExportResult.Failed
         }

@@ -15,7 +15,6 @@ set(bag_android_native_package_source_files
     "${CMAKE_CURRENT_LIST_DIR}/audio_core_common_version.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/audio_core_flash_codec.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/audio_core_flash_signal.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/audio_core_flash_visualization.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/audio_core_flash_voicing.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/audio_core_flash_phy_clean.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/audio_core_pro_codec.cpp"

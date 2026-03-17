@@ -16,6 +16,7 @@ interface AudioExportGateway {
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
-        sampleRateHz: Int
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata
     ): AudioExportResult
 }

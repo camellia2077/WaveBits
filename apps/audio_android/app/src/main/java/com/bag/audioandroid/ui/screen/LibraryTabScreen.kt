@@ -2,9 +2,15 @@ package com.bag.audioandroid.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FileOpen
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +35,7 @@ fun LibraryTabScreen(
     savedAudioItems: List<SavedAudioItem>,
     librarySelection: LibrarySelectionUiState,
     statusText: UiText,
+    onImportAudio: () -> Unit,
     onSelectSavedAudio: (String) -> Unit,
     onEnterLibrarySelection: (String) -> Unit,
     onToggleLibrarySelection: (String) -> Unit,
@@ -106,11 +113,22 @@ fun LibraryTabScreen(
                 onClearSelection = onClearLibrarySelection
             )
         } else {
-            Text(
-                text = stringResource(R.string.library_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.library_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                IconButton(onClick = onImportAudio) {
+                    Icon(
+                        imageVector = Icons.Rounded.FileOpen,
+                        contentDescription = stringResource(R.string.library_action_import)
+                    )
+                }
+            }
         }
         SavedAudioModeFilterBar(
             selectedFilter = selectedFilter,

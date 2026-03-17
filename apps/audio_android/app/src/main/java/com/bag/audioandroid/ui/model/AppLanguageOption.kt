@@ -10,6 +10,7 @@ enum class AppLanguageOption(
 ) {
     FollowSystem(languageTag = "", labelResId = R.string.config_language_follow_system),
     Chinese(languageTag = "zh", labelResId = R.string.config_language_chinese),
+    TraditionalChinese(languageTag = "zh-TW", labelResId = R.string.config_language_traditional_chinese),
     English(languageTag = "en", labelResId = R.string.config_language_english),
     Japanese(languageTag = "ja", labelResId = R.string.config_language_japanese);
 
@@ -30,6 +31,10 @@ enum class AppLanguageOption(
                 .orEmpty()
 
             return when {
+                firstTag.startsWith("zh-hant") ||
+                    firstTag.startsWith("zh-tw") ||
+                    firstTag.startsWith("zh-hk") ||
+                    firstTag.startsWith("zh-mo") -> TraditionalChinese
                 firstTag.startsWith("zh") -> Chinese
                 firstTag.startsWith("en") -> English
                 firstTag.startsWith("ja") -> Japanese

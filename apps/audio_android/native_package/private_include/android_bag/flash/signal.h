@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "android_bag/common/config.h"
+#include "android_bag/common/types.h"
 
 namespace bag::flash {
 
@@ -37,7 +37,10 @@ FlashPayloadLayout BuildPayloadLayout(const std::vector<std::uint8_t>& bytes,
                                       const BfskConfig& config = {});
 
 std::vector<std::int16_t> EncodeBytesToPcm16(const std::vector<std::uint8_t>& bytes,
-                                             const BfskConfig& config = {});
+                                             const BfskConfig& config = {},
+                                             const EncodeProgressSink* progress_sink = nullptr,
+                                             float progress_begin = 0.0f,
+                                             float progress_end = 1.0f);
 std::vector<std::uint8_t> DecodePcm16ToBytes(const std::vector<std::int16_t>& pcm,
                                              const BfskConfig& config = {});
 

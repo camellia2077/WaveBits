@@ -30,5 +30,10 @@ enum class TransportModeOption(
         labelResId = R.string.transport_mode_ultra_label,
         charsetHintResId = R.string.audio_transport_ultra_hint,
         exampleTextResId = R.string.audio_transport_ultra_example
-    )
+    );
+
+    companion object {
+        fun fromWireName(wireName: String): TransportModeOption? =
+            entries.firstOrNull { it.wireName == wireName }
+    }
 }
