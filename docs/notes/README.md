@@ -1,12 +1,16 @@
 ## 持续门禁与追踪
+- 工具工作流总览：
+  - `docs/notes/tooling-overview.md`
 - 构建命令速记：
   - `docs/notes/build-commands.md`
+- 产物工作流：
+  - `docs/notes/artifact-workflow.md`
+- History 工作流：
+  - `docs/notes/history-workflow.md`
 - Android `import std;` 当前工具链状态：
-  - `1/2`
-  - `docs/notes/android-import-std-toolchain-status.md`
+  - `docs/notes/android/android-import-std-toolchain-status.md`
 - Android `NDK/CMake` 何时值得升级：
-  - `2/2`
-  - `docs/notes/android-ndk-cmake-upgrade-decision.md`
+  - `docs/notes/android/android-ndk-cmake-upgrade-decision.md`
 - `legacy` 相关 release gate：
   - `docs/notes/legacy-release-gates.md`
 - `legacy` 退休前置条件追踪：

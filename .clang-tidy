@@ -1,0 +1,63 @@
+# 默认日常版：
+# - 只保留高信号、低争议、较易自动修复或低成本手工修复的规则。
+# - 目标是让日常 tidy-step / tidy-batch 更容易稳定收口。
+# - 高人工成本的大范围风格治理，放到 `.clang-tidy.strict`。
+#
+# 说明：
+# - `-google-runtime-references` 保持关闭：这里不再强制套用旧的非常量引用限制。
+# - `-bugprone-unchecked-optional-access` 暂时关闭：当前 clang-tidy 会在
+#   tracer_transport runtime codec 上发生访问冲突，导致 tidy-refresh/tidy-batch
+#   无法稳定收口；等上游工具问题确认修复后再评估恢复。
+Checks: >-
+  -*,
+  bugprone-*,
+  -bugprone-unchecked-optional-access,
+  google-default-arguments,
+  google-explicit-constructor,
+  google-readability-casting,
+  google-runtime-int,
+  modernize-pass-by-value,
+  modernize-use-nullptr,
+  modernize-use-override,
+  readability-braces-around-statements,
+  readability-else-after-return,
+  readability-identifier-naming,
+  readability-redundant-control-flow,
+  -google-runtime-references
+
+CheckOptions:
+  # 命名逻辑修正
+  - key:             readability-identifier-naming.FunctionCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.VariableCase
+    value:           lower_case
+
+  # 覆盖所有类成员后缀
+  - key:             readability-identifier-naming.ClassMemberSuffix
+    value:           _
+  - key:             readability-identifier-naming.PrivateMemberSuffix
+    value:           _
+  - key:             readability-identifier-naming.ProtectedMemberSuffix
+    value:           _
+
+  # 常量与枚举
+  - key:             readability-identifier-naming.ConstantPrefix
+    value:           k
+  - key:             readability-identifier-naming.ConstantCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumConstantPrefix
+    value:           k
+  - key:             readability-identifier-naming.EnumConstantCase
+    value:           CamelCase
+
+  # 宏定义逻辑修正：支持 Google 风格的末尾下划线
+  - key:             readability-identifier-naming.MacroDefinitionCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.MacroDefinitionSuffix
+    value:           _
+
+  # 类型规范
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.StructCase
+    value:           CamelCase

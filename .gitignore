@@ -55,6 +55,8 @@ desktop.ini
 **/build/
 **/.cxx/
 **/local.properties
+**/release-keystore.jks
+**/release-signing.properties
 **/captures/
 **/.externalNativeBuild/
 *.apk

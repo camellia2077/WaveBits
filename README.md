@@ -38,12 +38,12 @@
 ## 🧭 开发入口
 
 ### Android
-- Android 官方工程入口在仓库根目录 `C:\code\WaveBits`。
-- 直接从根目录执行：
-  - Windows：`.\gradlew.bat :app:assembleDebug`
-  - macOS/Linux：`./gradlew :app:assembleDebug`
-- `apps/audio_android/app` 只保留 Android 模块源码、JNI 与资源；不再作为独立 `Gradle` root。
-- Android Studio 建议直接打开仓库根目录，而不是单独打开 `apps/audio_android`。
+- Android 官方工程入口在 `C:\code\WaveBits\apps\audio_android`。
+- 直接在 Android 子项目目录执行：
+  - Windows：`cd apps/audio_android; .\gradlew.bat :app:assembleDebug`
+  - macOS/Linux：`cd apps/audio_android && ./gradlew :app:assembleDebug`
+- `apps/audio_android` 是 Android Gradle root，`apps/audio_android/app` 是实际应用模块。
+- Android Studio 建议直接打开 `apps/audio_android`。
 
 ### 本地编排工具
 - 推荐统一使用 `python tools/run.py <command>`。
@@ -53,7 +53,7 @@
   - `python tools/run.py verify --build-dir build/dev --skip-android`
   - `python tools/run.py android native-debug`
   - `python tools/run.py android assemble-debug`
-  - `python tools/run.py export-apk`
+  - `python tools/run.py artifact export-apk`
 - 约定：
   - `python tools/run.py --help` 只看主命令概览；详细参数用 `python tools/run.py <command> --help`。
   - host 根目录当前直接固定为一条正式主线：`clang++ + Ninja + build/dev`。

@@ -1,0 +1,21 @@
+# 基于 Google 风格基础
+BasedOnStyle: Google
+
+# 缩进宽度
+IndentWidth: 2
+
+# 每行字符限制
+ColumnLimit: 80
+
+# 左大括号换行策略 (对于 Google Style 通常在行末)
+BreakBeforeBraces: Attach
+
+# 允许短的函数写在同一行
+AllowShortFunctionsOnASingleLine: Inline
+
+# 排序头文件
+SortIncludes: true
+
+# [修复部分] 指针对齐方式必须是顶层键
+# 如果你想强制靠左 (int* p)，直接这样写：
+PointerAlignment: Left

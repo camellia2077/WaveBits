@@ -1,0 +1,59 @@
+# 可选严格版：
+# - 用于集中清理遗留代码、专项风格治理、重构期清债。
+# - 默认日常门禁请使用 `.clang-tidy`。
+#
+# 说明：
+# - `-google-runtime-references` 保持关闭：这里不再强制套用旧的非常量引用限制。
+# - `-bugprone-unchecked-optional-access` 暂时关闭：当前 clang-tidy 会在
+#   tracer_transport runtime codec 上发生访问冲突，导致 tidy-refresh/tidy-batch
+#   无法稳定收口；等上游工具问题确认修复后再评估恢复。
+Checks: >-
+  -*,
+  google-*,
+  readability-*,
+  modernize-*,
+  bugprone-*,
+  -bugprone-unchecked-optional-access,
+  -google-runtime-references,
+  modernize-use-std-print,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-pass-by-value,
+  readability-identifier-naming
+
+CheckOptions:
+  # 命名逻辑修正
+  - key:             readability-identifier-naming.FunctionCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.VariableCase
+    value:           lower_case
+
+  # 覆盖所有类成员后缀
+  - key:             readability-identifier-naming.ClassMemberSuffix
+    value:           _
+  - key:             readability-identifier-naming.PrivateMemberSuffix
+    value:           _
+  - key:             readability-identifier-naming.ProtectedMemberSuffix
+    value:           _
+
+  # 常量与枚举
+  - key:             readability-identifier-naming.ConstantPrefix
+    value:           k
+  - key:             readability-identifier-naming.ConstantCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumConstantPrefix
+    value:           k
+  - key:             readability-identifier-naming.EnumConstantCase
+    value:           CamelCase
+
+  # 宏定义逻辑修正：支持 Google 风格的末尾下划线
+  - key:             readability-identifier-naming.MacroDefinitionCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.MacroDefinitionSuffix
+    value:           _
+
+  # 类型规范
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.StructCase
+    value:           CamelCase

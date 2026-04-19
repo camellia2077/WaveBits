@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from wavebits_tools.cli import main
+from repo_tooling.cli import main
 
 
 if __name__ == "__main__":

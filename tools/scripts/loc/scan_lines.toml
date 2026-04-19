@@ -5,7 +5,6 @@
 display_name = "C++"
 default_paths = [
   "apps/audio_android/app/src/main/cpp",
-  "apps/audio_cli/windows/src",
   "libs/audio_api",
   "libs/audio_core",
   "libs/audio_io",
