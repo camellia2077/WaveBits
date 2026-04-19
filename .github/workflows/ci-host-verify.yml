@@ -25,6 +25,10 @@ jobs:
     name: Host Verify
     runs-on: windows-latest
     timeout-minutes: 90
+    env:
+      WAVEBITS_MSYS2_UCRT64_BIN: C:\msys64\ucrt64\bin
+      WAVEBITS_MSYS2_USR_BIN: C:\msys64\usr\bin
+      PKG_CONFIG: C:\msys64\ucrt64\bin\pkgconf.exe
 
     steps:
       - name: Checkout
@@ -50,17 +54,18 @@ jobs:
       - name: Add MSYS2 tools to PATH
         shell: pwsh
         run: |
-          "C:\msys64\ucrt64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $env:WAVEBITS_MSYS2_UCRT64_BIN | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $env:WAVEBITS_MSYS2_USR_BIN | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Show toolchain versions
         shell: pwsh
         run: |
+          $env:PATH = "$env:WAVEBITS_MSYS2_UCRT64_BIN;$env:WAVEBITS_MSYS2_USR_BIN;$env:PATH"
           python --version
           clang++ --version
           cmake --version
           ninja --version
-          pkg-config --modversion sndfile
+          & $env:PKG_CONFIG --modversion sndfile
 
       - name: List verify check groups
         shell: pwsh
@@ -68,4 +73,6 @@ jobs:
 
       - name: Verify host default path
         shell: pwsh
-        run: python tools/run.py verify --build-dir build/dev --skip-android
+        run: |
+          $env:PATH = "$env:WAVEBITS_MSYS2_UCRT64_BIN;$env:WAVEBITS_MSYS2_USR_BIN;$env:PATH"
+          python tools/run.py verify --build-dir build/dev --skip-android
