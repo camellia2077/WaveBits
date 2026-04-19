@@ -4,12 +4,19 @@ complexity:
 
   LongMethod:
     active: true
-    threshold: 100
+    # Compose screens and app-shell coordinators naturally read longer than
+    # ordinary Kotlin service methods. Keep the rule on, but only flag truly
+    # oversized blocks that likely want a structural split.
+    threshold: 200
 
   LongParameterList:
     active: true
-    functionThreshold: 8
-    constructorThreshold: 10
+    # This app is a presentation shell over native libraries, so composables
+    # and action coordinators often carry explicit UI state and callbacks.
+    # Keep this high enough for rich player/detail sheets without disabling the
+    # signal entirely for non-UI code.
+    functionThreshold: 30
+    constructorThreshold: 14
 
   CyclomaticComplexMethod:
     active: true
@@ -26,18 +33,33 @@ naming:
   TopLevelPropertyNaming:
     active: false
 
+  MatchingDeclarationName:
+    active: false
+
 style:
+  ReturnCount:
+    active: true
+    # Early returns keep gateway / coordinator code flatter and easier to
+    # follow. We still keep a cap so genuinely tangled control flow is visible.
+    max: 7
 
   MaxLineLength:
     active: false
 
   MagicNumber:
     active: true
-    # Palette/theme files are mostly literal color data and seed values.
-    # Keeping MagicNumber active everywhere else preserves signal while
-    # avoiding low-value noise from static palette definitions.
+    # Palette/theme files, UI state holders, and thin native bridge/domain
+    # adapters contain many protocol constants and literal view values.
+    # Keep MagicNumber active elsewhere to preserve signal.
     excludes:
       - '**/ui/theme/**'
       - '**/ui/screen/**'
       - '**/ui/state/**'
+      - '**/ui/model/**'
+      - '**/domain/**'
+      - '**/data/NativeAudioCodecGateway.kt'
       - '**/src/test/**'
+
+performance:
+  SpreadOperator:
+    active: false

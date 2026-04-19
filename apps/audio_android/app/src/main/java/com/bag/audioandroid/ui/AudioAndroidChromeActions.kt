@@ -56,7 +56,6 @@ internal class AudioAndroidChromeActions(
                 sessions =
                     sampleInputSessionUpdater.refreshForLanguageChange(
                         state.sessions,
-                        previousLanguage,
                         language,
                     ),
             )

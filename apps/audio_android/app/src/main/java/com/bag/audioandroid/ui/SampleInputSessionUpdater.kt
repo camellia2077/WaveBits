@@ -23,7 +23,6 @@ class SampleInputSessionUpdater(
 
     fun refreshForLanguageChange(
         sessions: Map<TransportModeOption, ModeAudioSessionState>,
-        previousLanguage: AppLanguageOption,
         newLanguage: AppLanguageOption,
     ): Map<TransportModeOption, ModeAudioSessionState> =
         sessions.mapValues { (mode, session) ->
