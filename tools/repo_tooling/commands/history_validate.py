@@ -4,9 +4,7 @@ import argparse
 import re
 from dataclasses import dataclass
 from pathlib import Path
-
-from markdown_it import MarkdownIt
-from markdown_it.token import Token
+from typing import Any
 
 from ..constants import ROOT_DIR
 from ..errors import ToolError
@@ -75,13 +73,13 @@ def _semantic_version_key(version: str) -> tuple[int, int, int]:
     return (int(major), int(minor), int(patch))
 
 
-def _token_line(token: Token) -> int:
+def _token_line(token: Any) -> int:
     if token.map:
         return token.map[0] + 1
     return 1
 
 
-def _inline_text(tokens: list[Token], index: int) -> str:
+def _inline_text(tokens: list[Any], index: int) -> str:
     if index + 1 >= len(tokens):
         return ""
     inline_token = tokens[index + 1]
@@ -91,6 +89,14 @@ def _inline_text(tokens: list[Token], index: int) -> str:
 
 
 def _validate_file(path: Path) -> list[ValidationIssue]:
+    try:
+        from markdown_it import MarkdownIt
+    except ModuleNotFoundError as exc:
+        raise ToolError(
+            "history validate requires `markdown-it-py`. "
+            "Install it in the current Python environment before running `python tools/run.py history validate ...`."
+        ) from exc
+
     try:
         content = path.read_text(encoding="utf-8")
     except OSError as exc:

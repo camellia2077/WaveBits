@@ -12,6 +12,7 @@ Host 侧根目录 `CMake` 工程当前要求 `CMake 3.28+`。
 ## 入口
 - 对外只保留一个入口：`python tools/run.py <command>`
 - 内部按职责拆分到 `tools/repo_tooling/`
+- 如需运行依赖第三方 Python 库的工具命令，先执行：`python -m pip install -r tools/requirements.txt`
 - CLI 帮助保持分层：根命令只列主要子命令，详细参数通过 `python tools/run.py <command> --help` 或 `python tools/run.py <command> <subcommand> --help` 查看
 - 这份文档只保留工具入口地图与少量代表例子；更细流程统一下沉到 `docs/notes/`
 
