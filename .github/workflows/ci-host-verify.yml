@@ -63,12 +63,15 @@ jobs:
       - name: Show toolchain versions
         shell: pwsh
         run: |
+          $env:PATH = "${{ steps.msys2.outputs.msys2-location }}\ucrt64\bin;${{ steps.msys2.outputs.msys2-location }}\usr\bin;$env:PATH"
           python --version
           clang++ --version
           cmake --version
           ninja --version
           Write-Host "MSYS2 location: ${{ steps.msys2.outputs.msys2-location }}"
           Get-Command pkgconf
+          Get-Command clang++
+          Get-Command cmake
           & $env:PKG_CONFIG --modversion sndfile
 
       - name: List verify check groups
@@ -77,4 +80,6 @@ jobs:
 
       - name: Verify host default path
         shell: pwsh
-        run: python tools/run.py verify --build-dir build/dev --skip-android
+        run: |
+          $env:PATH = "${{ steps.msys2.outputs.msys2-location }}\ucrt64\bin;${{ steps.msys2.outputs.msys2-location }}\usr\bin;$env:PATH"
+          python tools/run.py verify --build-dir build/dev --skip-android
