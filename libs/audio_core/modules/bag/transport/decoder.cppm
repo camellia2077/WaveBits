@@ -6,12 +6,12 @@ export import bag.common.types;
 export namespace bag {
 
 class ITransportDecoder {
-public:
-    virtual ~ITransportDecoder() = default;
+ public:
+  virtual ~ITransportDecoder() = default;
 
-    virtual ErrorCode PushPcm(const PcmBlock& block) = 0;
-    virtual ErrorCode PollTextResult(TextResult* out_result) = 0;
-    virtual void Reset() = 0;
+  virtual ErrorCode PushPcm(const PcmBlock& block) = 0;
+  virtual ErrorCode PollTextResult(TextResult* out_result) = 0;
+  virtual void Reset() = 0;
 };
 
 }  // namespace bag

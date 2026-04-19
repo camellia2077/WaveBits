@@ -1,6 +1,6 @@
 # Compatibility Layer Inventory
 
-更新时间：2026-03-15
+更新时间：2026-04-18
 
 ## 目标
 - 盘点当前仍保留在 `include/` 下的公开头文件。
@@ -134,14 +134,21 @@
 
 ### CLI
 - 文件：
+  - `apps/audio_cli/rust/**`
   - `apps/audio_cli/windows/src/main.cpp`
   - `apps/audio_cli/windows/cmake/CMakeLists.txt`
 - 当前 allowed surface：
-  - `bag_api.h`
-  - `wav_io.h`
+  - Rust Cargo project / `clap`
+  - root CMake -> Cargo build bridge
 - 当前不允许：
+  - 在当前 Rust CLI 主线上新增 `libs` FFI 绑定，除非单独立项
   - 直接 `#include "bag/..."`
   - 直接 `import bag.*`
+- 说明：
+  - 当前 CLI 主实现已经迁到 `apps/audio_cli/rust/`，并作为最小可运行 stub presentation 入口存在
+  - `apps/audio_cli/windows/cmake/CMakeLists.txt` 现在只负责把 root host build 桥接到 Cargo 产物
+  - `apps/audio_cli/windows/src/main.cpp` 只保留为迁移期占位文件，用于维持历史 consumer location 的静态跟踪，不再承担实际编译或 `libs` 消费职责
+  - 因此，CLI 当前不再是 `bag_api.h` / `wav_io.h` 的正式 consumer owner；后续若要让 Rust CLI 复用 `libs`，应通过单独 ABI/FFI 设计推进，而不是默认沿用旧 C++ 入口
 
 ### Android JNI
 - 文件：

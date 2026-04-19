@@ -15,7 +15,7 @@
 - `apps/`
   - 平台表现层与集成，目前主要是 `audio_cli`、`audio_android`。
 - `Test/`
-  - `unit`、`api`、`artifact`、`cli`、`modules` 测试。
+  - integration / artifact / cli / modules 测试总入口。
 - `docs/`
   - 架构、测试、发布、设计说明。
 - `tools/`
@@ -201,7 +201,7 @@
   - `libs/audio_core/src/transport/transport.cpp`
 - 再看：
   - `Test/modules/leaf_module_smoke.cpp`
-  - `Test/api/api_tests.cpp`
+  - `libs/audio_api/tests/api_tests.cpp`
   - `Test/cli/cli_smoke_tests.cpp`
 
 ### 改 `ultra` 编解码
@@ -210,7 +210,7 @@
   - `libs/audio_core/src/ultra/phy_clean.cpp`
   - `libs/audio_core/src/transport/transport.cpp`
 - 再看：
-  - `Test/api/api_tests.cpp`
+  - `libs/audio_api/tests/api_tests.cpp`
   - `Test/artifact/artifact_tests.cpp`
 
 ### 改 C API / JNI / CLI 接入
@@ -225,7 +225,7 @@
 - 先看：
   - `libs/audio_runtime/include/audio_runtime.h`
   - `libs/audio_runtime/src/audio_runtime.cpp`
-  - `Test/runtime/runtime_tests.cpp`
+  - `libs/audio_runtime/tests/runtime_tests.cpp`
 - Android 集成再看：
   - `apps/audio_android/app/src/main/cpp/playback_runtime_jni.cpp`
   - `apps/audio_android/app/src/main/java/com/bag/audioandroid/domain/PlaybackRuntimeGateway.kt`
@@ -234,11 +234,11 @@
 
 ### 改 Android Gradle / Studio 导入 / 构建编排
 - 先看：
-  - `settings.gradle.kts`
-  - `build.gradle.kts`
+  - `apps/audio_android/settings.gradle.kts`
+  - `apps/audio_android/build.gradle.kts`
   - `gradle.properties`
-  - `tools/wavebits_tools/commands/android.py`
-  - `tools/wavebits_tools/commands/export_apk.py`
+  - `tools/repo_tooling/commands/android.py`
+  - `tools/repo_tooling/commands/export_apk.py`
 - 再看：
   - `apps/audio_android/app/build.gradle.kts`
   - `apps/audio_android/app/src/main/cpp/CMakeLists.txt`
@@ -255,14 +255,16 @@
   - `libs/audio_io/src/wav_io_backend.h`
   - `libs/audio_io/src/wav_io_backend.cpp`
 - 再看：
-  - `Test/unit/unit_tests.cpp`
+  - `libs/audio_io/tests/unit_tests.cpp`
   - `Test/artifact/artifact_tests.cpp`
 
 ## 测试地图
-- `Test/unit/`
+- `libs/audio_io/tests/`
   - `wav_io.h` header-boundary smoke 与 bytes parse/serialize contract
-- `Test/api/`
+- `libs/audio_api/tests/`
   - C API 契约与错误语义
+- `libs/audio_runtime/tests/`
+  - 播放运行时状态迁移、scrub 与时间换算
 - `Test/artifact/`
   - `text -> PCM/WAV -> text` 产品主链路
 - `Test/cli/`

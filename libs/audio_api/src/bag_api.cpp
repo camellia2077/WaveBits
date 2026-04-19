@@ -7,4 +7,3 @@ import bag.common.version;
 import bag.transport.facade;
 
 #include "bag_api_impl.inc"
-

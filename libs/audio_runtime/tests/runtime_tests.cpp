@@ -77,7 +77,9 @@ void TestRuntimeClampAndFractionHelpers() {
     test::AssertEq(audio_runtime_clamp_samples(100, -5), 0, "Clamp should floor negative sample positions.");
     test::AssertEq(audio_runtime_clamp_samples(100, 120), 100, "Clamp should cap sample positions at the end.");
     test::AssertEq(audio_runtime_fraction_to_samples(200, -1.0f), 0, "Fraction helper should floor negative fractions.");
+    test::AssertEq(audio_runtime_fraction_to_samples(201, 0.5f), 101, "Fraction helper should round half up consistently.");
     test::AssertEq(audio_runtime_fraction_to_samples(200, 1.0f), 200, "Fraction helper should map 1.0 to the full sample count.");
+    test::AssertEq(audio_runtime_fraction_to_samples(200, 2.0f), 200, "Fraction helper should clamp overflow fractions.");
 }
 
 void TestRuntimeCompletedScrubBackBecomesPaused() {
@@ -102,6 +104,99 @@ void TestRuntimeZeroTotalsStaySafe() {
     test::AssertEq(state.is_scrubbing, 0, "Zero-length sessions should not enter scrubbing mode.");
 }
 
+void TestRuntimeStoppedAndFailedStateTransitions() {
+    {
+        auto state = audio_runtime_load(300, 100);
+        state = audio_runtime_play_started(state);
+        state = audio_runtime_progress(state, 120);
+        state = audio_runtime_stopped(state);
+
+        test::AssertEq(state.phase, AUDIO_RUNTIME_PLAYBACK_STOPPED, "Stopped sessions should move into stopped state.");
+        test::AssertEq(state.played_samples, 0, "Stopped sessions should reset played samples to the start.");
+        test::AssertEq(state.is_scrubbing, 0, "Stopped sessions should clear scrubbing state.");
+    }
+
+    {
+        auto state = audio_runtime_load(300, 100);
+        state = audio_runtime_play_started(state);
+        state = audio_runtime_progress(state, 90);
+        state = audio_runtime_failed(state);
+
+        test::AssertEq(state.phase, AUDIO_RUNTIME_PLAYBACK_FAILED, "Failed sessions should move into failed state.");
+        test::AssertEq(state.played_samples, 90, "Failed sessions should preserve the current playback position.");
+        test::AssertEq(state.is_scrubbing, 0, "Failed sessions should clear scrubbing state.");
+    }
+
+    {
+        auto state = audio_runtime_load(300, 100);
+        state = audio_runtime_play_started(state);
+        state = audio_runtime_progress(state, 80);
+        state = audio_runtime_scrub_started(state);
+        state = audio_runtime_scrub_changed(state, 150);
+        state = audio_runtime_failed(state);
+
+        test::AssertEq(state.phase, AUDIO_RUNTIME_PLAYBACK_FAILED, "Failure during scrubbing should still move into failed state.");
+        test::AssertEq(state.played_samples, 150, "Failure during scrubbing should preserve the displayed scrub target.");
+        test::AssertEq(state.is_scrubbing, 0, "Failure during scrubbing should clear scrubbing state.");
+    }
+}
+
+void TestRuntimeScrubCanceledRespectsResumeIntent() {
+    {
+        auto state = audio_runtime_load(120, 60);
+        state = audio_runtime_play_started(state);
+        state = audio_runtime_progress(state, 30);
+        state = audio_runtime_scrub_started(state);
+        state = audio_runtime_scrub_changed(state, 75);
+        state = audio_runtime_scrub_canceled(state);
+
+        test::AssertEq(state.phase, AUDIO_RUNTIME_PLAYBACK_PLAYING, "Cancelling a playing scrub should resume playback.");
+        test::AssertEq(state.played_samples, 30, "Cancelling a playing scrub should restore the committed playback position.");
+        test::AssertEq(state.is_scrubbing, 0, "Cancelling a playing scrub should clear scrubbing state.");
+    }
+
+    {
+        auto state = audio_runtime_load(120, 60);
+        state = audio_runtime_play_started(state);
+        state = audio_runtime_progress(state, 30);
+        state = audio_runtime_paused(state);
+        state = audio_runtime_scrub_started(state);
+        state = audio_runtime_scrub_changed(state, 75);
+        state = audio_runtime_scrub_canceled(state);
+
+        test::AssertEq(state.phase, AUDIO_RUNTIME_PLAYBACK_PAUSED, "Cancelling a paused scrub should stay paused.");
+        test::AssertEq(state.played_samples, 30, "Cancelling a paused scrub should restore the committed playback position.");
+        test::AssertEq(state.is_scrubbing, 0, "Cancelling a paused scrub should clear scrubbing state.");
+    }
+}
+
+void TestRuntimeExactTimingHelpers() {
+    auto state = audio_runtime_load(1000, 250);
+    state = audio_runtime_play_started(state);
+    state = audio_runtime_progress(state, 125);
+
+    test::AssertEq(audio_runtime_progress_fraction(&state), 0.125f, "Progress fraction should be exact for simple ratios.");
+    test::AssertEq(audio_runtime_elapsed_ms(&state), 500LL, "Elapsed time should follow played samples and sample rate.");
+    test::AssertEq(audio_runtime_total_ms(&state), 4000LL, "Total time should follow total samples and sample rate.");
+
+    state = audio_runtime_scrub_started(state);
+    state = audio_runtime_scrub_changed(state, 500);
+    test::AssertEq(audio_runtime_progress_fraction(&state), 0.5f, "Progress fraction should use the scrub target while scrubbing.");
+    test::AssertEq(audio_runtime_elapsed_ms(&state), 2000LL, "Elapsed time should use the scrub target while scrubbing.");
+}
+
+void TestRuntimeCompletedScrubCancelConvergesToPausedEnd() {
+    auto state = audio_runtime_load(90, 45);
+    state = audio_runtime_completed(state);
+    state = audio_runtime_scrub_started(state);
+    state = audio_runtime_scrub_changed(state, 12);
+    state = audio_runtime_scrub_canceled(state);
+
+    test::AssertEq(state.phase, AUDIO_RUNTIME_PLAYBACK_PAUSED, "Cancelling a completed scrub should converge to paused state.");
+    test::AssertEq(state.played_samples, 90, "Cancelling a completed scrub should restore the committed end position.");
+    test::AssertEq(state.is_scrubbing, 0, "Cancelling a completed scrub should clear scrubbing state.");
+}
+
 }  // namespace
 
 int main() {
@@ -112,5 +207,9 @@ int main() {
     runner.Add("Runtime.ClampAndFractionHelpers", TestRuntimeClampAndFractionHelpers);
     runner.Add("Runtime.CompletedScrubBackBecomesPaused", TestRuntimeCompletedScrubBackBecomesPaused);
     runner.Add("Runtime.ZeroTotalsStaySafe", TestRuntimeZeroTotalsStaySafe);
+    runner.Add("Runtime.StoppedAndFailedStateTransitions", TestRuntimeStoppedAndFailedStateTransitions);
+    runner.Add("Runtime.ScrubCanceledRespectsResumeIntent", TestRuntimeScrubCanceledRespectsResumeIntent);
+    runner.Add("Runtime.ExactTimingHelpers", TestRuntimeExactTimingHelpers);
+    runner.Add("Runtime.CompletedScrubCancelConvergesToPausedEnd", TestRuntimeCompletedScrubCancelConvergesToPausedEnd);
     return runner.Run();
 }

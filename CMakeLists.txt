@@ -47,11 +47,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
-enable_testing()
+include(CTest)
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/wavebits_test_helpers.cmake")
 
 add_subdirectory(libs/audio_core)
 add_subdirectory(libs/audio_api)
 add_subdirectory(libs/audio_io)
 add_subdirectory(libs/audio_runtime)
-add_subdirectory(apps/audio_cli/windows/cmake)
+
+add_custom_target(wavebits_rust_cli_native_deps)
+add_dependencies(
+    wavebits_rust_cli_native_deps
+    bag_api
+    audio_io
+    bag_core
+)
+
+add_subdirectory(apps/audio_cli/rust/cmake)
 add_subdirectory(Test)

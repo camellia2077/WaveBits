@@ -5,101 +5,103 @@ using std::int16_t;
 namespace {
 
 bool IsAsciiText(std::string_view text) {
-    for (unsigned char ch : text) {
-        if (ch > 0x7F) {
-            return false;
-        }
+  for (unsigned char ch : text) {
+    if (ch > 0x7F) {
+      return false;
     }
-    return true;
+  }
+  return true;
 }
 
 TransportValidationIssue ValidateCommonConfig(const CoreConfig& config) {
-    if (config.sample_rate_hz <= 0) {
-        return TransportValidationIssue::kInvalidSampleRate;
-    }
-    if (config.frame_samples <= 0) {
-        return TransportValidationIssue::kInvalidFrameSamples;
-    }
-    if (!IsValidTransportMode(config.mode)) {
-        return TransportValidationIssue::kInvalidMode;
-    }
-    if (!IsValidFlashSignalProfile(config.flash_signal_profile)) {
-        return TransportValidationIssue::kInvalidFlashSignalProfile;
-    }
-    if (!IsValidFlashVoicingFlavor(config.flash_voicing_flavor)) {
-        return TransportValidationIssue::kInvalidFlashVoicingFlavor;
-    }
-    return TransportValidationIssue::kOk;
+  if (config.sample_rate_hz <= 0) {
+    return TransportValidationIssue::kInvalidSampleRate;
+  }
+  if (config.frame_samples <= 0) {
+    return TransportValidationIssue::kInvalidFrameSamples;
+  }
+  if (!IsValidTransportMode(config.mode)) {
+    return TransportValidationIssue::kInvalidMode;
+  }
+  if (!IsValidFlashSignalProfile(config.flash_signal_profile)) {
+    return TransportValidationIssue::kInvalidFlashSignalProfile;
+  }
+  if (!IsValidFlashVoicingFlavor(config.flash_voicing_flavor)) {
+    return TransportValidationIssue::kInvalidFlashVoicingFlavor;
+  }
+  return TransportValidationIssue::kOk;
 }
 
 }  // namespace
 
-TransportValidationIssue ValidateEncodeRequest(const CoreConfig& config, std::string_view text) {
-    const TransportValidationIssue config_issue = ValidateCommonConfig(config);
-    if (config_issue != TransportValidationIssue::kOk) {
-        return config_issue;
-    }
+TransportValidationIssue ValidateEncodeRequest(const CoreConfig& config,
+                                               std::string_view text) {
+  const TransportValidationIssue config_issue = ValidateCommonConfig(config);
+  if (config_issue != TransportValidationIssue::kOk) {
+    return config_issue;
+  }
 
-    if (config.mode == TransportMode::kFlash) {
-        return TransportValidationIssue::kOk;
-    }
-
-    if (config.mode == TransportMode::kPro) {
-        return IsAsciiText(text) ? TransportValidationIssue::kOk
-                                 : TransportValidationIssue::kProAsciiOnly;
-    }
-
+  if (config.mode == TransportMode::kFlash) {
     return TransportValidationIssue::kOk;
+  }
+
+  if (config.mode == TransportMode::kPro) {
+    return IsAsciiText(text) ? TransportValidationIssue::kOk
+                             : TransportValidationIssue::kProAsciiOnly;
+  }
+
+  return TransportValidationIssue::kOk;
 }
 
 TransportValidationIssue ValidateDecoderConfig(const CoreConfig& config) {
-    return ValidateCommonConfig(config);
+  return ValidateCommonConfig(config);
 }
 
-ErrorCode EncodeTextToPcm16(const CoreConfig& config,
-                            const std::string& text,
+ErrorCode EncodeTextToPcm16(const CoreConfig& config, const std::string& text,
                             std::vector<int16_t>* out_pcm) {
-    return EncodeTextToPcm16(config, text, out_pcm, nullptr);
+  return EncodeTextToPcm16(config, text, out_pcm, nullptr);
 }
 
-ErrorCode EncodeTextToPcm16(const CoreConfig& config,
-                            const std::string& text,
+ErrorCode EncodeTextToPcm16(const CoreConfig& config, const std::string& text,
                             std::vector<int16_t>* out_pcm,
                             const EncodeProgressSink* progress_sink) {
-    if (out_pcm == nullptr) {
-        return ErrorCode::kInvalidArgument;
-    }
-    if (ValidateEncodeRequest(config, text) != TransportValidationIssue::kOk) {
-        return ErrorCode::kInvalidArgument;
-    }
+  if (out_pcm == nullptr) {
+    return ErrorCode::kInvalidArgument;
+  }
+  if (ValidateEncodeRequest(config, text) != TransportValidationIssue::kOk) {
+    return ErrorCode::kInvalidArgument;
+  }
 
-    switch (config.mode) {
+  switch (config.mode) {
     case TransportMode::kFlash:
-        return bag::flash::EncodeTextToPcm16(config, text, out_pcm, progress_sink);
+      return bag::flash::EncodeTextToPcm16(config, text, out_pcm,
+                                           progress_sink);
     case TransportMode::kPro:
-        return bag::pro::EncodeTextToPcm16(config, text, out_pcm, progress_sink);
+      return bag::pro::EncodeTextToPcm16(config, text, out_pcm, progress_sink);
     case TransportMode::kUltra:
-        return bag::ultra::EncodeTextToPcm16(config, text, out_pcm, progress_sink);
+      return bag::ultra::EncodeTextToPcm16(config, text, out_pcm,
+                                           progress_sink);
     default:
-        return ErrorCode::kInvalidArgument;
-    }
+      return ErrorCode::kInvalidArgument;
+  }
 }
 
-std::unique_ptr<ITransportDecoder> CreateTransportDecoder(const CoreConfig& config) {
-    if (ValidateDecoderConfig(config) != TransportValidationIssue::kOk) {
-        return nullptr;
-    }
+std::unique_ptr<ITransportDecoder> CreateTransportDecoder(
+    const CoreConfig& config) {
+  if (ValidateDecoderConfig(config) != TransportValidationIssue::kOk) {
+    return nullptr;
+  }
 
-    switch (config.mode) {
+  switch (config.mode) {
     case TransportMode::kFlash:
-        return bag::flash::CreateDecoder(config);
+      return bag::flash::CreateDecoder(config);
     case TransportMode::kPro:
-        return bag::pro::CreateDecoder(config);
+      return bag::pro::CreateDecoder(config);
     case TransportMode::kUltra:
-        return bag::ultra::CreateDecoder(config);
+      return bag::ultra::CreateDecoder(config);
     default:
-        return nullptr;
-    }
+      return nullptr;
+  }
 }
 
 }  // namespace bag

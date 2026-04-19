@@ -13,12 +13,12 @@ import bag.common.types;
 namespace bag {
 
 class ILinkLayer {
-public:
-    virtual ~ILinkLayer() = default;
+ public:
+  virtual ~ILinkLayer() = default;
 
-    virtual ErrorCode PushIr(const IrPacket& packet) = 0;
-    virtual ErrorCode PollPayload(std::vector<unsigned char>* out_payload) = 0;
-    virtual void Reset() = 0;
+  virtual ErrorCode PushIr(const IrPacket& packet) = 0;
+  virtual ErrorCode PollPayload(std::vector<unsigned char>* out_payload) = 0;
+  virtual void Reset() = 0;
 };
 
 }  // namespace bag

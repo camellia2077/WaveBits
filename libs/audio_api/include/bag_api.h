@@ -8,113 +8,115 @@ extern "C" {
 #endif
 
 typedef enum bag_error_code {
-    BAG_OK = 0,
-    BAG_INVALID_ARGUMENT = 1,
-    BAG_NOT_READY = 2,
-    BAG_NOT_IMPLEMENTED = 3,
-    BAG_INTERNAL = 4,
-    BAG_CANCELLED = 5
+  BAG_OK = 0,
+  BAG_INVALID_ARGUMENT = 1,
+  BAG_NOT_READY = 2,
+  BAG_NOT_IMPLEMENTED = 3,
+  BAG_INTERNAL = 4,
+  BAG_CANCELLED = 5
 } bag_error_code;
 
 typedef enum bag_transport_mode {
-    BAG_TRANSPORT_FLASH = 0,
-    BAG_TRANSPORT_PRO = 1,
-    BAG_TRANSPORT_ULTRA = 2
+  BAG_TRANSPORT_FLASH = 0,
+  BAG_TRANSPORT_PRO = 1,
+  BAG_TRANSPORT_ULTRA = 2
 } bag_transport_mode;
 
 typedef enum bag_flash_signal_profile {
-    BAG_FLASH_SIGNAL_PROFILE_CODED_BURST = 0,
-    BAG_FLASH_SIGNAL_PROFILE_RITUAL_CHANT = 1
+  BAG_FLASH_SIGNAL_PROFILE_CODED_BURST = 0,
+  BAG_FLASH_SIGNAL_PROFILE_RITUAL_CHANT = 1
 } bag_flash_signal_profile;
 
 typedef enum bag_flash_voicing_flavor {
-    BAG_FLASH_VOICING_FLAVOR_CODED_BURST = 0,
-    BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT = 1
+  BAG_FLASH_VOICING_FLAVOR_CODED_BURST = 0,
+  BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT = 1
 } bag_flash_voicing_flavor;
 
 typedef enum bag_validation_issue {
-    BAG_VALIDATION_OK = 0,
-    BAG_VALIDATION_NULL_CONFIG = 1,
-    BAG_VALIDATION_NULL_TEXT = 2,
-    BAG_VALIDATION_NULL_DECODER_OUTPUT = 3,
-    BAG_VALIDATION_INVALID_SAMPLE_RATE = 4,
-    BAG_VALIDATION_INVALID_FRAME_SAMPLES = 5,
-    BAG_VALIDATION_INVALID_MODE = 6,
-    BAG_VALIDATION_PRO_ASCII_ONLY = 7,
-    BAG_VALIDATION_PAYLOAD_TOO_LARGE = 8,
-    BAG_VALIDATION_INVALID_FLASH_SIGNAL_PROFILE = 9,
-    BAG_VALIDATION_INVALID_FLASH_VOICING_FLAVOR = 10
+  BAG_VALIDATION_OK = 0,
+  BAG_VALIDATION_NULL_CONFIG = 1,
+  BAG_VALIDATION_NULL_TEXT = 2,
+  BAG_VALIDATION_NULL_DECODER_OUTPUT = 3,
+  BAG_VALIDATION_INVALID_SAMPLE_RATE = 4,
+  BAG_VALIDATION_INVALID_FRAME_SAMPLES = 5,
+  BAG_VALIDATION_INVALID_MODE = 6,
+  BAG_VALIDATION_PRO_ASCII_ONLY = 7,
+  BAG_VALIDATION_PAYLOAD_TOO_LARGE = 8,
+  BAG_VALIDATION_INVALID_FLASH_SIGNAL_PROFILE = 9,
+  BAG_VALIDATION_INVALID_FLASH_VOICING_FLAVOR = 10
 } bag_validation_issue;
 
 typedef struct bag_decoder bag_decoder;
 typedef struct bag_encode_job bag_encode_job;
 
 typedef struct bag_encoder_config {
-    int sample_rate_hz;
-    int frame_samples;
-    int enable_diagnostics;
-    bag_transport_mode mode;
-    bag_flash_signal_profile flash_signal_profile;
-    bag_flash_voicing_flavor flash_voicing_flavor;
-    int reserved;
+  int sample_rate_hz;
+  int frame_samples;
+  int enable_diagnostics;
+  bag_transport_mode mode;
+  bag_flash_signal_profile flash_signal_profile;
+  bag_flash_voicing_flavor flash_voicing_flavor;
+  int reserved;
 } bag_encoder_config;
 
 typedef struct bag_decoder_config {
-    int sample_rate_hz;
-    int frame_samples;
-    int enable_diagnostics;
-    bag_transport_mode mode;
-    bag_flash_signal_profile flash_signal_profile;
-    bag_flash_voicing_flavor flash_voicing_flavor;
-    int reserved;
+  int sample_rate_hz;
+  int frame_samples;
+  int enable_diagnostics;
+  bag_transport_mode mode;
+  bag_flash_signal_profile flash_signal_profile;
+  bag_flash_voicing_flavor flash_voicing_flavor;
+  int reserved;
 } bag_decoder_config;
 
 typedef struct bag_text_result {
-    char* buffer;
-    size_t buffer_size;
-    size_t text_size;
-    int complete;
-    float confidence;
-    bag_transport_mode mode;
+  char* buffer;
+  size_t buffer_size;
+  size_t text_size;
+  int complete;
+  float confidence;
+  bag_transport_mode mode;
 } bag_text_result;
 
 typedef struct bag_pcm16_result {
-    int16_t* samples;
-    size_t sample_count;
+  int16_t* samples;
+  size_t sample_count;
 } bag_pcm16_result;
 
 typedef enum bag_encode_job_state {
-    BAG_ENCODE_JOB_QUEUED = 0,
-    BAG_ENCODE_JOB_RUNNING = 1,
-    BAG_ENCODE_JOB_SUCCEEDED = 2,
-    BAG_ENCODE_JOB_FAILED = 3,
-    BAG_ENCODE_JOB_CANCELLED = 4
+  BAG_ENCODE_JOB_QUEUED = 0,
+  BAG_ENCODE_JOB_RUNNING = 1,
+  BAG_ENCODE_JOB_SUCCEEDED = 2,
+  BAG_ENCODE_JOB_FAILED = 3,
+  BAG_ENCODE_JOB_CANCELLED = 4
 } bag_encode_job_state;
 
 typedef enum bag_encode_job_phase {
-    BAG_ENCODE_JOB_PHASE_PREPARING_INPUT = 0,
-    BAG_ENCODE_JOB_PHASE_RENDERING_PCM = 1,
-    BAG_ENCODE_JOB_PHASE_POSTPROCESSING = 2,
-    BAG_ENCODE_JOB_PHASE_FINALIZING = 3
+  BAG_ENCODE_JOB_PHASE_PREPARING_INPUT = 0,
+  BAG_ENCODE_JOB_PHASE_RENDERING_PCM = 1,
+  BAG_ENCODE_JOB_PHASE_POSTPROCESSING = 2,
+  BAG_ENCODE_JOB_PHASE_FINALIZING = 3
 } bag_encode_job_phase;
 
 typedef struct bag_encode_job_progress {
-    bag_encode_job_state state;
-    bag_encode_job_phase phase;
-    float progress_0_to_1;
-    bag_error_code terminal_code;
+  bag_encode_job_state state;
+  bag_encode_job_phase phase;
+  float progress_0_to_1;
+  bag_error_code terminal_code;
 } bag_encode_job_progress;
 
 const char* bag_transport_mode_name(bag_transport_mode mode);
-int bag_try_parse_transport_mode(const char* raw_mode, bag_transport_mode* out_mode);
-bag_validation_issue bag_validate_encode_request(const bag_encoder_config* config, const char* text);
-bag_validation_issue bag_validate_decoder_config(const bag_decoder_config* config);
+int bag_try_parse_transport_mode(const char* raw_mode,
+                                 bag_transport_mode* out_mode);
+bag_validation_issue bag_validate_encode_request(
+    const bag_encoder_config* config, const char* text);
+bag_validation_issue bag_validate_decoder_config(
+    const bag_decoder_config* config);
 const char* bag_validation_issue_message(bag_validation_issue issue);
 const char* bag_error_code_message(bag_error_code code);
 
 bag_error_code bag_encode_text(const bag_encoder_config* config,
-                               const char* text,
-                               bag_pcm16_result* out_result);
+                               const char* text, bag_pcm16_result* out_result);
 bag_error_code bag_start_encode_text_job(const bag_encoder_config* config,
                                          const char* text,
                                          bag_encode_job** out_job);
@@ -126,15 +128,15 @@ bag_error_code bag_take_encode_text_job_result(const bag_encode_job* job,
 void bag_destroy_encode_text_job(bag_encode_job* job);
 void bag_free_pcm16_result(bag_pcm16_result* result);
 
-bag_error_code bag_create_decoder(const bag_decoder_config* config, bag_decoder** out_decoder);
+bag_error_code bag_create_decoder(const bag_decoder_config* config,
+                                  bag_decoder** out_decoder);
 void bag_destroy_decoder(bag_decoder* decoder);
 
-bag_error_code bag_push_pcm(bag_decoder* decoder,
-                            const int16_t* samples,
-                            size_t sample_count,
-                            int64_t timestamp_ms);
+bag_error_code bag_push_pcm(bag_decoder* decoder, const int16_t* samples,
+                            size_t sample_count, int64_t timestamp_ms);
 
-bag_error_code bag_poll_result(bag_decoder* decoder, bag_text_result* out_result);
+bag_error_code bag_poll_result(bag_decoder* decoder,
+                               bag_text_result* out_result);
 void bag_reset(bag_decoder* decoder);
 const char* bag_core_version(void);
 

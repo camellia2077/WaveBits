@@ -16,3 +16,16 @@ target_link_libraries(bag_api
 
 target_compile_features(bag_api PRIVATE cxx_std_23)
 set_property(TARGET bag_api PROPERTY CXX_MODULE_STD ON)
+
+if(BUILD_TESTING)
+    wavebits_add_host_test(test_api
+        NAME api_tests
+        SOURCES
+            tests/api_tests.cpp
+            tests/api_test_support.cpp
+            tests/api_sync_tests.cpp
+            tests/api_async_tests.cpp
+            tests/api_flash_tests.cpp
+        LIBS bag_api
+    )
+endif()

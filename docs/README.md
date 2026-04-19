@@ -20,8 +20,8 @@
   - 记录模式设计、编码方式、协议/PHY 方向与实现口径。
 - `docs/notes/`
   - 记录构建命令、release gate 与持续追踪清单。
-- `docs/core/`
-  - 记录内核版本发布说明。
+- `docs/libs/`
+  - 记录 `libs/` 共享库版本发布说明。
 - `docs/presentation/`
   - 记录 CLI / Android 表现层版本发布说明。
 - `docs/core.md`

@@ -5,8 +5,13 @@
 ## 测试分层
 - `unit`
   - `wav_io.h` header-boundary smoke、bytes roundtrip 与非法/不支持 WAV 失败语义。
+  - 当前源码位置：`libs/audio_io/tests/unit_tests.cpp`
 - `api contract`
   - `bag_api` 的 C ABI、错误语义、mode 透传与校验规则。
+  - 当前源码位置：`libs/audio_api/tests/api_tests.cpp`
+- `runtime`
+  - `audio_runtime` 的状态迁移、scrub 语义与时间换算。
+  - 当前源码位置：`libs/audio_runtime/tests/runtime_tests.cpp`
 - `artifact roundtrip`
   - `text -> PCM/WAV -> text` 的产品主链路。
 - `flash voicing focused`
@@ -24,6 +29,13 @@
 - 当前含义：
   - 验证 host 默认 modules 主路径
   - 不再借默认 `verify` 步骤隐式表达 Android gate
+- 单库定向测试命令：
+  - `python tools/run.py test-lib audio_runtime --build-dir build/dev`
+  - `python tools/run.py test-lib audio_api --build-dir build/dev`
+  - `python tools/run.py test-lib audio_io --build-dir build/dev`
+- 当前约定：
+  - 根层 `ctest -R runtime_tests|api_tests|unit_tests` 不再作为正式工作流兼容目标
+  - `runtime_tests` / `api_tests` / `unit_tests` 应通过各自库级测试子树运行
 
 ### Android 独立 gate
 - focused gate：
@@ -167,8 +179,8 @@
 ## 可见测试音频产物
 - `ctest` 默认门禁不保留人工查看用的 WAV 产物。
 - 如需查看真实音频文件，使用：
-  - `python tools/run.py roundtrip --build-dir build/dev --mode flash --text "Hello"`
-  - `python tools/run.py smoke --build-dir build/dev`
+  - `python tools/run.py artifact roundtrip --build-dir build/dev --mode flash --text "Hello"`
+  - `python tools/run.py artifact smoke --build-dir build/dev`
 - 这些产物默认输出到 `build/test-artifacts/`，目录中会包含：
   - `input.txt`
   - `encoded.wav`
