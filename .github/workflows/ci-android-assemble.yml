@@ -9,6 +9,7 @@ on:
       - "CMakeLists.txt"
       - "cmake/**"
       - "libs/**"
+      - "tooling/**"
       - "tools/**"
   push:
     paths:
@@ -18,6 +19,7 @@ on:
       - "CMakeLists.txt"
       - "cmake/**"
       - "libs/**"
+      - "tooling/**"
       - "tools/**"
 
 jobs:
@@ -30,10 +32,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Read build config
+        id: build-config
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+
+          config = tomllib.loads(Path("tooling/build.toml").read_text(encoding="utf-8"))
+          github_output = Path(os.environ["GITHUB_OUTPUT"])
+          with github_output.open("a", encoding="utf-8") as handle:
+              handle.write(f"python-version={config['ci']['python']}\n")
+              handle.write(f"java-version={config['ci']['java']}\n")
+          PY
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "${{ steps.build-config.outputs.python-version }}"
 
       - name: Install Python tooling dependencies
         shell: bash
@@ -43,7 +61,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "${{ steps.build-config.outputs.java-version }}"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -52,14 +70,7 @@ jobs:
         shell: bash
         run: |
           command -v sdkmanager
-          set +o pipefail
-          yes | sdkmanager --licenses >/dev/null
-          set -o pipefail
-          sdkmanager \
-            "platforms;android-35" \
-            "build-tools;35.0.0" \
-            "ndk;28.2.13676358" \
-            "cmake;4.1.2"
+          python tools/run.py android install-sdk --accept-licenses
 
       - name: Show Android toolchain versions
         shell: bash

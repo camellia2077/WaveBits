@@ -6,12 +6,14 @@ on:
       - ".github/workflows/ci-android-assemble.yml"
       - ".github/workflows/ci-android-quality.yml"
       - "apps/audio_android/**"
+      - "tooling/**"
       - "tools/**"
   push:
     paths:
       - ".github/workflows/ci-android-assemble.yml"
       - ".github/workflows/ci-android-quality.yml"
       - "apps/audio_android/**"
+      - "tooling/**"
       - "tools/**"
 
 jobs:
@@ -24,10 +26,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Read build config
+        id: build-config
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+
+          config = tomllib.loads(Path("tooling/build.toml").read_text(encoding="utf-8"))
+          github_output = Path(os.environ["GITHUB_OUTPUT"])
+          with github_output.open("a", encoding="utf-8") as handle:
+              handle.write(f"python-version={config['ci']['python']}\n")
+              handle.write(f"java-version={config['ci']['java']}\n")
+          PY
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "${{ steps.build-config.outputs.python-version }}"
 
       - name: Install Python tooling dependencies
         shell: bash
@@ -37,7 +55,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "${{ steps.build-config.outputs.java-version }}"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
