@@ -11,8 +11,8 @@ endif()
 
 project(BinaryAudioGeneratorCpp LANGUAGES CXX)
 
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/wavebits_core_version.cmake")
-set(WAVEBITS_CORE_GENERATED_INCLUDE_DIR "${PROJECT_BINARY_DIR}/generated/include")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/flipbits_core_version.cmake")
+set(FLIPBITS_CORE_GENERATED_INCLUDE_DIR "${PROJECT_BINARY_DIR}/generated/include")
 
 if(POLICY CMP0155)
     cmake_policy(SET CMP0155 NEW)
@@ -55,16 +55,16 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 include(CTest)
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/wavebits_test_helpers.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/flipbits_test_helpers.cmake")
 
 add_subdirectory(libs/audio_core)
 add_subdirectory(libs/audio_api)
 add_subdirectory(libs/audio_io)
 add_subdirectory(libs/audio_runtime)
 
-add_custom_target(wavebits_rust_cli_native_deps)
+add_custom_target(FlipBits_rust_cli_native_deps)
 add_dependencies(
-    wavebits_rust_cli_native_deps
+    FlipBits_rust_cli_native_deps
     bag_api
     audio_io
     bag_core

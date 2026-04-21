@@ -9,7 +9,7 @@ target_include_directories(audio_runtime
 )
 
 if(BUILD_TESTING)
-    wavebits_add_host_test(test_runtime
+    flipbits_add_host_test(test_runtime
         NAME runtime_tests
         SOURCES tests/runtime_tests.cpp
         LIBS audio_runtime

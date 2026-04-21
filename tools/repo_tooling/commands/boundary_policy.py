@@ -33,7 +33,7 @@ _CONSUMER_SOURCE_RULES: dict[Path, _BoundaryRule] = {
         required=(
             "cargo",
             "Cargo.toml",
-            "WAVEBITS_CMAKE_BUILD_DIR",
+            "FLIPBITS_CMAKE_BUILD_DIR",
         ),
         forbidden=(
             "bag_api",
@@ -50,12 +50,12 @@ _CONSUMER_SOURCE_RULES: dict[Path, _BoundaryRule] = {
     / "cpp"
     / "CMakeLists.txt": _BoundaryRule(
         required=(
-            "${WAVEBITS_ROOT}/libs/audio_api/include",
-            "${WAVEBITS_ROOT}/libs/audio_io/include",
+            "${FLIPBITS_ROOT}/libs/audio_api/include",
+            "${FLIPBITS_ROOT}/libs/audio_io/include",
             "bag_api",
         ),
         forbidden=(
-            "${WAVEBITS_ROOT}/libs/audio_core/include",
+            "${FLIPBITS_ROOT}/libs/audio_core/include",
             "target_link_libraries(audio_android_jni\n    PRIVATE\n        bag_core",
         ),
     ),

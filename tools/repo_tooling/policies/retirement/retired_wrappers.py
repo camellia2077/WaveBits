@@ -108,8 +108,8 @@ _ANDROID_NATIVE_PACKAGE_REQUIRED_TOKENS: tuple[str, ...] = (
     "add_library(bag_android_native ALIAS bag_android_native_packaged)",
 )
 _ANDROID_NATIVE_PACKAGE_OBJECTS_REQUIRED_TOKENS: tuple[str, ...] = (
-    'include("${WAVEBITS_ROOT}/cmake/wavebits_core_version.cmake")',
-    "WAVEBITS_ANDROID_NATIVE_PACKAGE_GENERATED_INCLUDE_DIR",
+    'include("${FLIPBITS_ROOT}/cmake/flipbits_core_version.cmake")',
+    "FLIPBITS_ANDROID_NATIVE_PACKAGE_GENERATED_INCLUDE_DIR",
     "version_generated.h",
     "bag_android_native_package_objects",
     "bag_api_package.cpp",
@@ -136,7 +136,6 @@ _ANDROID_BAG_API_PACKAGE_REQUIRED_TOKENS: tuple[str, ...] = (
     '#include "../../../../libs/audio_api/src/bag_api_impl.inc"',
 )
 _ANDROID_BAG_API_PACKAGE_FORBIDDEN_TOKENS: tuple[str, ...] = (
-    "WAVEBITS_MODULE_IMPL_WRAPPER",
     'libs/audio_api/src/bag_api.cpp',
 )
 _ANDROID_AUDIO_CORE_PACKAGE_SOURCE_RULES: dict[Path, tuple[str, ...]] = {
@@ -325,14 +324,6 @@ def run_retired_wrappers_policy_checks() -> None:
             failures.append(
                 f"{path.relative_to(ROOT_DIR)} references retired wrapper headers: " + ", ".join(present_tokens)
             )
-
-    for path in sorted(_AUDIO_CORE_WRAPPER_MACRO_SCAN_ROOT.rglob("*.cpp")):
-        if "WAVEBITS_MODULE_IMPL_WRAPPER" in path.read_text(encoding="utf-8"):
-            failures.append(f"{path.relative_to(ROOT_DIR)} still references the retired audio_core wrapper macro")
-
-    for path in sorted(_ANDROID_NATIVE_PACKAGE_MACRO_SCAN_ROOT.rglob("*.cpp")):
-        if "WAVEBITS_MODULE_IMPL_WRAPPER" in path.read_text(encoding="utf-8"):
-            failures.append(f"{path.relative_to(ROOT_DIR)} still references the retired Android package wrapper macro")
 
     if failures:
         joined = "\n".join(f"- {failure}" for failure in failures)

@@ -14,7 +14,7 @@ namespace {
 using namespace modules_leaf_smoke;
 
 void TestFlashCodecModule() {
-    const std::string text = test::Utf8Literal(u8"你好，WaveBits");
+    const std::string text = test::Utf8Literal(u8"你好，FlipBits");
     std::vector<std::uint8_t> bytes;
     test::AssertEq(
         bag::flash::EncodeTextToBytes(text, &bytes),
@@ -165,7 +165,7 @@ void TestFlashSignalSnapshotFirstSamplesStable() {
 
 void TestFlashPhyCleanTextRoundTrip() {
     const auto config = MakeFlashCoreConfig();
-    const std::string text = test::Utf8Literal(u8"你好，WaveBits");
+    const std::string text = test::Utf8Literal(u8"你好，FlipBits");
 
     std::vector<std::int16_t> pcm;
     test::AssertEq(

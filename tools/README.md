@@ -1,4 +1,4 @@
-# WaveBits Tools
+# FlipBits Tools
 
 `tools/` 只负责开发编排，不替代 `CMake` / `Gradle` 本身。
 
@@ -13,6 +13,7 @@ Host 侧根目录 `CMake` 工程当前要求 `CMake 3.28+`。
 - 对外只保留一个入口：`python tools/run.py <command>`
 - 内部按职责拆分到 `tools/repo_tooling/`
 - 如需运行依赖第三方 Python 库的工具命令，先执行：`python -m pip install -r tools/requirements.txt`
+- 跨 CI / Python tooling 共用的最小工具链版本口径，优先收敛到 `tooling/build.toml`
 - CLI 帮助保持分层：根命令只列主要子命令，详细参数通过 `python tools/run.py <command> --help` 或 `python tools/run.py <command> <subcommand> --help` 查看
 - 这份文档只保留工具入口地图与少量代表例子；更细流程统一下沉到 `docs/notes/`
 
@@ -25,6 +26,8 @@ Host 侧根目录 `CMake` 工程当前要求 `CMake 3.28+`。
   - 子命令：`format`、`tidy`
 - `android`
   - 用于 Android Gradle 构建与 Kotlin 质量 gate
+- `windows`
+  - 用于 Windows CLI 平台产物构建
 - `artifact`
   - 用于可见测试产物和最终交付产物
   - 子命令：`roundtrip`、`smoke`、`export-apk`
@@ -41,19 +44,19 @@ Host 侧根目录 `CMake` 工程当前要求 `CMake 3.28+`。
 ## 详细文档
 
 - 工具工作流总览：
-  - `C:\code\WaveBits\docs\notes\tooling-overview.md`
+  - `<repo-root>/docs/notes/tooling-overview.md`
 - 构建与验证：
-  - `C:\code\WaveBits\docs\notes\build-commands.md`
+  - `<repo-root>/docs/notes/build-commands.md`
 - 产物工作流：
-  - `C:\code\WaveBits\docs\notes\artifact-workflow.md`
+  - `<repo-root>/docs/notes/artifact-workflow.md`
 - History 工作流：
-  - `C:\code\WaveBits\docs\notes\history-workflow.md`
+  - `<repo-root>/docs/notes/history-workflow.md`
 - Message 工作流：
-  - `C:\code\WaveBits\docs\notes\message-workflow.md`
+  - `<repo-root>/docs/notes/message-workflow.md`
 - Android 编译专题：
-  - `C:\code\WaveBits\docs\notes\android\android-compile.md`
+  - `<repo-root>/docs/notes/android/android-compile.md`
 - clang 工具专题：
-  - `C:\code\WaveBits\docs\notes\clang\cmds.md`
+  - `<repo-root>/docs/notes/clang/cmds.md`
 
 ## 说明
 - `build / test / verify`
@@ -61,7 +64,12 @@ Host 侧根目录 `CMake` 工程当前要求 `CMake 3.28+`。
   - 具体 gate、build 目录和 Android 联动规则见 `docs/notes/build-commands.md`
 - `android`
   - 对应 Android Gradle 构建与 Kotlin 质量 gate
+  - `install-sdk` 会读取 `tooling/build.toml` 安装 Android SDK 组件
   - 具体编译入口与 Android 专题见 `docs/notes/android/android-compile.md`
+- `windows`
+  - 对应 Windows CLI 平台产物构建
+  - 优先用于“只构建 FlipBits.exe，不连带 host 测试目标”的交付场景
+  - 当前默认产物位于 `build/<dir>/bin/FlipBits.exe`
 - `artifact`
   - 对应可见测试产物与最终导出物
   - 具体输出位置和示例见 `docs/notes/artifact-workflow.md`
@@ -76,9 +84,10 @@ Host 侧根目录 `CMake` 工程当前要求 `CMake 3.28+`。
   - 具体参数与 clang 约束见 `docs/notes/clang/cmds.md`
 
 ## Android 入口
-- Android 官方构建入口固定为 `apps/audio_android/`：
-  - Windows：`cd apps/audio_android; .\gradlew.bat :app:assembleDebug`
-  - macOS/Linux：`cd apps/audio_android && ./gradlew :app:assembleDebug`
+- Android 官方工程入口固定为 `apps/audio_android/`，但仓库内默认从根目录通过 `python tools/run.py android ...` 调用：
+  - `python tools/run.py android native-debug`
+  - `python tools/run.py android assemble-debug`
+  - `python tools/run.py android assemble-release`
 - `apps/audio_android` 是独立 Android `Gradle` root。
 - Android Studio / IntelliJ 导入项目时，应直接打开 `apps/audio_android`。
 - Android native 当前固定继续走 `CMake 4.1.2 + C++23 + bag_api.h` 的独立 packaging lane，不直接跟随 host modules 主路径。
@@ -123,12 +132,14 @@ python tools/run.py build --build-dir build/dev
 python tools/run.py verify --build-dir build/dev --skip-android
 python tools/run.py android native-debug
 python tools/run.py android assemble-debug
+python tools/run.py android assemble-release
+python tools/run.py windows build
 python tools/run.py file-name prep
 python tools/run.py artifact export-apk
 python tools/run.py history prep
 python tools/run.py message prep --history docs/presentation/cli/v0.2/0.2.0.md
 python tools/run.py history validate docs/presentation/cli
-python tools/run.py artifact roundtrip --build-dir build/dev --mode ultra --text "你好，WaveBits"
+python tools/run.py artifact roundtrip --build-dir build/dev --mode ultra --text "你好，FlipBits"
 python tools/run.py artifact smoke --build-dir build/dev
 ```
 

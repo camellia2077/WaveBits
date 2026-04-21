@@ -32,7 +32,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
     test::AssertEq(version_result.exit_code, 0, "`version` should exit successfully.");
     test::AssertContains(
         version_result.output,
-        "presentation: v0.1.1",
+        "presentation: v0.2.1",
         "`version` output should contain the presentation version.");
     test::AssertContains(
         version_result.output,
@@ -47,7 +47,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
     test::AssertEq(dash_version_result.exit_code, 0, "`--version` should exit successfully.");
     test::AssertContains(
         dash_version_result.output,
-        "0.1.1",
+        "0.2.1",
         "`--version` output should contain the presentation version.");
 }
 
@@ -97,7 +97,7 @@ void TestUltraEncodeTextFileAndDecodeToTextFile(const std::filesystem::path& cli
     const auto input_path = dir / "input.txt";
     const auto artifact_path = dir / "ultra.wav";
     const auto output_text_path = dir / "decoded.txt";
-    const std::string input = test::Utf8Literal(u8"WaveBits 超级模式 🚀");
+    const std::string input = test::Utf8Literal(u8"FlipBits 超级模式 🚀");
 
     test::WriteTextFile(input_path, input);
 
@@ -268,7 +268,7 @@ void TestDecodeRejectsTruncatedWav(const std::filesystem::path& cli_path) {
         "Truncated WAV failure should preserve the concrete parse reason.");
 }
 
-void TestDecodeRejectsCanonicalWavWithoutWaveBitsMetadata(const std::filesystem::path& cli_path) {
+void TestDecodeRejectsCanonicalWavWithoutFlipBitsMetadata(const std::filesystem::path& cli_path) {
     const auto dir = test::MakeTempDir("cli_smoke");
     const auto artifact_path = dir / "canonical.wav";
     const std::vector<unsigned char> canonical_wav = {
@@ -287,7 +287,7 @@ void TestDecodeRejectsCanonicalWavWithoutWaveBitsMetadata(const std::filesystem:
     test::AssertTrue(decode_result.exit_code != 0, "Decoding canonical WAV without metadata should fail.");
     test::AssertContains(
         decode_result.output,
-        "failed to read WaveBits metadata from WAV input",
+        "failed to read FlipBits metadata from WAV input",
         "Canonical WAV decode failure should surface metadata-stage context.");
     test::AssertContains(
         decode_result.output,
@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
     runner.Add("CliSmoke.DecodeUsesEmbeddedMetadata", [&]() { TestDecodeUsesEmbeddedMetadata(cli_path); });
     runner.Add("CliSmoke.DecodeRejectsTruncatedWav", [&]() { TestDecodeRejectsTruncatedWav(cli_path); });
     runner.Add(
-        "CliSmoke.DecodeRejectsCanonicalWavWithoutWaveBitsMetadata",
-        [&]() { TestDecodeRejectsCanonicalWavWithoutWaveBitsMetadata(cli_path); });
+        "CliSmoke.DecodeRejectsCanonicalWavWithoutFlipBitsMetadata",
+        [&]() { TestDecodeRejectsCanonicalWavWithoutFlipBitsMetadata(cli_path); });
     return runner.Run();
 }

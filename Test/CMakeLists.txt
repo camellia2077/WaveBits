@@ -1,17 +1,17 @@
-wavebits_add_host_test(test_artifact
+flipbits_add_host_test(test_artifact
     NAME artifact_tests
     SOURCES artifact/artifact_tests.cpp
     LIBS bag_api audio_io
 )
 
-wavebits_add_host_test(test_cli_smoke
+flipbits_add_host_test(test_cli_smoke
     NAME cli_smoke_tests
     SOURCES cli/cli_smoke_tests.cpp
-    DEPENDS binary_audio_cpp_build
-    COMMAND_ARGS $<TARGET_FILE:binary_audio_cpp>
+    DEPENDS FlipBits_build
+    COMMAND_ARGS $<TARGET_FILE:FlipBits>
 )
 
-wavebits_add_host_test(test_flash_voicing
+flipbits_add_host_test(test_flash_voicing
     NAME flash_voicing_tests
     SOURCES
         voicing/flash_voicing_tests.cpp
@@ -23,14 +23,14 @@ wavebits_add_host_test(test_flash_voicing
     MODULE_TEST
 )
 
-wavebits_add_host_test(test_modules_foundation
+flipbits_add_host_test(test_modules_foundation
     NAME modules_foundation_smoke
     SOURCES modules/foundation_module_smoke.cpp
     LIBS bag_core audio_io
     MODULE_TEST
 )
 
-wavebits_add_host_test(test_modules_leaf
+flipbits_add_host_test(test_modules_leaf
     NAME modules_leaf_smoke
     SOURCES
         modules/leaf_module_smoke.cpp
@@ -42,14 +42,14 @@ wavebits_add_host_test(test_modules_leaf
     MODULE_TEST
 )
 
-wavebits_add_host_test(test_modules_mid_layer
+flipbits_add_host_test(test_modules_mid_layer
     NAME modules_mid_layer_smoke
     SOURCES modules/mid_layer_module_smoke.cpp
     LIBS bag_core
     MODULE_TEST
 )
 
-wavebits_add_host_test(test_modules_facade_pipeline
+flipbits_add_host_test(test_modules_facade_pipeline
     NAME modules_facade_pipeline_smoke
     SOURCES
         modules/facade_pipeline_smoke.cpp
@@ -60,7 +60,7 @@ wavebits_add_host_test(test_modules_facade_pipeline
     MODULE_TEST
 )
 
-wavebits_add_host_test(test_modules_end_to_end
+flipbits_add_host_test(test_modules_end_to_end
     NAME modules_end_to_end_smoke
     SOURCES modules/end_to_end_module_smoke.cpp
     LIBS bag_core

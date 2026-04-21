@@ -11,17 +11,17 @@
 ## 分层
 
 - 总说明：
-  - `C:\code\WaveBits\.agent\AGENTS.md`
+  - `<repo-root>/.agent/AGENTS.md`
   - 只保留工作方式、命令分层原则和高频入口
 - 工具入口：
-  - `C:\code\WaveBits\tools\README.md`
+  - `<repo-root>/tools/README.md`
   - 只保留命令组地图、少量代表例子和专题文档索引
 - 详细专题：
-  - 构建/验证：`C:\code\WaveBits\docs\notes\build-commands.md`
-  - 产物工作流：`C:\code\WaveBits\docs\notes\artifact-workflow.md`
-  - history 工作流：`C:\code\WaveBits\docs\notes\history-workflow.md`
-  - Android 专题：`C:\code\WaveBits\docs\notes\android\android-compile.md`
-  - clang 专题：`C:\code\WaveBits\docs\notes\clang\cmds.md`
+  - 构建/验证：`<repo-root>/docs/notes/build-commands.md`
+  - 产物工作流：`<repo-root>/docs/notes/artifact-workflow.md`
+  - history 工作流：`<repo-root>/docs/notes/history-workflow.md`
+  - Android 专题：`<repo-root>/docs/notes/android/android-compile.md`
+  - clang 专题：`<repo-root>/docs/notes/clang/cmds.md`
 
 ## 命令组
 

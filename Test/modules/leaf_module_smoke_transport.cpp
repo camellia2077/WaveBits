@@ -96,7 +96,7 @@ void TestProCodecRejectsInvalidInput() {
 }
 
 void TestUltraCodecModule() {
-    const std::string text = test::Utf8Literal(u8"WaveBits 超级模式 🚀");
+    const std::string text = test::Utf8Literal(u8"FlipBits 超级模式 🚀");
     std::vector<std::uint8_t> payload;
     test::AssertEq(
         bag::ultra::EncodeTextToPayload(text, &payload),

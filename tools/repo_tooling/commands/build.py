@@ -9,11 +9,14 @@ from ..process import run
 
 def cmd_build(args: argparse.Namespace) -> None:
     build_dir = resolve_build_dir(args.build_dir)
+    env = getattr(args, "env", None)
     if args.configure_if_missing and not cmake_cache_exists(build_dir):
         cmd_configure(
             argparse.Namespace(
                 build_dir=str(build_dir),
                 generator=args.generator,
+                compiler=getattr(args, "compiler", None),
+                env=env,
             )
         )
 
@@ -23,4 +26,4 @@ def cmd_build(args: argparse.Namespace) -> None:
         command.extend(["--config", configured_build])
     if args.target:
         command.extend(["--target", *args.target])
-    run(command)
+    run(command, env=env)

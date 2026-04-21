@@ -126,7 +126,7 @@ void PushAndPollViaTransportDecoderExpectingText(std::unique_ptr<bag::ITransport
 }
 
 void TestFlashCodecRoundTrip() {
-    const std::string text = test::Utf8Literal(u8"你好，WaveBits");
+    const std::string text = test::Utf8Literal(u8"你好，FlipBits");
     std::vector<std::uint8_t> bytes;
     test::AssertEq(
         bag::flash::EncodeTextToBytes(text, &bytes),
@@ -149,7 +149,7 @@ void TestFlashPhyCleanRoundTrip() {
     const auto config = MakeCoreConfig(bag::TransportMode::kFlash);
     std::vector<std::int16_t> pcm;
     test::AssertEq(
-        bag::flash::EncodeTextToPcm16(config, test::Utf8Literal(u8"你好，WaveBits"), &pcm),
+        bag::flash::EncodeTextToPcm16(config, test::Utf8Literal(u8"你好，FlipBits"), &pcm),
         bag::ErrorCode::kOk,
         "Flash clean module encode should succeed.");
     test::AssertTrue(!pcm.empty(), "Flash clean module should emit PCM for non-empty input.");
@@ -161,19 +161,19 @@ void TestFlashPhyCleanRoundTrip() {
         "Flash clean module decode should succeed.");
     test::AssertEq(
         decoded,
-        test::Utf8Literal(u8"你好，WaveBits"),
+        test::Utf8Literal(u8"你好，FlipBits"),
         "Flash clean module should roundtrip UTF-8 text.");
 }
 
 void TestTransportFacadeEncodeMatchesReferenceModes() {
     const auto flash_pcm = EncodeForModeFacade(
         bag::TransportMode::kFlash,
-        test::Utf8Literal(u8"你好，WaveBits"));
+        test::Utf8Literal(u8"你好，FlipBits"));
     test::AssertEq(
         flash_pcm,
         EncodeForModeReference(
             bag::TransportMode::kFlash,
-            test::Utf8Literal(u8"你好，WaveBits")),
+            test::Utf8Literal(u8"你好，FlipBits")),
         "Flash transport facade module should delegate to the formal flash signal+voicing path.");
 
     const auto pro_pcm = EncodeForModeFacade(bag::TransportMode::kPro, "Hello-123");
@@ -184,12 +184,12 @@ void TestTransportFacadeEncodeMatchesReferenceModes() {
 
     const auto ultra_pcm = EncodeForModeFacade(
         bag::TransportMode::kUltra,
-        test::Utf8Literal(u8"WaveBits 超级模式 🚀"));
+        test::Utf8Literal(u8"FlipBits 超级模式 🚀"));
     test::AssertEq(
         ultra_pcm,
         EncodeForModeReference(
             bag::TransportMode::kUltra,
-            test::Utf8Literal(u8"WaveBits 超级模式 🚀")),
+            test::Utf8Literal(u8"FlipBits 超级模式 🚀")),
         "Ultra transport facade module should delegate to the ultra clean path.");
 }
 
@@ -220,7 +220,7 @@ void TestTransportFacadeValidation() {
         bag::ValidateEncodeRequest(config, std::string(513, 'F')),
         bag::TransportValidationIssue::kOk,
         "Flash facade validation should not inherit the old framed payload limit.");
-    const auto flash_utf8 = test::Utf8Literal(u8"你好，WaveBits");
+    const auto flash_utf8 = test::Utf8Literal(u8"你好，FlipBits");
     test::AssertEq(
         bag::ValidateEncodeRequest(config, flash_utf8),
         bag::TransportValidationIssue::kOk,
@@ -288,7 +288,7 @@ void TestProPayloadUsesRawAsciiBytes() {
 
 void TestUltraTextCodecRoundTrip() {
     std::vector<std::uint8_t> payload;
-    const std::string input = test::Utf8Literal(u8"WaveBits 超级模式 🚀");
+    const std::string input = test::Utf8Literal(u8"FlipBits 超级模式 🚀");
     test::AssertEq(
         bag::ultra::EncodeTextToPayload(input, &payload),
         bag::ErrorCode::kOk,
@@ -317,7 +317,7 @@ void TestUltraTextCodecRoundTrip() {
 
 void TestUltraPhyCleanRoundTrip() {
     const auto config = MakeCoreConfig(bag::TransportMode::kUltra);
-    const std::string input = test::Utf8Literal(u8"WaveBits 超级模式 🚀");
+    const std::string input = test::Utf8Literal(u8"FlipBits 超级模式 🚀");
     std::vector<std::int16_t> pcm;
     test::AssertEq(
         bag::ultra::EncodeTextToPcm16(config, input, &pcm),
@@ -423,7 +423,7 @@ void TestPipelineResetClearsPendingState() {
 }
 
 void TestPipelineFlashUtf8RoundTrip() {
-    const auto flash_utf8 = test::Utf8Literal(u8"你好，WaveBits");
+    const auto flash_utf8 = test::Utf8Literal(u8"你好，FlipBits");
     PushAndPollExpectingText(
         MakePipeline(bag::TransportMode::kFlash),
         EncodeForModeReference(bag::TransportMode::kFlash, flash_utf8),
@@ -440,7 +440,7 @@ void TestPipelineProRoundTrip() {
 }
 
 void TestPipelineUltraRoundTrip() {
-    const auto ultra_utf8 = test::Utf8Literal(u8"WaveBits 超级模式 🚀");
+    const auto ultra_utf8 = test::Utf8Literal(u8"FlipBits 超级模式 🚀");
     PushAndPollExpectingText(
         MakePipeline(bag::TransportMode::kUltra),
         EncodeForModeReference(bag::TransportMode::kUltra, ultra_utf8),
@@ -449,7 +449,7 @@ void TestPipelineUltraRoundTrip() {
 }
 
 void TestTransportDecoderRoundTripAcrossModes() {
-    const auto flash_utf8 = test::Utf8Literal(u8"你好，WaveBits");
+    const auto flash_utf8 = test::Utf8Literal(u8"你好，FlipBits");
     PushAndPollViaTransportDecoderExpectingText(
         MakeTransportDecoder(bag::TransportMode::kFlash),
         EncodeForModeFacade(bag::TransportMode::kFlash, flash_utf8),
@@ -460,7 +460,7 @@ void TestTransportDecoderRoundTripAcrossModes() {
         EncodeForModeFacade(bag::TransportMode::kPro, "Hello-123"),
         bag::TransportMode::kPro,
         "Hello-123");
-    const auto ultra_utf8 = test::Utf8Literal(u8"WaveBits 超级模式 🚀");
+    const auto ultra_utf8 = test::Utf8Literal(u8"FlipBits 超级模式 🚀");
     PushAndPollViaTransportDecoderExpectingText(
         MakeTransportDecoder(bag::TransportMode::kUltra),
         EncodeForModeFacade(bag::TransportMode::kUltra, ultra_utf8),

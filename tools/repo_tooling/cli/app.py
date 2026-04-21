@@ -10,20 +10,24 @@ from .common import RAW_FORMATTER
 from .groups.android import register_android_group
 from .groups.artifact import register_artifact_group
 from .groups.build_host import register_build_host_commands
+from .groups.cli import register_cli_group
 from .groups.clang import register_clang_group
 from .groups.file_name import register_file_name_group
 from .groups.history import register_history_group
 from .groups.message import register_message_group
 from .groups.verify import register_verify_command
+from .groups.windows import register_windows_group
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="run.py",
         description=(
-            "WaveBits developer orchestration tools.\n\n"
+            "FlipBits developer orchestration tools.\n\n"
             "Primary command groups:\n"
             "- Build / host: `configure`, `build`, `clean`, `test`, `test-lib`, `verify`\n"
+            "- Rust CLI: `cli`\n"
+            "- Windows delivery: `windows`\n"
             "- Native quality: `clang`\n"
             "- Android delivery: `android`\n"
             "- Naming assistance: `file-name`\n"
@@ -43,6 +47,8 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     register_build_host_commands(subparsers)
+    register_cli_group(subparsers)
+    register_windows_group(subparsers)
     register_clang_group(subparsers)
     register_android_group(subparsers)
     register_artifact_group(subparsers)

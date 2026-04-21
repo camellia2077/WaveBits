@@ -16,11 +16,9 @@ _ROOT_SINGLE_LANE_REQUIRED_TOKENS: tuple[str, ...] = (
     "Current root host target requires C++23 import std support from the active Clang toolchain.",
     "set(CMAKE_CXX_STANDARD 20)",
 )
-_ROOT_SINGLE_LANE_FORBIDDEN_TOKENS: tuple[str, ...] = ("WAVEBITS_HOST_MODULES",)
 _CLI_PATH = ROOT_DIR / "tools" / "repo_tooling" / "cli" / "app.py"
 _CLI_HOST_OFF_RETIREMENT_FORBIDDEN_TOKENS: tuple[str, ...] = (
     '"--no-modules"',
-    "WAVEBITS_HOST_MODULES=OFF",
     "--experimental-modules",
 )
 _REMOVED_LEGACY_HEADER_PATHS: tuple[Path, ...] = (
@@ -179,12 +177,6 @@ def run_post_legacy_surfaces_policy_checks() -> None:
         failures.append(
             f"{_ROOT_CMAKE_PATH.relative_to(ROOT_DIR)} missing direct single-lane host tokens: " + ", ".join(missing_root_required)
         )
-    present_root_forbidden = [token for token in _ROOT_SINGLE_LANE_FORBIDDEN_TOKENS if token in root_cmake_content]
-    if present_root_forbidden:
-        failures.append(
-            f"{_ROOT_CMAKE_PATH.relative_to(ROOT_DIR)} still exposes retired root host switch tokens: " + ", ".join(present_root_forbidden)
-        )
-
     cli_content = _CLI_PATH.read_text(encoding="utf-8")
     present_cli_forbidden = [token for token in _CLI_HOST_OFF_RETIREMENT_FORBIDDEN_TOKENS if token in cli_content]
     if present_cli_forbidden:

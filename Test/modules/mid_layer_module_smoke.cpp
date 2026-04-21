@@ -126,7 +126,7 @@ void TestProDecoderContractRoundTrip() {
 
 void TestUltraPhyCleanRoundTrip() {
     const auto config = MakeUltraConfig();
-    const std::string input = test::Utf8Literal(u8"WaveBits 超级");
+    const std::string input = test::Utf8Literal(u8"FlipBits 超级");
 
     std::vector<std::int16_t> pcm;
     test::AssertEq(

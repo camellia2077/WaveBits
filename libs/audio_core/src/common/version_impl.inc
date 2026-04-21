@@ -3,7 +3,7 @@
 namespace bag {
 
 const char* CoreVersion() {
-  return WAVEBITS_CORE_VERSION_TEXT;
+  return FLIPBITS_CORE_VERSION_TEXT;
 }
 
 }  // namespace bag

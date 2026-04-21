@@ -92,8 +92,8 @@ void TestBoundaryClickVoicingIsDeterministic() {
 }
 
 void TestStyledVoicingOutputIsStable() {
-    const auto layout = MakePayloadLayout("WaveBits");
-    const auto clean_payload = MakeCleanPayload("WaveBits");
+    const auto layout = MakePayloadLayout("FlipBits");
+    const auto clean_payload = MakeCleanPayload("FlipBits");
     const auto first =
         bag::flash::ApplyVoicingToPayload(clean_payload, layout, MakeStyledConfig());
     const auto second =
@@ -111,8 +111,8 @@ void TestStyledVoicingOutputIsStable() {
 }
 
 void TestDefaultVoicingMatchesExplicitCodedBurst() {
-    const auto layout = MakePayloadLayout("WaveBits");
-    const auto clean_payload = MakeCleanPayload("WaveBits");
+    const auto layout = MakePayloadLayout("FlipBits");
+    const auto clean_payload = MakeCleanPayload("FlipBits");
     const auto default_voiced =
         bag::flash::ApplyVoicingToPayload(clean_payload, layout, MakeStyledConfig());
     const auto explicit_coded_burst =

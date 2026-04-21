@@ -2,7 +2,7 @@
 
 #include "bag/common/version_generated.h"
 
-#if !defined(WAVEBITS_TEST_IMPORT_STD)
+#if !defined(FLIPBITS_TEST_IMPORT_STD)
 #include <string>
 #include <vector>
 #endif
@@ -24,7 +24,7 @@ struct CorpusCase {
 
 inline std::string BuildLongCorpus() {
     std::string text;
-    const std::string pattern = "WaveBits-Long-Corpus-0123456789|";
+    const std::string pattern = "FlipBits-Long-Corpus-0123456789|";
     while (text.size() < 128) {
         text += pattern;
     }
@@ -44,8 +44,8 @@ inline const std::vector<CorpusCase>& FlashCorpusCases() {
     static const std::vector<CorpusCase> cases = {
         {"single_char", "A"},
         {"ascii", "Hello-123"},
-        {"punctuation", "WaveBits: encode & decode!"},
-        {"utf8", test::Utf8Literal(u8"你好，WaveBits")},
+        {"punctuation", "FlipBits: encode & decode!"},
+        {"utf8", test::Utf8Literal(u8"你好，FlipBits")},
         {"long_ascii", BuildLongCorpus()},
     };
     return cases;
@@ -59,7 +59,7 @@ inline const std::vector<CorpusCase>& ProCorpusCases() {
     static const std::vector<CorpusCase> cases = {
         {"single_char", "A"},
         {"ascii", "Hello-123"},
-        {"punctuation", "WaveBits: encode & decode!"},
+        {"punctuation", "FlipBits: encode & decode!"},
         {"long_ascii", BuildLongCorpus()},
         {"max_single_frame_ascii", BuildMaxProCorpus()},
     };
@@ -78,10 +78,10 @@ inline std::string BuildMaxUltraCorpus() {
 inline const std::vector<CorpusCase>& UltraCorpusCases() {
     static const std::vector<CorpusCase> cases = {
         {"ascii", "Hello-123"},
-        {"punctuation", "WaveBits: encode & decode!"},
-        {"utf8", test::Utf8Literal(u8"你好，WaveBits")},
-        {"emoji", test::Utf8Literal(u8"WaveBits 🚀")},
-        {"mixed_utf8", test::Utf8Literal(u8"WaveBits 超级模式 🚀")},
+        {"punctuation", "FlipBits: encode & decode!"},
+        {"utf8", test::Utf8Literal(u8"你好，FlipBits")},
+        {"emoji", test::Utf8Literal(u8"FlipBits 🚀")},
+        {"mixed_utf8", test::Utf8Literal(u8"FlipBits 超级模式 🚀")},
         {"max_single_frame_utf8", BuildMaxUltraCorpus()},
     };
     return cases;
@@ -103,6 +103,6 @@ inline std::string BuildTooLongUltraCorpus() {
     return text;
 }
 
-inline constexpr char kExpectedCoreVersion[] = WAVEBITS_CORE_VERSION_TEXT;
+inline constexpr char kExpectedCoreVersion[] = FLIPBITS_CORE_VERSION_TEXT;
 
 }  // namespace test

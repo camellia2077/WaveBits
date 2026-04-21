@@ -3,7 +3,7 @@
 更新时间：2026-03-14
 
 ## 约定
-- 仓库根目录：`C:\code\WaveBits`
+- 仓库根目录：`<repo-root>`
 - `build/` 只保留 CMake / Gradle 的原生构建输出与测试产物
 - `dist/` 只保留 Python 复制出的最终导出物
 - 推荐统一使用：`python tools/run.py <command>`
@@ -74,7 +74,9 @@ python tools/run.py artifact export-apk release --assemble-if-missing
 
 ## Gradle 原生命令
 
-如需直接走 Gradle，应在 `apps/audio_android/` 执行：
+默认不要把下面这些命令当成仓库标准入口；优先使用上面的 `python tools/run.py android ...`。
+
+只有在排查 Gradle wrapper / IDE / `--stacktrace` 细节时，才直接在 `apps/audio_android/` 执行：
 
 ```powershell
 .\gradlew.bat :app:assembleDebug

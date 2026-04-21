@@ -1,4 +1,4 @@
-# WaveBits 测试说明
+# FlipBits 测试说明
 
 更新时间：2026-03-15
 
@@ -19,7 +19,7 @@
 - `module smokes`
   - 直接 `import bag.*` / `import audio_io.wav` 的 host module-first 验证，覆盖基础模块、叶子模块、中层模块与汇聚层。
 - `cli smoke`
-  - 真实执行 `binary_audio_cpp`，验证命令行参数、产物文件与 roundtrip。
+  - 真实执行 `FlipBits`，验证命令行参数、产物文件与 roundtrip。
 
 ## 当前门禁路径
 
@@ -105,15 +105,15 @@
 ### `flash`
 - `"A"`
 - `"Hello-123"`
-- `"WaveBits: encode & decode!"`
-- `u8"你好，WaveBits"`
+- `"FlipBits: encode & decode!"`
+- `u8"你好，FlipBits"`
 - 约 `128` 字节长文本
 
 ### `pro`
 - 成功语料：
   - `"A"`
   - `"Hello-123"`
-  - `"WaveBits: encode & decode!"`
+  - `"FlipBits: encode & decode!"`
   - 约 `128` 字节长文本
   - 代表性长 ASCII 语料：`170` 个 ASCII 字符
   - 回归语料：`171` 个 ASCII 字符
@@ -123,9 +123,9 @@
 ### `ultra`
 - 成功语料：
   - `"Hello-123"`
-  - `u8"你好，WaveBits"`
-  - `u8"WaveBits 🚀"`
-  - `u8"WaveBits 超级模式 🚀"`
+  - `u8"你好，FlipBits"`
+  - `u8"FlipBits 🚀"`
+  - `u8"FlipBits 超级模式 🚀"`
   - 代表性大语料：恰好 `512` 字节 UTF-8
   - 扩展回归语料：`513` 字节 UTF-8
 

@@ -56,7 +56,7 @@ def register_clang_group(subparsers: argparse._SubParsersAction[argparse.Argumen
         "tidy",
         help="Run minimal clang-tidy for libs sources and split the log into grouped task artifacts.",
         description=(
-            "Run the minimal WaveBits clang-tidy flow for libs sources.\n\n"
+            "Run the minimal FlipBits clang-tidy flow for libs sources.\n\n"
             "Behavior:\n"
             "- Ensures compile_commands.json exists in the selected build directory.\n"
             "- Runs clang-tidy over translation units under libs/.\n"

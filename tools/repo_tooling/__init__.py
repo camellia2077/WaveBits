@@ -1,1 +1,1 @@
-"""WaveBits developer orchestration package."""
+"""FlipBits developer orchestration package."""

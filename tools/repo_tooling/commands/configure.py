@@ -31,11 +31,13 @@ def _compiler_matches(configured: str | None, desired: str) -> bool:
 def cmd_configure(args: argparse.Namespace) -> None:
     build_dir = resolve_build_dir(args.build_dir)
     build_dir.parent.mkdir(parents=True, exist_ok=True)
+    desired_compiler = getattr(args, "compiler", DEFAULT_CXX_COMPILER)
+    env = getattr(args, "env", None)
     configured_compiler = _configured_cxx_compiler(build_dir) if cmake_cache_exists(build_dir) else None
     command = [
         "cmake",
     ]
-    if configured_compiler and not _compiler_matches(configured_compiler, DEFAULT_CXX_COMPILER):
+    if configured_compiler and not _compiler_matches(configured_compiler, desired_compiler):
         command.append("--fresh")
     command.extend([
         "-S",
@@ -45,6 +47,6 @@ def cmd_configure(args: argparse.Namespace) -> None:
         "-G",
         args.generator,
     ])
-    command.append(f"-DCMAKE_CXX_COMPILER={DEFAULT_CXX_COMPILER}")
+    command.append(f"-DCMAKE_CXX_COMPILER={desired_compiler}")
     command.append("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
-    run(command)
+    run(command, env=env)

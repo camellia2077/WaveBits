@@ -118,7 +118,7 @@ def run_verify_steps(
 
     _print_verify_banner(f"{test_step}: running cargo test for Rust CLI and ctest in {build_dir}")
     cargo_env = os.environ.copy()
-    cargo_env["WAVEBITS_CMAKE_BUILD_DIR"] = str(build_dir)
+    cargo_env["FLIPBITS_CMAKE_BUILD_DIR"] = str(build_dir)
     run(
         [
             "cargo",

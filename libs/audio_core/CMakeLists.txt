@@ -1,9 +1,9 @@
 set(bag_core_sources)
 
-file(MAKE_DIRECTORY "${WAVEBITS_CORE_GENERATED_INCLUDE_DIR}/bag/common")
+file(MAKE_DIRECTORY "${FLIPBITS_CORE_GENERATED_INCLUDE_DIR}/bag/common")
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/bag/common/version_generated.h.in"
-    "${WAVEBITS_CORE_GENERATED_INCLUDE_DIR}/bag/common/version_generated.h"
+    "${FLIPBITS_CORE_GENERATED_INCLUDE_DIR}/bag/common/version_generated.h"
     @ONLY
 )
 
@@ -33,7 +33,7 @@ target_compile_features(bag_core PUBLIC cxx_std_20)
 target_include_directories(bag_core
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${WAVEBITS_CORE_GENERATED_INCLUDE_DIR}
+        ${FLIPBITS_CORE_GENERATED_INCLUDE_DIR}
 )
 
 target_sources(

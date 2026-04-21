@@ -1,6 +1,7 @@
 from .android import cmd_android
 from .build import cmd_build
 from .clean import cmd_clean
+from .cli import cmd_cli
 from .configure import cmd_configure
 from .export_apk import cmd_export_apk
 from .file_name_prep import cmd_file_name_prep
@@ -14,11 +15,13 @@ from .test import cmd_test
 from .test_lib import cmd_test_lib
 from .tidy import cmd_tidy
 from .verify import cmd_verify
+from .windows import cmd_windows
 
 __all__ = [
     "cmd_android",
     "cmd_build",
     "cmd_clean",
+    "cmd_cli",
     "cmd_configure",
     "cmd_export_apk",
     "cmd_file_name_prep",
@@ -32,4 +35,5 @@ __all__ = [
     "cmd_test_lib",
     "cmd_tidy",
     "cmd_verify",
+    "cmd_windows",
 ]

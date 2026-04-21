@@ -14,6 +14,7 @@ def register_android_group(subparsers: argparse._SubParsersAction[argparse.Argum
             "Run Android Gradle tasks from apps/audio_android.\n\n"
             "Behavior:\n"
             "- Uses the Gradle wrapper inside apps/audio_android.\n"
+            "- `install-sdk` installs the Android SDK components declared in tooling/build.toml.\n"
             "- Resolves the action to the matching :app Gradle task.\n"
             "- Optionally prepends `clean` before the selected task.\n"
             "- `ktlint-check` / `ktlint-format` / `detekt` provide Kotlin quality tooling for apps/audio_android.\n"
@@ -26,6 +27,7 @@ def register_android_group(subparsers: argparse._SubParsersAction[argparse.Argum
     android_parser.add_argument(
         "action",
         choices=[
+            "install-sdk",
             "assemble-debug",
             "assemble-release",
             "native-debug",
@@ -41,5 +43,10 @@ def register_android_group(subparsers: argparse._SubParsersAction[argparse.Argum
         "--clean",
         action="store_true",
         help="Prepend Gradle clean before the selected task.",
+    )
+    android_parser.add_argument(
+        "--accept-licenses",
+        action="store_true",
+        help="When used with `install-sdk`, pre-accept Android SDK licenses through sdkmanager.",
     )
     android_parser.set_defaults(func=cmd_android)

@@ -112,7 +112,7 @@ def _build_log_content(
     stderr: str,
 ) -> str:
     lines = [
-        "WaveBits ctest report",
+        "FlipBits ctest report",
         f"started_at: {started_at.isoformat()}",
         f"finished_at: {finished_at.isoformat()}",
         f"duration_sec: {summary['duration_sec']}",

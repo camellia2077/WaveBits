@@ -1,1 +1,1 @@
-set(WAVEBITS_CORE_VERSION "0.4.1")
+include("${CMAKE_CURRENT_LIST_DIR}/flipbits_core_version.cmake")

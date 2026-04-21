@@ -18,7 +18,7 @@ target_compile_features(bag_api PRIVATE cxx_std_23)
 set_property(TARGET bag_api PROPERTY CXX_MODULE_STD ON)
 
 if(BUILD_TESTING)
-    wavebits_add_host_test(test_api
+    flipbits_add_host_test(test_api
         NAME api_tests
         SOURCES
             tests/api_tests.cpp

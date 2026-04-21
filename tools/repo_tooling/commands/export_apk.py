@@ -71,7 +71,7 @@ def _slugify(value: str) -> str:
 
 
 def _default_filename(variant: str, version_name: str, suffix: str) -> str:
-    project_name = _slugify(ROOT_DIR.name) or "wavebits"
+    project_name = _slugify(ROOT_DIR.name) or "flipbits"
     parts = [project_name, "android", variant]
     if version_name:
         parts.append(f"v{_slugify(version_name) or version_name}")

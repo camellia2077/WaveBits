@@ -1,4 +1,4 @@
-# WaveBits Host Module Topology
+# FlipBits Host Module Topology
 
 更新时间：2026-03-15
 

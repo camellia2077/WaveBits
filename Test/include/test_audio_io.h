@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(WAVEBITS_TEST_IMPORT_STD)
+#if !defined(FLIPBITS_TEST_IMPORT_STD)
 #include <cstdint>
 #include <string>
 #include <vector>

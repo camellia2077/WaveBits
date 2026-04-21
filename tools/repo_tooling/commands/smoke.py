@@ -16,9 +16,9 @@ class SmokeCase:
 
 
 SMOKE_CASES = [
-    SmokeCase(name="flash-hello", mode="flash", text="Hello WaveBits"),
+    SmokeCase(name="flash-hello", mode="flash", text="Hello FlipBits"),
     SmokeCase(name="pro-ascii", mode="pro", text="ASCII-123"),
-    SmokeCase(name="ultra-utf8", mode="ultra", text="你好，WaveBits"),
+    SmokeCase(name="ultra-utf8", mode="ultra", text="你好，FlipBits"),
 ]
 
 

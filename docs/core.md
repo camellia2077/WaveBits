@@ -51,7 +51,7 @@
    - Android 仍是独立 `C++23` packaging lane
    - `audio_io` 的 backend owner 继续保持 include-based
 4. 因此当前更准确的表述是：
-   - WaveBits host 主线已经基本做到 `module-first`
+   - FlipBits host 主线已经基本做到 `module-first`
    - 但长期边界、平台例外和 third-party/backend owner 不属于“必须纯 module 化”的范围
 
 ## 当前已实现能力

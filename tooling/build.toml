@@ -1,0 +1,17 @@
+[ci]
+python = "3.12"
+java = "17"
+
+[android.sdk]
+compile_sdk = 35
+target_sdk = 34
+build_tools = "35.0.0"
+platform = "android-35"
+ndk = "28.2.13676358"
+cmake = "4.1.2"
+components = [
+  "platforms;android-35",
+  "build-tools;35.0.0",
+  "ndk;28.2.13676358",
+  "cmake;4.1.2",
+]
