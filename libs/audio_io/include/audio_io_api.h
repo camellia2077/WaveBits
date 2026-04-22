@@ -37,7 +37,8 @@ typedef enum audio_io_metadata_mode {
 typedef enum audio_io_metadata_flash_voicing_style {
   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_UNKNOWN = 0,
   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_CODED_BURST = 1,
-  AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT = 2
+  AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT = 2,
+  AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL = 3
 } audio_io_metadata_flash_voicing_style;
 
 typedef struct audio_io_string_view {

@@ -147,6 +147,52 @@ void TestFormalRitualChantDecodesWithConfiguredTrim() {
     test::AssertEq(decoded_text, std::string("Decode"), "configured ritual_chant decode should roundtrip text.");
 }
 
+void TestFormalDeepRitualHasLongerShellThanRitualChant() {
+    auto ritual_config = MakeAndroidSizedCoreConfig();
+    auto deep_config = MakeAndroidSizedCoreConfig();
+    ritual_config.flash_signal_profile = bag::FlashSignalProfile::kRitualChant;
+    ritual_config.flash_voicing_flavor = bag::FlashVoicingFlavor::kRitualChant;
+    deep_config.flash_signal_profile = bag::FlashSignalProfile::kDeepRitual;
+    deep_config.flash_voicing_flavor = bag::FlashVoicingFlavor::kDeepRitual;
+    std::vector<std::int16_t> ritual_pcm;
+    std::vector<std::int16_t> deep_pcm;
+
+    const auto ritual_code = bag::flash::EncodeTextToPcm16(
+        ritual_config,
+        "Length",
+        &ritual_pcm);
+    const auto deep_code = bag::flash::EncodeTextToPcm16(
+        deep_config,
+        "Length",
+        &deep_pcm);
+
+    test::AssertEq(ritual_code, bag::ErrorCode::kOk, "ritual_chant formal encode should succeed.");
+    test::AssertEq(deep_code, bag::ErrorCode::kOk, "deep_ritual formal encode should succeed.");
+    test::AssertTrue(
+        deep_pcm.size() > ritual_pcm.size(),
+        "deep_ritual should use a longer preamble, epilogue, and payload timing than ritual_chant.");
+}
+
+void TestFormalDeepRitualDecodesWithConfiguredTrim() {
+    auto deep_config = MakeCoreConfig();
+    deep_config.flash_signal_profile = bag::FlashSignalProfile::kDeepRitual;
+    deep_config.flash_voicing_flavor = bag::FlashVoicingFlavor::kDeepRitual;
+    std::vector<std::int16_t> deep_pcm;
+    const auto encode_code = bag::flash::EncodeTextToPcm16(
+        deep_config,
+        "DeepDecode",
+        &deep_pcm);
+    test::AssertEq(encode_code, bag::ErrorCode::kOk, "deep_ritual formal encode should succeed.");
+
+    std::string decoded_text;
+    const auto decode_code = bag::flash::DecodePcm16ToText(
+        deep_config,
+        deep_pcm,
+        &decoded_text);
+    test::AssertEq(decode_code, bag::ErrorCode::kOk, "configured deep_ritual decode should succeed.");
+    test::AssertEq(decoded_text, std::string("DeepDecode"), "configured deep_ritual decode should roundtrip text.");
+}
+
 void TestExplicitSignalProfileDecouplesPayloadTimingFromVoicingFlavor() {
     const auto config = MakeAndroidSizedCoreConfig();
     const auto signal_profile = bag::FlashSignalProfile::kCodedBurst;
@@ -314,6 +360,10 @@ void RegisterFlashVoicingFormalTests(test::Runner& runner) {
                TestFormalRitualChantHasLongerShellThanCodedBurst);
     runner.Add("FlashVoicing.FormalRitualChantDecodesWithConfiguredTrim",
                TestFormalRitualChantDecodesWithConfiguredTrim);
+    runner.Add("FlashVoicing.FormalDeepRitualHasLongerShellThanRitualChant",
+               TestFormalDeepRitualHasLongerShellThanRitualChant);
+    runner.Add("FlashVoicing.FormalDeepRitualDecodesWithConfiguredTrim",
+               TestFormalDeepRitualDecodesWithConfiguredTrim);
     runner.Add("FlashVoicing.ExplicitSignalProfileDecouplesPayloadTimingFromVoicingFlavor",
                TestExplicitSignalProfileDecouplesPayloadTimingFromVoicingFlavor);
     runner.Add("FlashVoicing.ExplicitSignalProfileAndFlavorMatchDefaultExplicitPath",

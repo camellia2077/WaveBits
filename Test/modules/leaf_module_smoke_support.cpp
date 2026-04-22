@@ -54,6 +54,13 @@ bag::CoreConfig MakeRitualFlashCoreConfig() {
     return config;
 }
 
+bag::CoreConfig MakeDeepRitualFlashCoreConfig() {
+    auto config = MakeFlashCoreConfig();
+    config.flash_signal_profile = bag::FlashSignalProfile::kDeepRitual;
+    config.flash_voicing_flavor = bag::FlashVoicingFlavor::kDeepRitual;
+    return config;
+}
+
 bag::CoreConfig MakeExplicitDecoupledFlashCoreConfig() {
     auto config = MakeFlashCoreConfig();
     config.flash_signal_profile = bag::FlashSignalProfile::kCodedBurst;

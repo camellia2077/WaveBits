@@ -34,6 +34,10 @@ bag::CoreConfig MakeAndroidSizedCoreConfig() {
 std::size_t FormalPreambleSampleCountForFlavor(const bag::CoreConfig& config,
                                                bag::FlashVoicingFlavor flavor) {
     switch (flavor) {
+    case bag::FlashVoicingFlavor::kDeepRitual:
+        return config.frame_samples > 0
+                   ? static_cast<std::size_t>(config.frame_samples) * static_cast<std::size_t>(24)
+                   : static_cast<std::size_t>(0);
     case bag::FlashVoicingFlavor::kRitualChant:
         return config.frame_samples > 0
                    ? static_cast<std::size_t>(config.frame_samples) * static_cast<std::size_t>(16)
@@ -49,6 +53,10 @@ std::size_t FormalPreambleSampleCountForFlavor(const bag::CoreConfig& config,
 std::size_t FormalEpilogueSampleCountForFlavor(const bag::CoreConfig& config,
                                                bag::FlashVoicingFlavor flavor) {
     switch (flavor) {
+    case bag::FlashVoicingFlavor::kDeepRitual:
+        return config.frame_samples > 0
+                   ? static_cast<std::size_t>(config.frame_samples) * static_cast<std::size_t>(14)
+                   : static_cast<std::size_t>(0);
     case bag::FlashVoicingFlavor::kRitualChant:
         return config.frame_samples > 0
                    ? static_cast<std::size_t>(config.frame_samples) * static_cast<std::size_t>(8)

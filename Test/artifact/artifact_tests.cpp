@@ -92,18 +92,24 @@ size_t ExpectedPcmSampleCount(const std::string& text,
         const auto frame_samples =
             config_case.frame_samples > 0 ? static_cast<size_t>(config_case.frame_samples) : static_cast<size_t>(0);
         const auto payload_samples_per_bit =
-            flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_RITUAL_CHANT
-                ? frame_samples * static_cast<size_t>(3)
-                : frame_samples;
+            flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_DEEP_RITUAL
+                ? frame_samples * static_cast<size_t>(5)
+                : flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_RITUAL_CHANT
+                      ? frame_samples * static_cast<size_t>(3)
+                      : frame_samples;
         const auto payload_samples = text.size() * 8 * payload_samples_per_bit;
         const auto leading_nonpayload_samples =
-            flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT
-                ? frame_samples * static_cast<size_t>(16)
-                : frame_samples * static_cast<size_t>(3);
+            flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL
+                ? frame_samples * static_cast<size_t>(24)
+                : flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT
+                      ? frame_samples * static_cast<size_t>(16)
+                      : frame_samples * static_cast<size_t>(3);
         const auto trailing_nonpayload_samples =
-            flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT
-                ? frame_samples * static_cast<size_t>(8)
-                : frame_samples * static_cast<size_t>(3);
+            flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL
+                ? frame_samples * static_cast<size_t>(14)
+                : flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT
+                      ? frame_samples * static_cast<size_t>(8)
+                      : frame_samples * static_cast<size_t>(3);
         return payload_samples + leading_nonpayload_samples + trailing_nonpayload_samples;
     }
 
@@ -280,6 +286,34 @@ void TestArtifactFlashRitualChantRoundTrip() {
     test::AssertEq(decoded.mode, BAG_TRANSPORT_FLASH, "Artifact ritual_chant flash should preserve mode.");
 }
 
+void TestArtifactFlashDeepRitualRoundTrip() {
+    const auto config_case = test::ConfigCases().front();
+    const auto text = std::string("DeepArtifact");
+    const auto encoder_config =
+        MakeEncoderConfig(
+            config_case,
+            BAG_TRANSPORT_FLASH,
+            BAG_FLASH_SIGNAL_PROFILE_DEEP_RITUAL,
+            BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL);
+    const auto decoder_config =
+        MakeDecoderConfig(
+            config_case,
+            BAG_TRANSPORT_FLASH,
+            BAG_FLASH_SIGNAL_PROFILE_DEEP_RITUAL,
+            BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL);
+    const auto pcm = EncodeToVector(encoder_config, text);
+    AssertPcmProperties(
+        pcm,
+        text,
+        BAG_TRANSPORT_FLASH,
+        config_case,
+        BAG_FLASH_SIGNAL_PROFILE_DEEP_RITUAL,
+        BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL);
+    const auto decoded = DecodeFromVector(decoder_config, pcm);
+    test::AssertEq(decoded.text, text, "Artifact deep_ritual flash should roundtrip.");
+    test::AssertEq(decoded.mode, BAG_TRANSPORT_FLASH, "Artifact deep_ritual flash should preserve mode.");
+}
+
 }  // namespace
 
 int main() {
@@ -289,6 +323,7 @@ int main() {
     runner.Add("Artifact.ModeSpecificLongRoundTrip", TestArtifactModeSpecificLongRoundTrip);
     runner.Add("Artifact.DecodeUnderGainDrop", TestArtifactDecodeUnderGainDrop);
     runner.Add("Artifact.FlashRitualChantRoundTrip", TestArtifactFlashRitualChantRoundTrip);
+    runner.Add("Artifact.FlashDeepRitualRoundTrip", TestArtifactFlashDeepRitualRoundTrip);
     runner.Add("Artifact.VersionMatchesRelease", TestArtifactVersionMatchesRelease);
     return runner.Run();
 }

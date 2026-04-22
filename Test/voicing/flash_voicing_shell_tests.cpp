@@ -89,6 +89,43 @@ void TestRitualChantEpilogueUsesTwoPhrasedBursts() {
         "ritual_chant epilogue should resume with a second closure phrase after the short pause.");
 }
 
+void TestDeepRitualPreambleUsesWiderThreePhrasedBursts() {
+    constexpr std::size_t kPreambleSampleCount = 4200;
+
+    const auto clean_payload = MakeCleanPayload("AB");
+    const auto layout = MakePayloadLayout("AB");
+    const auto voiced = bag::flash::ApplyVoicingToPayloadWithFlavor(
+        clean_payload,
+        layout,
+        bag::FlashVoicingFlavor::kDeepRitual,
+        MakeTrimEnabledConfig(kPreambleSampleCount, static_cast<std::size_t>(0)));
+
+    const auto [phrase1_begin, phrase1_end] = FractionalRange(kPreambleSampleCount, 0.07, 0.19);
+    const auto [gap1_begin, gap1_end] = FractionalRange(kPreambleSampleCount, 0.23, 0.29);
+    const auto [phrase2_begin, phrase2_end] = FractionalRange(kPreambleSampleCount, 0.36, 0.52);
+    const auto [gap2_begin, gap2_end] = FractionalRange(kPreambleSampleCount, 0.57, 0.64);
+    const auto [phrase3_begin, phrase3_end] = FractionalRange(kPreambleSampleCount, 0.72, 0.90);
+
+    const double phrase1_energy = AverageAbsoluteSample(voiced.pcm, phrase1_begin, phrase1_end);
+    const double gap1_energy = AverageAbsoluteSample(voiced.pcm, gap1_begin, gap1_end);
+    const double phrase2_energy = AverageAbsoluteSample(voiced.pcm, phrase2_begin, phrase2_end);
+    const double gap2_energy = AverageAbsoluteSample(voiced.pcm, gap2_begin, gap2_end);
+    const double phrase3_energy = AverageAbsoluteSample(voiced.pcm, phrase3_begin, phrase3_end);
+
+    test::AssertTrue(
+        phrase1_energy > gap1_energy * 3.0,
+        "deep_ritual preamble should leave a broad pause after the first phrase.");
+    test::AssertTrue(
+        phrase2_energy > gap1_energy * 3.0,
+        "deep_ritual preamble should re-enter strongly after the first broad pause.");
+    test::AssertTrue(
+        phrase2_energy > gap2_energy * 3.0,
+        "deep_ritual preamble should leave a second broad pause before the final phrase.");
+    test::AssertTrue(
+        phrase3_energy > gap2_energy * 3.0,
+        "deep_ritual preamble should finish with a third elongated voiced phrase.");
+}
+
 void TestCodedBurstPreambleUsesThreeHandshakeBursts() {
     constexpr std::size_t kPreambleSampleCount = 1600;
 
@@ -378,6 +415,8 @@ void RegisterFlashVoicingShellTests(test::Runner& runner) {
                TestRitualChantPreambleUsesThreePhrasedBursts);
     runner.Add("FlashVoicing.RitualChantEpilogueUsesTwoPhrasedBursts",
                TestRitualChantEpilogueUsesTwoPhrasedBursts);
+    runner.Add("FlashVoicing.DeepRitualPreambleUsesWiderThreePhrasedBursts",
+               TestDeepRitualPreambleUsesWiderThreePhrasedBursts);
     runner.Add("FlashVoicing.CodedBurstPreambleUsesThreeHandshakeBursts",
                TestCodedBurstPreambleUsesThreeHandshakeBursts);
     runner.Add("FlashVoicing.CodedBurstPreambleContrastsPayloadOnset",

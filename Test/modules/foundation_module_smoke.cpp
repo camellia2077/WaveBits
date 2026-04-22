@@ -28,6 +28,9 @@ void TestConfigModuleDefaults() {
     test::AssertTrue(
         bag::IsValidFlashVoicingFlavor(bag::FlashVoicingFlavor::kRitualChant),
         "Imported helper should validate the ritual chant voicing flavor.");
+    test::AssertTrue(
+        bag::IsValidFlashVoicingFlavor(bag::FlashVoicingFlavor::kDeepRitual),
+        "Imported helper should validate the deep ritual voicing flavor.");
 }
 
 void TestFlashSignalProfilesRemainDistinct() {
@@ -38,9 +41,16 @@ void TestFlashSignalProfilesRemainDistinct() {
         bag::IsValidFlashSignalProfile(bag::FlashSignalProfile::kRitualChant),
         "ritual_chant signal profile should remain valid.");
     test::AssertTrue(
+        bag::IsValidFlashSignalProfile(bag::FlashSignalProfile::kDeepRitual),
+        "deep_ritual signal profile should remain valid.");
+    test::AssertTrue(
         static_cast<int>(bag::FlashSignalProfile::kCodedBurst) !=
             static_cast<int>(bag::FlashSignalProfile::kRitualChant),
         "flash signal profiles should remain distinct enum values.");
+    test::AssertTrue(
+        static_cast<int>(bag::FlashSignalProfile::kRitualChant) !=
+            static_cast<int>(bag::FlashSignalProfile::kDeepRitual),
+        "deep_ritual signal profile should remain a distinct enum value.");
 }
 
 void TestFlashVoicingFlavorsRemainDistinct() {
@@ -59,6 +69,16 @@ void TestFlashVoicingFlavorsRemainDistinct() {
         config.flash_voicing_flavor,
         bag::FlashVoicingFlavor::kRitualChant,
         "CoreConfig should store explicit ritual voicing flavor directly.");
+    config.flash_signal_profile = bag::FlashSignalProfile::kDeepRitual;
+    config.flash_voicing_flavor = bag::FlashVoicingFlavor::kDeepRitual;
+    test::AssertEq(
+        config.flash_signal_profile,
+        bag::FlashSignalProfile::kDeepRitual,
+        "CoreConfig should store explicit deep ritual signal timing directly.");
+    test::AssertEq(
+        config.flash_voicing_flavor,
+        bag::FlashVoicingFlavor::kDeepRitual,
+        "CoreConfig should store explicit deep ritual voicing flavor directly.");
 }
 
 void TestTypesAndAudioIoModules() {

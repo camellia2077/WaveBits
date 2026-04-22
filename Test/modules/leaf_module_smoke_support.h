@@ -10,6 +10,7 @@ bag::flash::BfskConfig MakeBfskConfig();
 bag::flash::FlashVoicingConfig MakeStyledVoicingConfig();
 bag::CoreConfig MakeFlashCoreConfig();
 bag::CoreConfig MakeRitualFlashCoreConfig();
+bag::CoreConfig MakeDeepRitualFlashCoreConfig();
 bag::CoreConfig MakeExplicitDecoupledFlashCoreConfig();
 
 std::size_t FormalFlashLeadingSamples(const bag::CoreConfig& config);

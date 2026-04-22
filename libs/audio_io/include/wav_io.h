@@ -27,6 +27,7 @@ enum class FlipBitsAudioMetadataFlashVoicingStyle : std::uint8_t {
   kUnknown = 0,
   kCodedBurst = 1,
   kRitualChant = 2,
+  kDeepRitual = 3,
 };
 
 struct WavPcm16 {

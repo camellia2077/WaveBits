@@ -84,6 +84,8 @@ audio_io::FlipBitsAudioMetadataFlashVoicingStyle ToLibraryFlashStyle(
       return audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kCodedBurst;
     case AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT:
       return audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kRitualChant;
+    case AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL:
+      return audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kDeepRitual;
     case AUDIO_IO_METADATA_FLASH_VOICING_STYLE_UNKNOWN:
     default:
       return audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kUnknown;
@@ -97,6 +99,8 @@ audio_io_metadata_flash_voicing_style ToApiFlashStyle(
       return AUDIO_IO_METADATA_FLASH_VOICING_STYLE_CODED_BURST;
     case audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kRitualChant:
       return AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT;
+    case audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kDeepRitual:
+      return AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL;
     case audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kUnknown:
     default:
       return AUDIO_IO_METADATA_FLASH_VOICING_STYLE_UNKNOWN;

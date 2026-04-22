@@ -25,7 +25,7 @@ audio_io::FlipBitsAudioMetadata MakeValidMetadata(std::uint32_t pcm_sample_count
     metadata.version = 3;
     metadata.mode = audio_io::FlipBitsAudioMetadataMode::kFlash;
     metadata.has_flash_voicing_style = true;
-    metadata.flash_voicing_style = audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kRitualChant;
+    metadata.flash_voicing_style = audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kDeepRitual;
     metadata.created_at_iso_utc = "2026-03-17T09:45:00Z";
     metadata.duration_ms = 4321u;
     metadata.frame_samples = 2205u;
@@ -52,7 +52,7 @@ audio_io_metadata_view MakeApiMetadataView(std::uint32_t pcm_sample_count) {
         3u,
         AUDIO_IO_METADATA_MODE_FLASH,
         1u,
-        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT,
+        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL,
         MakeStringView("2026-03-17T09:45:00Z"),
         4321u,
         2205u,
@@ -225,7 +225,7 @@ void TestWavIoCApiMetadataRoundTripContract() {
                    static_cast<std::uint8_t>(1u),
                    "C ABI metadata flash-style presence should round-trip.");
     test::AssertEq(decoded.metadata.flash_voicing_style,
-                   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT,
+                   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL,
                    "C ABI metadata flash-style value should round-trip.");
     test::AssertEq(std::string(decoded.metadata.created_at_iso_utc.data, decoded.metadata.created_at_iso_utc.size),
                    std::string("2026-03-17T09:45:00Z"),
@@ -320,7 +320,7 @@ void TestWavIoMetadataRoundTripContract() {
     test::AssertTrue(parsed_metadata.metadata.has_flash_voicing_style,
                      "Metadata should preserve the flash voicing style flag.");
     test::AssertEq(parsed_metadata.metadata.flash_voicing_style,
-                   audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kRitualChant,
+                   audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kDeepRitual,
                    "Metadata flash voicing style should round-trip.");
     test::AssertEq(parsed_metadata.metadata.created_at_iso_utc,
                    std::string("2026-03-17T09:45:00Z"),

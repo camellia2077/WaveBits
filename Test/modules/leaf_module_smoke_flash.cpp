@@ -81,6 +81,7 @@ void TestFlashSignalEncodeLengthMatchesExpected() {
 void TestFlashSignalStyleAwareChunkSizeMatchesConfig() {
     const auto coded_signal = bag::flash::MakeBfskConfig(MakeFlashCoreConfig());
     const auto ritual_signal = bag::flash::MakeBfskConfig(MakeRitualFlashCoreConfig());
+    const auto deep_signal = bag::flash::MakeBfskConfig(MakeDeepRitualFlashCoreConfig());
 
     test::AssertEq(
         coded_signal.samples_per_bit,
@@ -93,6 +94,13 @@ void TestFlashSignalStyleAwareChunkSizeMatchesConfig() {
     test::AssertTrue(
         ritual_signal.samples_per_bit > coded_signal.samples_per_bit,
         "ritual_chant flash signal should use more samples per bit than coded_burst.");
+    test::AssertEq(
+        deep_signal.samples_per_bit,
+        static_cast<std::size_t>(11025),
+        "deep_ritual flash signal should use the longest 5x bit timing profile.");
+    test::AssertTrue(
+        deep_signal.samples_per_bit > ritual_signal.samples_per_bit,
+        "deep_ritual flash signal should use more samples per bit than ritual_chant.");
 }
 
 void TestFlashSignalExplicitProfileOverridesLegacyStyleTiming() {
@@ -105,6 +113,10 @@ void TestFlashSignalExplicitProfileOverridesLegacyStyleTiming() {
         bag::flash::MakeBfskConfigForSignalProfile(
             ritual_config,
             bag::FlashSignalProfile::kRitualChant);
+    const auto explicit_deep_signal =
+        bag::flash::MakeBfskConfigForSignalProfile(
+            ritual_config,
+            bag::FlashSignalProfile::kDeepRitual);
 
     test::AssertEq(
         explicit_coded_signal.samples_per_bit,
@@ -114,6 +126,10 @@ void TestFlashSignalExplicitProfileOverridesLegacyStyleTiming() {
         explicit_ritual_signal.samples_per_bit,
         static_cast<std::size_t>(6615),
         "Explicit ritual signal profile should keep the ritual timing when requested.");
+    test::AssertEq(
+        explicit_deep_signal.samples_per_bit,
+        static_cast<std::size_t>(11025),
+        "Explicit deep ritual signal profile should keep the slowest timing when requested.");
 }
 
 void TestFlashSignalAmplitudeInRange() {
@@ -239,6 +255,33 @@ void TestFlashPhyCleanRitualChantUsesLongerTimingAndStillDecodes() {
         bag::ErrorCode::kOk,
         "ritual_chant flash decode should succeed when the matching style is configured.");
     test::AssertEq(decoded, text, "ritual_chant flash decode should preserve the original text.");
+}
+
+void TestFlashPhyCleanDeepRitualUsesLongestTimingAndStillDecodes() {
+    const auto ritual_config = MakeRitualFlashCoreConfig();
+    const auto deep_config = MakeDeepRitualFlashCoreConfig();
+    const std::string text = "Deep";
+
+    std::vector<std::int16_t> ritual_pcm;
+    std::vector<std::int16_t> deep_pcm;
+    test::AssertEq(
+        bag::flash::EncodeTextToPcm16(ritual_config, text, &ritual_pcm),
+        bag::ErrorCode::kOk,
+        "ritual_chant flash encode should succeed for deep timing comparison.");
+    test::AssertEq(
+        bag::flash::EncodeTextToPcm16(deep_config, text, &deep_pcm),
+        bag::ErrorCode::kOk,
+        "deep_ritual flash encode should succeed for timing comparison.");
+    test::AssertTrue(
+        deep_pcm.size() > ritual_pcm.size(),
+        "deep_ritual flash encode should be longer than ritual_chant after signal timing expansion.");
+
+    std::string decoded;
+    test::AssertEq(
+        bag::flash::DecodePcm16ToText(deep_config, deep_pcm, &decoded),
+        bag::ErrorCode::kOk,
+        "deep_ritual flash decode should succeed when the matching style is configured.");
+    test::AssertEq(decoded, text, "deep_ritual flash decode should preserve the original text.");
 }
 
 void TestFlashPhyCleanWrongStyleDoesNotRoundTrip() {
@@ -465,6 +508,8 @@ void RegisterLeafFlashTests(test::Runner& runner) {
                TestFlashPhyCleanFormalOutputIncludesPredictableNonpayloadSegments);
     runner.Add("ModulesLeaf.FlashPhyCleanRitualChantUsesLongerTimingAndStillDecodes",
                TestFlashPhyCleanRitualChantUsesLongerTimingAndStillDecodes);
+    runner.Add("ModulesLeaf.FlashPhyCleanDeepRitualUsesLongestTimingAndStillDecodes",
+               TestFlashPhyCleanDeepRitualUsesLongestTimingAndStillDecodes);
     runner.Add("ModulesLeaf.FlashPhyCleanWrongStyleDoesNotRoundTrip",
                TestFlashPhyCleanWrongStyleDoesNotRoundTrip);
     runner.Add("ModulesLeaf.FlashPhyCleanExplicitSignalProfileKeepsPayloadTimingWhenVoicingChanges",

@@ -41,7 +41,8 @@ bool IsSupportedMode(FlipBitsAudioMetadataMode mode) {
 bool IsSupportedFlashVoicingStyle(
     FlipBitsAudioMetadataFlashVoicingStyle style) {
   return style == FlipBitsAudioMetadataFlashVoicingStyle::kCodedBurst ||
-         style == FlipBitsAudioMetadataFlashVoicingStyle::kRitualChant;
+         style == FlipBitsAudioMetadataFlashVoicingStyle::kRitualChant ||
+         style == FlipBitsAudioMetadataFlashVoicingStyle::kDeepRitual;
 }
 
 bool IsIsoUtcTimestampChar(char value, std::size_t index) {
