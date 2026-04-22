@@ -1,7 +1,7 @@
 ## Terminal
 
 - 在这个仓库执行终端命令时，统一使用 `pwsh` 作为 shell 入口。
-- 在这个仓库执行终端命令、编译或验证时，默认不要使用沙盒环境；尤其是 `CMake` / `Ninja` / `Gradle` / `python tools/run.py verify` 相关命令，统一优先在非沙盒环境执行。
+- 在这个仓库执行终端命令、编译或验证时，默认不要使用沙盒环境；尤其是 `CMake` / `Ninja` / `Gradle` / `python tools/run.py verify` 相关命令，必须在非沙盒环境执行。
 
 ## Tooling
 
