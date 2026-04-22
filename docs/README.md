@@ -26,7 +26,7 @@
   - 记录 CLI / Android 表现层版本发布说明。
 - `docs/core.md`
   - 记录当前内核状态总览。
-- `docs/presentation.md`
+- `docs/presentation/README.md`
   - 记录当前表现层发布说明入口。
 - `docs/testing.md`
   - 记录测试分层、语料和验证口径。
