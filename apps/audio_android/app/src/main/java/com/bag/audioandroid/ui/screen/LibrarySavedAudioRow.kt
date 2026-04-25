@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -31,9 +32,11 @@ internal fun LibrarySavedAudioRow(
     item: SavedAudioItem,
     isSelectionMode: Boolean,
     isSelected: Boolean,
+    folderName: String?,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onShare: () -> Unit,
+    onMove: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -77,12 +80,25 @@ internal fun LibrarySavedAudioRow(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                folderName?.takeIf { it.isNotBlank() }?.let { resolvedFolderName ->
+                    Text(
+                        text = stringResource(R.string.library_folder_row_label, resolvedFolderName),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
             if (!isSelectionMode) {
                 IconButton(onClick = onShare) {
                     Icon(
                         imageVector = Icons.Rounded.Share,
                         contentDescription = stringResource(R.string.library_action_share),
+                    )
+                }
+                IconButton(onClick = onMove) {
+                    Icon(
+                        imageVector = Icons.Rounded.FolderOpen,
+                        contentDescription = stringResource(R.string.library_action_move),
                     )
                 }
                 IconButton(onClick = onRename) {

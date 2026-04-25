@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.update
 
 class AudioAndroidViewModel(
     audioCodecGateway: AudioCodecGateway,
-    sampleInputTextProvider: SampleInputTextProvider,
+    private val sampleInputTextProvider: SampleInputTextProvider,
     appSettingsRepository: AppSettingsRepository,
     playbackRuntimeGateway: PlaybackRuntimeGateway,
     savedAudioRepository: SavedAudioRepository,
@@ -92,6 +92,7 @@ class AudioAndroidViewModel(
     private val preferencesBindings =
         AudioAndroidPreferencesBindings(
             uiState = uiStateFlow,
+            sampleInputSessionUpdater = sampleInputSessionUpdater,
             appSettingsRepository = appSettingsRepository,
             scope = viewModelScope,
         )
@@ -107,7 +108,12 @@ class AudioAndroidViewModel(
                 selectedLanguage = selectedLanguage,
                 presentationVersion = BuildConfig.VERSION_NAME.ifBlank { "" },
                 coreVersion = coreVersion.ifBlank { "" },
-                sessions = sampleInputSessionUpdater.initialize(it.sessions, selectedLanguage),
+                sessions =
+                    sampleInputSessionUpdater.initialize(
+                        sessions = it.sessions,
+                        language = selectedLanguage,
+                        flavor = it.currentSampleFlavor,
+                    ),
                 currentPlaybackSource = AudioPlaybackSource.Generated(it.transportMode),
             )
         }
@@ -184,6 +190,16 @@ class AudioAndroidViewModel(
 
     fun onRandomizeSampleInput(length: SampleInputLengthOption) {
         sessionActions.onRandomizeSampleInput(length)
+    }
+
+    fun currentPlaceholderText(mode: TransportModeOption): String {
+        val state = uiStateFlow.value
+        return sampleInputTextProvider
+            .defaultSample(
+                mode = mode,
+                language = state.selectedLanguage,
+                flavor = state.currentSampleFlavor,
+            ).text
     }
 
     fun onTransportModeSelected(mode: TransportModeOption) {
@@ -317,6 +333,28 @@ class AudioAndroidViewModel(
 
     fun onShareSavedAudio(item: SavedAudioItem) {
         libraryActions.onShareSavedAudio(item)
+    }
+
+    fun onCreateSavedAudioFolder(name: String) {
+        libraryActions.onCreateSavedAudioFolder(name)
+    }
+
+    fun onRenameSavedAudioFolder(
+        folderId: String,
+        name: String,
+    ) {
+        libraryActions.onRenameSavedAudioFolder(folderId, name)
+    }
+
+    fun onDeleteSavedAudioFolder(folderId: String) {
+        libraryActions.onDeleteSavedAudioFolder(folderId)
+    }
+
+    fun onMoveSavedAudioToFolder(
+        itemIds: Collection<String>,
+        folderId: String?,
+    ) {
+        libraryActions.onMoveSavedAudioToFolder(itemIds, folderId)
     }
 
     override fun onCleared() {

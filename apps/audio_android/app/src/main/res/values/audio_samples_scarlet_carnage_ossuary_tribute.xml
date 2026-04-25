@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_scarlet_carnage_themed_skull_step_receives">The blade falls; another trophy for the ossuary.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_skull_step_receives">BLADE FALLS CLEAN. ANOTHER SKULL JOINS THE STAIR.</string>
+    <string name="audio_sample_scarlet_carnage_themed_red_river_pays_the_stair">The spire ascends on polished bone, worn smooth by the tally-man’s touch. A viscous tide carves canyons in the silt, drowning every banner in the hue of the vein. The blade beats with the pulse: lift, sever, repeat. Hatred is irrelevant. Names are dust. The edge is more just than any god. Each head is a mite; each soul a payment to the heights.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_red_river_pays_the_stair">SKULL STAIR RISES. RED RIVER CUTS THE GROUND. BOTH BANNERS BECOME ONE COLOR. LIFT. BEAT. FALL. EACH HEAD IS COIN.</string>
+    <string name="audio_sample_scarlet_carnage_themed_flesh_equal_bone">All meat is equal beneath the gaze of the blade.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_flesh_equal_bone">ALL FLESH EQUAL BEFORE BONE ALTAR.</string>
+    <string name="audio_sample_scarlet_carnage_themed_sacred_harvest_living">The monument swells, tiered with a myriad of gleaming skulls. Black plate grows leaden, lacquered in the ichor of the slain. There is no spite here, no cruelty in the stroke. This is the hallowed reaping of the quick. A final breath is the only true orison. The harvest demands no loyalty—only the crop.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_sacred_harvest_living">ALTAR RISES FROM POLISHED SKULLS. ARMOR PAINTED WITH FALLEN. NO HATRED. SACRED HARVEST OF THE LIVING. LIFE ENDED IS PRAYER ANSWERED. HARVEST TAKES ALL.</string>
+</resources>

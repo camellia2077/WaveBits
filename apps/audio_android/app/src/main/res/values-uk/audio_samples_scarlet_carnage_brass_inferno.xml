@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_scarlet_carnage_themed_brass_gears_drink_blood">Скрегочуть латунні ікла, змащені кривавою десятиною.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_brass_gears_drink_blood">BRASS GEARS TURN. BLOOD KEEPS THEM WET.</string>
+    <string name="audio_sample_scarlet_carnage_themed_war_engine_eats_the_sky">Мир — лише смердючий видих між ударами молота. На вкритій попелом пустці латунна ненасить запускає свої механізми ріками крові. Залізні легіони розтоптують світ на порох. Велетенські машини вживлюють сталь у кістковий мозок, перековуючи плоть на метал. Стовпи кіптяви здіймаються вгору, аж поки багряне склепіння не забуде зорі. Немає трону, високого настільки, щоб над цим панувати. І немає душі, нікчемної настільки, щоб її пощадити. Машина війни пожне всіх.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_war_engine_eats_the_sky">PEACE IS BREATH BETWEEN HAMMERS. BRASS GEARS TURN WITH BLOOD OIL. INFANTRY GRINDS THE GROUND. SMOKE HIDES THE STARS. WAR ENGINE FEEDS ON ALL.</string>
+    <string name="audio_sample_scarlet_carnage_themed_furnace_never_sleeps">Горнило бійні ніколи не холоне.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_furnace_never_sleeps">FURNACE OF WAR NEVER SLEEPS.</string>
+    <string name="audio_sample_scarlet_carnage_themed_eternal_conflict_fuel">Світ — це склеп із сажі, задушений саваном чорного диму. Окуті залізом легіони крокують вічним маршем, перетираючи землю на прах. Велетенський механізм гуркоче, змащений життєвими соками полеглих. Немає завоювань, є лише нескінченний похід. Шестерні світобудови жадають данини розбрату, а ми — лише вугілля для їхнього вогню.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_eternal_conflict_fuel">GRAVEYARD OF ASH. BLACK SMOKE BLOTS SUN. ENDLESS HEAVY INFANTRY. MACHINE GRINDS ON. LUBRICATED BY BLOOD. NO VICTORY. ETERNAL CONFLICT. WE ARE FUEL.</string>
+</resources>

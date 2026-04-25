@@ -4,12 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
+import com.bag.audioandroid.ui.model.TransportModeOption
 
 @Composable
 internal fun AudioPlaybackDisplayBlock(
     displayedSamples: Int,
     waveformPcm: ShortArray,
     sampleRateHz: Int,
+    transportMode: TransportModeOption?,
+    frameSamples: Int,
     isFlashMode: Boolean,
     flashVoicingStyle: FlashVoicingStyleOption?,
     followData: PayloadFollowViewData,
@@ -22,6 +25,8 @@ internal fun AudioPlaybackDisplayBlock(
         displayedSamples = displayedSamples,
         waveformPcm = waveformPcm,
         sampleRateHz = sampleRateHz,
+        transportMode = transportMode,
+        frameSamples = frameSamples,
         isFlashMode = isFlashMode,
         flashVoicingStyle = flashVoicingStyle,
         isPlaying = isPlaying,

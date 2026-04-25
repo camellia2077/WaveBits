@@ -89,6 +89,8 @@
 - Theme / palette：
   - `app/src/main/java/com/bag/audioandroid/ui/theme/PaletteCatalog.kt`
   - `app/src/main/java/com/bag/audioandroid/ui/theme/PaletteFactory.kt`
+  - `app/src/main/java/com/bag/audioandroid/ui/theme/BrandThemeCatalog.kt`
+  - `app/src/main/java/com/bag/audioandroid/ui/theme/AudioEncodeGlyphColors.kt`
   - `app/src/main/java/com/bag/audioandroid/ui/AudioAndroidThemeMappings.kt`
 
 ## 常见改动入口
@@ -111,6 +113,12 @@
   - `AudioFlashSignalVisualizer.kt`
   - `FlashSignalVisualizationAnalysis.kt`
   - `FlashSignalVisualizationDrawing.kt`
+- 新增/修改 dual-tone 主题阵容：
+  - 先看 `docs/design/android/android-dual-tone-theme.md`
+  - 主题颜色入口：`app/src/main/java/com/bag/audioandroid/ui/theme/BrandThemeCatalog.kt`
+  - 齿轮 / encode glyph 颜色入口：`app/src/main/java/com/bag/audioandroid/ui/theme/AudioEncodeGlyphColors.kt`
+  - Config 分组展示入口：`app/src/main/java/com/bag/audioandroid/ui/screen/ConfigThemeAppearanceSection.kt`
+  - 示例文本入口：`AndroidSampleInputTextProvider.kt` 与对应 `audio_samples_*` 资源
 - 改 Audio 页输入卡与随机样例：
   - `AudioInputActionsCard.kt`
   - `AudioSessionEditingActions.kt`

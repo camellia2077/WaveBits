@@ -3,6 +3,7 @@ package com.bag.audioandroid.ui
 import com.bag.audioandroid.data.SampleInput
 import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.ui.model.AppLanguageOption
+import com.bag.audioandroid.ui.model.SampleFlavor
 import com.bag.audioandroid.ui.model.SampleInputLengthOption
 import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.state.AudioAppUiState
@@ -38,6 +39,30 @@ class AudioSessionEditingActionsTest {
         actions.onRandomizeSampleInput(SampleInputLengthOption.Short)
         assertEquals("flash-a", state.value.currentSession.inputText)
         assertEquals("a", state.value.currentSession.sampleInputId)
+    }
+
+    @Test
+    fun `randomize sample input respects requested sample length`() {
+        val state =
+            MutableStateFlow(
+                AudioAppUiState(
+                    selectedLanguage = AppLanguageOption.English,
+                    transportMode = TransportModeOption.Flash,
+                    sessions =
+                        sessionsWithCurrentFlash(
+                            ModeAudioSessionState(
+                                inputText = "flash-short-a",
+                                sampleInputId = "short-a",
+                            ),
+                        ),
+                ),
+            )
+        val actions = createActions(state, LengthAwareSampleInputTextProvider())
+
+        actions.onRandomizeSampleInput(SampleInputLengthOption.Long)
+
+        assertEquals("flash-long-a", state.value.currentSession.inputText)
+        assertEquals("long-a", state.value.currentSession.sampleInputId)
     }
 
     @Test
@@ -123,11 +148,13 @@ private class CyclingSampleInputTextProvider : SampleInputTextProvider {
     override fun defaultSample(
         mode: TransportModeOption,
         language: AppLanguageOption,
+        flavor: SampleFlavor,
     ): SampleInput = samples(mode).first()
 
     override fun randomSample(
         mode: TransportModeOption,
         language: AppLanguageOption,
+        flavor: SampleFlavor,
         length: SampleInputLengthOption,
         excludingSampleId: String?,
     ): SampleInput = samples(mode).firstOrNull { it.id != excludingSampleId } ?: samples(mode).first()
@@ -135,6 +162,7 @@ private class CyclingSampleInputTextProvider : SampleInputTextProvider {
     override fun sampleById(
         mode: TransportModeOption,
         language: AppLanguageOption,
+        flavor: SampleFlavor,
         sampleId: String,
     ): SampleInput? = samples(mode).firstOrNull { it.id == sampleId }
 
@@ -144,4 +172,45 @@ private class CyclingSampleInputTextProvider : SampleInputTextProvider {
             TransportModeOption.Pro -> proSamples
             TransportModeOption.Ultra -> ultraSamples
         }
+}
+
+private class LengthAwareSampleInputTextProvider : SampleInputTextProvider {
+    private val shortSamples =
+        listOf(
+            SampleInput("short-a", "flash-short-a"),
+            SampleInput("short-b", "flash-short-b"),
+        )
+    private val longSamples =
+        listOf(
+            SampleInput("long-a", "flash-long-a"),
+            SampleInput("long-b", "flash-long-b"),
+        )
+
+    override fun defaultSample(
+        mode: TransportModeOption,
+        language: AppLanguageOption,
+        flavor: SampleFlavor,
+    ): SampleInput = shortSamples.first()
+
+    override fun randomSample(
+        mode: TransportModeOption,
+        language: AppLanguageOption,
+        flavor: SampleFlavor,
+        length: SampleInputLengthOption,
+        excludingSampleId: String?,
+    ): SampleInput {
+        val samples =
+            when (length) {
+                SampleInputLengthOption.Short -> shortSamples
+                SampleInputLengthOption.Long -> longSamples
+            }
+        return samples.firstOrNull { it.id != excludingSampleId } ?: samples.first()
+    }
+
+    override fun sampleById(
+        mode: TransportModeOption,
+        language: AppLanguageOption,
+        flavor: SampleFlavor,
+        sampleId: String,
+    ): SampleInput? = (shortSamples + longSamples).firstOrNull { it.id == sampleId }
 }

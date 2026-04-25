@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 
 internal class AudioAndroidPreferencesBindings(
     private val uiState: MutableStateFlow<AudioAppUiState>,
+    private val sampleInputSessionUpdater: SampleInputSessionUpdater,
     private val appSettingsRepository: AppSettingsRepository,
     private val scope: CoroutineScope,
 ) {
@@ -74,11 +75,7 @@ internal class AudioAndroidPreferencesBindings(
                 .collect { themeStyleId ->
                     val themeStyle = ThemeStyleOption.fromId(themeStyleId)
                     uiState.update { state ->
-                        if (state.selectedThemeStyle == themeStyle) {
-                            state
-                        } else {
-                            state.copy(selectedThemeStyle = themeStyle)
-                        }
+                        state.withSelectedThemeStyle(themeStyle, sampleInputSessionUpdater)
                     }
                 }
         }
@@ -91,11 +88,7 @@ internal class AudioAndroidPreferencesBindings(
                 .collect { brandThemeId ->
                     val brandTheme = BrandDualToneThemes.firstOrNull { it.id == brandThemeId } ?: DefaultBrandTheme
                     uiState.update { state ->
-                        if (state.selectedBrandTheme.id == brandTheme.id) {
-                            state
-                        } else {
-                            state.copy(selectedBrandTheme = brandTheme)
-                        }
+                        state.withSelectedBrandTheme(brandTheme, sampleInputSessionUpdater)
                     }
                 }
         }

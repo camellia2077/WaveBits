@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_ping_canticle_confirmed">핑 확인됨; 이진 찬송은 연결된 상태를 유지합니다</string>
+    <string name="audio_sample_sacred_machine_ascii_ping_canticle_confirmed">PING CONFIRMED BINARY CANTICLE HOLDS</string>
+    <string name="audio_sample_sacred_machine_themed_deep_array_handshake">LED 행렬이 절제된 박자로 깜박이는 동안 반송파 톤 아래에서 백색 소음이 거칠게 들려왔습니다. 16진수 코드가 화면을 타고 버스트 단위로 흘러내렸고, 심층 안테나 필드는 인간의 눈으로는 감히 짐작할 수 없는 공허를 향해 돌아섰습니다. 첫 번째 핸드셰이크 차임벨은 면죄부처럼 울려 퍼졌습니다. 단 하나의 패킷도 유실되지 않았고, 어떤 펄스도 늦게 돌아오지 않았으며, 오퍼레이터들은 우주의 한 호흡 동안 연결이 허락되었다고 기록했습니다.</string>
+    <string name="audio_sample_sacred_machine_ascii_deep_array_handshake">SIGNAL LITANY. LED ARRAYS BLINKED IN BINARY PULSE. CARRIER LOCKED. HEX CODE SCROLLED. THE DEEP ARRAY RETURNED HANDSHAKE ACK. NO PACKET WAS LOST.</string>
+</resources>

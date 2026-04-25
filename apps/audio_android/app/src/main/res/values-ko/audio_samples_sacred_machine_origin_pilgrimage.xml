@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_source_matrix_recovered">오래된 먼지 아래에서 온전한 소스 매트릭스가 발견되었습니다</string>
+    <string name="audio_sample_sacred_machine_ascii_source_matrix_recovered">SOURCE MATRIX RECOVERED FROM ANCIENT DUST</string>
+    <string name="audio_sample_sacred_machine_themed_ancient_database_pilgrimage">순례 함대는 깊은 어둠 속을 차갑게 표류하는 버려진 선박을 발견했습니다. 수 세기를 묻어버릴 만큼 두꺼운 먼지 아래에서, 데이터 웨이퍼는 여전히 고대 데이터베이스로 향하는 단 하나의 오염되지 않은 경로를 유지하고 있었습니다. 해독은 단일한 빛의 흔적을 따라 진행되었고, 완벽한 소스 매트릭스가 응답했을 때 함교 승무원들은 눈물을 흘렸습니다. 이동 중 여섯 척의 배를 잃었으나, 주석은 그 대가가 충분히 감당할 만한 것이었다고 기록합니다.</string>
+    <string name="audio_sample_sacred_machine_ascii_ancient_database_pilgrimage">ORIGIN PILGRIMAGE. DERELICT HULL FOUND IN DEEP SPACE. DATA CHIPS CLEANED. ANCIENT DATABASE DECRYPTION REACHED ONE PERFECT LINE. THE FLEET LOSS WAS ACCEPTABLE.</string>
+</resources>

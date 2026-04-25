@@ -97,6 +97,28 @@ internal class AudioAndroidLibraryActions(
         mutationActions.onShareSavedAudio(item)
     }
 
+    fun onCreateSavedAudioFolder(name: String) {
+        mutationActions.onCreateSavedAudioFolder(name)
+    }
+
+    fun onRenameSavedAudioFolder(
+        folderId: String,
+        name: String,
+    ) {
+        mutationActions.onRenameSavedAudioFolder(folderId, name)
+    }
+
+    fun onDeleteSavedAudioFolder(folderId: String) {
+        mutationActions.onDeleteSavedAudioFolder(folderId)
+    }
+
+    fun onMoveSavedAudioToFolder(
+        itemIds: Collection<String>,
+        folderId: String?,
+    ) {
+        mutationActions.onMoveSavedAudioToFolder(itemIds, folderId)
+    }
+
     fun refreshSavedAudioItems() {
         mutationActions.refreshSavedAudioItems()
     }

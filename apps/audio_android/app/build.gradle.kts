@@ -156,7 +156,8 @@ android {
             "de",
             "ru",
             "es",
-            "pt",
+            "pt-rBR",
+            "uk",
         )
     }
 

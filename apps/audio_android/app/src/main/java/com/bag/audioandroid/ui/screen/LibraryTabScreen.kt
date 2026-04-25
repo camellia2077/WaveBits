@@ -17,6 +17,8 @@ import com.bag.audioandroid.ui.state.LibrarySelectionUiState
 @Composable
 fun LibraryTabScreen(
     savedAudioItems: List<SavedAudioItem>,
+    savedAudioFolders: List<com.bag.audioandroid.domain.SavedAudioFolder>,
+    savedAudioFolderAssignments: Map<String, String>,
     librarySelection: LibrarySelectionUiState,
     statusText: UiText,
     onImportAudio: () -> Unit,
@@ -28,11 +30,21 @@ fun LibraryTabScreen(
     onClearLibrarySelection: () -> Unit,
     onDeleteSavedAudio: (String) -> Unit,
     onRenameSavedAudio: (String, String) -> Unit,
+    onCreateSavedAudioFolder: (String) -> Unit,
+    onRenameSavedAudioFolder: (String, String) -> Unit,
+    onDeleteSavedAudioFolder: (String) -> Unit,
+    onMoveSavedAudioToFolder: (Collection<String>, String?) -> Unit,
     onShareSavedAudio: (SavedAudioItem) -> Unit,
     contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
 ) {
-    val screenState = rememberLibraryTabScreenState(savedAudioItems, librarySelection)
+    val screenState =
+        rememberLibraryTabScreenState(
+            savedAudioItems = savedAudioItems,
+            savedAudioFolders = savedAudioFolders,
+            savedAudioFolderAssignments = savedAudioFolderAssignments,
+            librarySelection = librarySelection,
+        )
     val layoutDirection = LocalLayoutDirection.current
 
     LibraryTabScreenDialogs(
@@ -40,6 +52,15 @@ fun LibraryTabScreen(
         renameValue = screenState.renameValue,
         deleteTarget = screenState.deleteTarget,
         showBulkDeleteDialog = screenState.showBulkDeleteDialog,
+        showCreateFolderDialog = screenState.showCreateFolderDialog,
+        createFolderValue = screenState.createFolderValue,
+        showRenameFolderDialog = screenState.showRenameFolderDialog,
+        renameFolderValue = screenState.renameFolderValue,
+        selectedFolderName = screenState.selectedCustomFolder?.name,
+        showDeleteFolderDialog = screenState.showDeleteFolderDialog,
+        moveRequest = screenState.moveRequest,
+        savedAudioFolders = screenState.savedAudioFolders,
+        moveTargetFolderId = screenState.moveTargetFolderId,
         isSelectionMode = librarySelection.isSelectionMode,
         filteredSelectedCount = screenState.filteredSelectedCount,
         onRenameValueChange = screenState.onRenameValueChange,
@@ -57,6 +78,35 @@ fun LibraryTabScreen(
         onConfirmBulkDelete = {
             onDeleteSelectedSavedAudio()
             screenState.onBulkDeleteCompleted()
+        },
+        onCreateFolderValueChange = screenState.onCreateFolderValueChange,
+        onDismissCreateFolder = screenState.onDismissCreateFolder,
+        onConfirmCreateFolder = {
+            onCreateSavedAudioFolder(screenState.createFolderValue)
+            screenState.onCreateFolderCompleted()
+        },
+        onRenameFolderValueChange = screenState.onRenameFolderValueChange,
+        onDismissRenameFolder = screenState.onDismissRenameFolder,
+        onConfirmRenameFolder = {
+            val folderId = screenState.selectedCustomFolder?.folderId ?: return@LibraryTabScreenDialogs
+            onRenameSavedAudioFolder(folderId, screenState.renameFolderValue)
+            screenState.onRenameFolderCompleted()
+        },
+        onDismissDeleteFolder = screenState.onDismissDeleteFolder,
+        onConfirmDeleteFolder = {
+            val folderId = screenState.selectedCustomFolder?.folderId ?: return@LibraryTabScreenDialogs
+            onDeleteSavedAudioFolder(folderId)
+            screenState.onDeleteFolderCompleted()
+        },
+        onSelectMoveFolder = screenState.onMoveTargetFolderSelected,
+        onDismissMove = screenState.onDismissMove,
+        onConfirmMove = {
+            val request = screenState.moveRequest ?: return@LibraryTabScreenDialogs
+            onMoveSavedAudioToFolder(request.itemIds, screenState.moveTargetFolderId)
+            screenState.onMoveCompleted()
+            if (librarySelection.isSelectionMode) {
+                onClearLibrarySelection()
+            }
         },
     )
 

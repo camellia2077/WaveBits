@@ -13,11 +13,13 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.bag.audioandroid.R
+import com.bag.audioandroid.domain.PayloadFollowByteTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.TextFollowLyricLineTimelineEntry
 import com.bag.audioandroid.domain.TextFollowLineTokenRangeViewData
 import com.bag.audioandroid.domain.TextFollowRawDisplayUnitViewData
 import com.bag.audioandroid.domain.TextFollowTimelineEntry
+import com.bag.audioandroid.ui.model.TransportModeOption
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +42,7 @@ class AudioPlaybackProgressSectionTest {
                 isScrubbing = false,
                 waveformPcm = shortArrayOf(1, 2, 3, 4),
                 sampleRateHz = 44100,
+                transportMode = TransportModeOption.Pro,
                 isFlashMode = false,
                 flashVoicingStyle = null,
                 followData = sampleFollowData(),
@@ -55,9 +58,9 @@ class AudioPlaybackProgressSectionTest {
 
         composeRule.onNodeWithText(string(R.string.audio_playback_view_visual)).assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.audio_playback_view_lyrics)).assertIsDisplayed()
-        composeRule.onNodeWithTag("playback-token-context-tape").assertIsDisplayed()
-        composeRule.onNodeWithTag("playback-token-context-active").assertIsDisplayed()
-        composeRule.onAllNodesWithText(string(R.string.audio_follow_title)).assertCountEquals(0)
+        composeRule.onNodeWithTag("playback-display-section").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("playback-token-context-tape-list").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("playback-follow-section").assertCountEquals(0)
     }
 
     @Test
@@ -69,6 +72,7 @@ class AudioPlaybackProgressSectionTest {
                 isScrubbing = false,
                 waveformPcm = shortArrayOf(1, 2, 3, 4),
                 sampleRateHz = 44100,
+                transportMode = TransportModeOption.Pro,
                 isFlashMode = false,
                 flashVoicingStyle = null,
                 followData = sampleFollowData(),
@@ -82,8 +86,9 @@ class AudioPlaybackProgressSectionTest {
         }
 
         composeRule.onNodeWithTag("playback-display-visual").assertIsDisplayed()
-        composeRule.onNodeWithTag("playback-token-context-tape").assertIsDisplayed()
-        composeRule.onAllNodesWithText(string(R.string.audio_follow_title)).assertCountEquals(0)
+        composeRule.onNodeWithTag("playback-display-section").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("playback-token-context-tape-list").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("playback-follow-section").assertCountEquals(0)
     }
 
     @Test
@@ -95,6 +100,7 @@ class AudioPlaybackProgressSectionTest {
                 isScrubbing = false,
                 waveformPcm = shortArrayOf(1, 2, 3, 4),
                 sampleRateHz = 44100,
+                transportMode = TransportModeOption.Pro,
                 isFlashMode = false,
                 flashVoicingStyle = null,
                 followData = sampleFollowData(),
@@ -109,7 +115,7 @@ class AudioPlaybackProgressSectionTest {
         }
 
         composeRule.onNodeWithTag("playback-display-lyrics").performClick()
-        composeRule.onAllNodesWithTag("playback-token-context-tape").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("playback-token-context-tape-list").assertCountEquals(1)
         composeRule.onAllNodesWithTag("playback-follow-section").assertCountEquals(1)
     }
 
@@ -123,6 +129,7 @@ class AudioPlaybackProgressSectionTest {
                     isScrubbing = false,
                     waveformPcm = shortArrayOf(1, 2, 3, 4),
                     sampleRateHz = 44100,
+                    transportMode = TransportModeOption.Pro,
                     isFlashMode = false,
                     flashVoicingStyle = null,
                     followData = sampleFollowData(),
@@ -139,7 +146,7 @@ class AudioPlaybackProgressSectionTest {
 
         composeRule.onNodeWithTag("playback-display-lyrics").performClick()
         composeRule.onNodeWithTag("playback-progress-section").assertIsDisplayed()
-        composeRule.onAllNodesWithTag("playback-token-context-tape").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("playback-token-context-tape-list").assertCountEquals(1)
         composeRule.onAllNodesWithTag("playback-follow-section").assertCountEquals(1)
     }
 
@@ -152,6 +159,7 @@ class AudioPlaybackProgressSectionTest {
                 isScrubbing = false,
                 waveformPcm = shortArrayOf(1, 2, 3, 4),
                 sampleRateHz = 44100,
+                transportMode = TransportModeOption.Pro,
                 isFlashMode = false,
                 flashVoicingStyle = null,
                 followData = PayloadFollowViewData(followAvailable = true, textFollowAvailable = false),
@@ -165,7 +173,85 @@ class AudioPlaybackProgressSectionTest {
             )
         }
 
-        composeRule.onAllNodesWithTag("playback-token-context-tape").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("playback-token-context-tape-list").assertCountEquals(0)
+    }
+
+    @Test
+    fun `flash visual keeps visualization switcher`() {
+        composeRule.setContent {
+            AudioPlaybackProgressSection(
+                displayedSamples = 0,
+                totalSamples = 8,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4),
+                sampleRateHz = 44100,
+                transportMode = TransportModeOption.Flash,
+                isFlashMode = true,
+                flashVoicingStyle = null,
+                followData = sampleFollowData(),
+                displayedTime = "0:00",
+                totalTime = "0:01",
+                isPlaying = false,
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+            )
+        }
+
+        composeRule.onNodeWithTag("flash-visualization-mode-switcher").assertIsDisplayed()
+    }
+
+    @Test
+    fun `pro visual uses symbol envelope without flash switcher`() {
+        composeRule.setContent {
+            AudioPlaybackProgressSection(
+                displayedSamples = 0,
+                totalSamples = 8,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4),
+                sampleRateHz = 44100,
+                transportMode = TransportModeOption.Pro,
+                isFlashMode = false,
+                flashVoicingStyle = null,
+                followData = sampleFollowData(),
+                displayedTime = "0:00",
+                totalTime = "0:01",
+                isPlaying = false,
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+            )
+        }
+
+        composeRule.onNodeWithTag("pro-encoding-visualizer").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("flash-visualization-mode-switcher").assertCountEquals(0)
+    }
+
+    @Test
+    fun `ultra visual uses symbol envelope without flash switcher`() {
+        composeRule.setContent {
+            AudioPlaybackProgressSection(
+                displayedSamples = 0,
+                totalSamples = 8,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4),
+                sampleRateHz = 44100,
+                transportMode = TransportModeOption.Ultra,
+                isFlashMode = false,
+                flashVoicingStyle = null,
+                followData = sampleFollowData(),
+                displayedTime = "0:00",
+                totalTime = "0:01",
+                isPlaying = false,
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+            )
+        }
+
+        composeRule.onNodeWithTag("ultra-symbol-step-visualizer").assertIsDisplayed()
+        composeRule.onNodeWithTag("ultra-now-next-row").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("flash-visualization-mode-switcher").assertCountEquals(0)
     }
 
     private fun sampleFollowData(): PayloadFollowViewData =
@@ -187,6 +273,7 @@ class AudioPlaybackProgressSectionTest {
                 listOf(
                     TextFollowRawDisplayUnitViewData(0, 0, 4, 0, 0, 1, "41", "01000001"),
                 ),
+            byteTimeline = listOf(PayloadFollowByteTimelineEntry(0, 8, 0)),
             textFollowAvailable = true,
             lyricLines = listOf("ASH BELL RITE"),
             lyricLineTimeline = listOf(TextFollowLyricLineTimelineEntry(0, 12, 0)),

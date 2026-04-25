@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_immortal_rot_themed_warm_mire_stillness">따뜻한 진흙탕이 부드럽게 닫히고, 도움을 요청하는 외침은 침묵 속으로 사라집니다</string>
+    <string name="audio_sample_immortal_rot_ascii_warm_mire_stillness">THE WARM MIRE CLOSES. HELP IS NO LONGER REQUIRED.</string>
+    <string name="audio_sample_immortal_rot_themed_shield_sinks_from_hand">이제 천천히 숨을 들이마시세요. 방패가 무거운 것은 이미 충분히 제 역할을 다했기 때문이며, 잘려 나간 팔이 아픈 것은 그것이 마침내 해방되었음을 이해할 때까지만입니다. 녹이 무기를 멈추고, 안개가 폐 속에 가득 차며, 일어서라는 모든 명령은 잠결보다 더 멀리서 들려옵니다. 당신이 짊어질 수 없는 것들을 진흙이 붙잡게 두십시오. 싸우려는 의지가 마침내 풀릴 때, 절망은 세상에서 가장 부드러운 침대가 됩니다.</string>
+    <string name="audio_sample_immortal_rot_ascii_shield_sinks_from_hand">BREATHE SLOWLY. THE SHIELD IS HEAVY. THE WEAPON RUSTS SHUT. LET THE MUD HOLD WHAT YOU CANNOT CARRY. DESPAIR BECOMES A SOFT BED.</string>
+</resources>

@@ -9,7 +9,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
@@ -68,7 +73,51 @@ internal fun ConfigThemeAppearanceSection(
                 it.groupTitleResId == R.string.config_dual_tone_group_ancient_dynasty
             }
         }
+    val immortalRotThemes =
+        remember(brandThemes) {
+            brandThemes.filter {
+                it.groupTitleResId == R.string.config_dual_tone_group_immortal_rot
+            }
+        }
+    val scarletCarnageThemes =
+        remember(brandThemes) {
+            brandThemes.filter {
+                it.groupTitleResId == R.string.config_dual_tone_group_scarlet_carnage
+            }
+        }
+    val exquisiteFallThemes =
+        remember(brandThemes) {
+            brandThemes.filter {
+                it.groupTitleResId == R.string.config_dual_tone_group_exquisite_fall
+            }
+        }
+    val labyrinthOfMutabilityThemes =
+        remember(brandThemes) {
+            brandThemes.filter {
+                it.groupTitleResId == R.string.config_dual_tone_group_labyrinth_of_mutability
+            }
+        }
     val isBrandStyle = selectedThemeStyle == ThemeStyleOption.BrandDualTone
+    var sacredMachineExpanded by rememberSaveable { mutableStateOf(false) }
+    var ancientDynastyExpanded by rememberSaveable { mutableStateOf(false) }
+    var immortalRotExpanded by rememberSaveable { mutableStateOf(false) }
+    var scarletCarnageExpanded by rememberSaveable { mutableStateOf(false) }
+    var exquisiteFallExpanded by rememberSaveable { mutableStateOf(false) }
+    var labyrinthOfMutabilityExpanded by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(isBrandStyle, selectedBrandTheme.id, brandThemes) {
+        if (!isBrandStyle) {
+            return@LaunchedEffect
+        }
+        when (selectedBrandTheme.groupTitleResId) {
+            R.string.config_dual_tone_group_sacred_machine -> sacredMachineExpanded = true
+            R.string.config_dual_tone_group_ancient_dynasty -> ancientDynastyExpanded = true
+            R.string.config_dual_tone_group_immortal_rot -> immortalRotExpanded = true
+            R.string.config_dual_tone_group_scarlet_carnage -> scarletCarnageExpanded = true
+            R.string.config_dual_tone_group_exquisite_fall -> exquisiteFallExpanded = true
+            R.string.config_dual_tone_group_labyrinth_of_mutability -> labyrinthOfMutabilityExpanded = true
+        }
+    }
 
     Surface(
         shape = MaterialTheme.shapes.medium,
@@ -205,6 +254,8 @@ internal fun ConfigThemeAppearanceSection(
                                 title = stringResource(R.string.config_dual_tone_group_sacred_machine),
                                 options = sacredMachineThemes,
                                 selectedBrandTheme = selectedBrandTheme,
+                                expanded = sacredMachineExpanded,
+                                onExpandedChanged = { sacredMachineExpanded = it },
                                 onBrandThemeSelected = onBrandThemeSelected,
                             )
                             BrandThemeSection(
@@ -212,6 +263,44 @@ internal fun ConfigThemeAppearanceSection(
                                 title = stringResource(R.string.config_dual_tone_group_ancient_dynasty),
                                 options = ancientDynastyThemes,
                                 selectedBrandTheme = selectedBrandTheme,
+                                expanded = ancientDynastyExpanded,
+                                onExpandedChanged = { ancientDynastyExpanded = it },
+                                onBrandThemeSelected = onBrandThemeSelected,
+                            )
+                            BrandThemeSection(
+                                accentTokens = accentTokens,
+                                title = stringResource(R.string.config_dual_tone_group_immortal_rot),
+                                options = immortalRotThemes,
+                                selectedBrandTheme = selectedBrandTheme,
+                                expanded = immortalRotExpanded,
+                                onExpandedChanged = { immortalRotExpanded = it },
+                                onBrandThemeSelected = onBrandThemeSelected,
+                            )
+                            BrandThemeSection(
+                                accentTokens = accentTokens,
+                                title = stringResource(R.string.config_dual_tone_group_scarlet_carnage),
+                                options = scarletCarnageThemes,
+                                selectedBrandTheme = selectedBrandTheme,
+                                expanded = scarletCarnageExpanded,
+                                onExpandedChanged = { scarletCarnageExpanded = it },
+                                onBrandThemeSelected = onBrandThemeSelected,
+                            )
+                            BrandThemeSection(
+                                accentTokens = accentTokens,
+                                title = stringResource(R.string.config_dual_tone_group_exquisite_fall),
+                                options = exquisiteFallThemes,
+                                selectedBrandTheme = selectedBrandTheme,
+                                expanded = exquisiteFallExpanded,
+                                onExpandedChanged = { exquisiteFallExpanded = it },
+                                onBrandThemeSelected = onBrandThemeSelected,
+                            )
+                            BrandThemeSection(
+                                accentTokens = accentTokens,
+                                title = stringResource(R.string.config_dual_tone_group_labyrinth_of_mutability),
+                                options = labyrinthOfMutabilityThemes,
+                                selectedBrandTheme = selectedBrandTheme,
+                                expanded = labyrinthOfMutabilityExpanded,
+                                onExpandedChanged = { labyrinthOfMutabilityExpanded = it },
                                 onBrandThemeSelected = onBrandThemeSelected,
                             )
                         }

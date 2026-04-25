@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_caliper_oil_rite">The brass calipers receive purified oil before the first gear is touched</string>
+    <string name="audio_sample_sacred_machine_ascii_caliper_oil_rite">APPLY SACRED OIL TO BRASS CALIPERS</string>
+    <string name="audio_sample_sacred_machine_themed_bolt_sequence_litany">The maintenance acolytes entered in antistatic robes and set the soft brushes beside the open board as if arranging relics. Purified oil was measured along the brass scale, antirust incense smoked above the gear train, and each bolt was tightened in the order written on the enamel strip. No hand moved quickly. Wear was named as sin, friction as fall, and the rescued machine was allowed to forgive the room one measured click at a time.</string>
+    <string name="audio_sample_sacred_machine_ascii_bolt_sequence_litany">MAINTENANCE RITE. PURIFIED OIL APPLIED. ANTIRUST INCENSE BURNED. BOLTS TIGHTENED IN THE APPROVED ORDER. WEAR IS SIN. FRICTION IS FALL.</string>
+</resources>

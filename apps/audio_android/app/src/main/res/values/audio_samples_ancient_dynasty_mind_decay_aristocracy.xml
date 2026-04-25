@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <string name="audio_sample_ancient_dynasty_themed_rusted_throne_bad_memory">The rusted throne accepts another decree from a fractured memory</string>
+    <string name="audio_sample_ancient_dynasty_ascii_rusted_throne_bad_memory">RUSTED THRONE ACCEPTS A DECREE FROM BROKEN MEMORY.</string>
+    <string name="audio_sample_ancient_dynasty_themed_court_debates_dead_realm">The skeletal metal phalanxes stand mute while the nobles argue over a border that vanished before the aeonic sleep. Alloy cloaks hang splendid and stiff from bodies that cannot feel their weight. The overlord repeats an honorific to a courtier whose self was erased in the transfer, and the council records unanimous consent. Immortal machinery preserves the dynasty perfectly, save for the minds already rotting inside it.</string>
+    <string name="audio_sample_ancient_dynasty_ascii_court_debates_dead_realm">MUTE METAL PHALANXES STAND. NOBLES ARGUE OVER VANISHED BORDERS. BROKEN MEMORY SIGNS THE DECREE. IMMORTAL MACHINERY PRESERVES A MIND ALREADY ROTTING.</string>
+
+</resources>
+

@@ -132,3 +132,50 @@ Rules:
 - `selectionBorderAccentTint`
   - 选中边框、选中描边
   - 用于选中态的结构性强调
+
+## Color Role Names
+
+`BrandThemeCatalog.kt` uses visual-role names rather than Material slot names:
+
+- `backgroundColor`
+  - dominant page / surface color
+  - used for large-area atmosphere and dual-tone preview's left side
+- `accentColor`
+  - primary interaction and selection color
+  - used for buttons, selected states, disclosure accents, and dual-tone preview's right side
+- `outlineColor`
+  - small-area graphic / mechanical highlight color
+  - currently used by the Audio encode gear glyph outline
+  - defaults to `accentColor` when a theme does not need a separate outline accent
+
+Do not infer color responsibility from `isDarkTheme`. `isDarkTheme` only selects readable Material color-scheme behavior; it must not swap the semantic meaning of `backgroundColor` and `accentColor`.
+
+## Audio Encode Glyph
+
+- The Audio encode gear glyph is part of the dual-tone language.
+- Fill colors come from `AudioEncodeGlyphColors`:
+  - `primarySplit` = `accentColor`
+  - `secondarySplit` = `backgroundColor`
+  - `outline` = `outlineColor`
+- Do not hard-code theme-specific gear colors inside glyph drawing components.
+- If a new theme needs better gear contrast, set `outlineColor` in `BrandThemeCatalog.kt` first.
+
+## Adding Or Changing A Dual-tone Theme
+
+When adding a new dual-tone theme or changing theme colors:
+
+1. Read this document first.
+2. Update `BrandThemeCatalog.kt` with:
+   - `backgroundColor`
+   - `accentColor`
+   - optional `outlineColor`
+   - `sampleFlavor`
+3. If adding a new group / lineup, update all visible string resources for the group and theme names.
+4. If adding a new text flavor, update:
+   - `AndroidSampleInputTextProvider.kt`
+   - matching `audio_samples_*` resources for every supported language
+   - tests or fake providers that exhaustively switch on `SampleFlavor`
+5. If adding a new Config group, wire it into `ConfigThemeAppearanceSection.kt` so it participates in collapsible dual-tone grouping.
+6. Keep concrete UI components free of theme-id color branches; route color behavior through shared helpers / tokens.
+7. Run the focused Android verification used by nearby theme/sample changes.
+

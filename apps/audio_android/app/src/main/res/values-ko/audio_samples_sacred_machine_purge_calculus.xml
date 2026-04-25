@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_kill_confirmed_equation">제거 확인됨; 생존 가능성은 0으로 수렴합니다</string>
+    <string name="audio_sample_sacred_machine_ascii_kill_confirmed_equation">KILL CONFIRMED SURVIVAL PROBABILITY ZERO</string>
+    <string name="audio_sample_sacred_machine_themed_ballistic_debug_grid">첫 번째 총신이 붉게 달아오르기 전에 정화 연산이 완료되었습니다. 탄도 격자가 방을 가로질렀고, 사상자 표시줄은 감정 없이 상승했으며, 각 표적은 제거되기를 기다리는 중복된 변수가 되었습니다. 사격 솔루션에는 어떤 증오도 섞이지 않았습니다. 소총은 동기화된 일제 사격으로 응답했고, 사살 확인 톤이 보정된 공간을 표시했으며, 보고서는 모든 적대적 확률이 0으로 반올림되었을 때 종료되었습니다.</string>
+    <string name="audio_sample_sacred_machine_ascii_ballistic_debug_grid">PURGE CALCULUS. BALLISTIC GRIDS SOLVED THE ROOM. CASUALTY BARS ROSE. TARGETS WERE REDUNDANT VARIABLES. HEAT BARRELS GLOWED. PHYSICAL DESTRUCTION COMPLETED THE DEBUG.</string>
+</resources>

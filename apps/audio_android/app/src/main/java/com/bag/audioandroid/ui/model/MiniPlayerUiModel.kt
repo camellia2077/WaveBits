@@ -5,6 +5,7 @@ data class MiniPlayerUiModel(
     val subtitle: UiText,
     val leadingIcon: MiniPlayerLeadingIcon,
     val durationMs: Long,
+    val transportMode: TransportModeOption,
     val isFlashMode: Boolean,
     val flashVoicingStyle: FlashVoicingStyleOption?,
     val source: MiniPlayerSource,

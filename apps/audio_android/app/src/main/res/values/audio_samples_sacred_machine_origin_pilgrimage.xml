@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_source_matrix_recovered">A source matrix is found intact beneath ancient dust</string>
+    <string name="audio_sample_sacred_machine_ascii_source_matrix_recovered">SOURCE MATRIX RECOVERED FROM ANCIENT DUST</string>
+    <string name="audio_sample_sacred_machine_themed_ancient_database_pilgrimage">The pilgrimage fleet found the derelict drifting cold in the deep dark. Beneath dust thick enough to bury centuries, a data wafer still held one uncorrupted path into the ancient database. Decryption advanced by single luminous marks, and the bridge crew wept when a perfect source matrix answered. Six ships had been lost in transit; the margin note calls the price modest.</string>
+    <string name="audio_sample_sacred_machine_ascii_ancient_database_pilgrimage">ORIGIN PILGRIMAGE. DERELICT HULL FOUND IN DEEP SPACE. DATA CHIPS CLEANED. ANCIENT DATABASE DECRYPTION REACHED ONE PERFECT LINE. THE FLEET LOSS WAS ACCEPTABLE.</string>
+</resources>

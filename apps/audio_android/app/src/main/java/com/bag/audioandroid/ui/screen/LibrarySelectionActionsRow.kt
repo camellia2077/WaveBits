@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ internal fun LibrarySelectionActionsRow(
     selectedCount: Int,
     canSelectAll: Boolean,
     onSelectAll: () -> Unit,
+    onMoveSelected: () -> Unit,
     onDeleteSelected: () -> Unit,
     onClearSelection: () -> Unit,
 ) {
@@ -42,6 +44,15 @@ internal fun LibrarySelectionActionsRow(
             Icon(
                 imageVector = Icons.Rounded.DoneAll,
                 contentDescription = stringResource(R.string.library_action_select_all),
+            )
+        }
+        IconButton(
+            onClick = onMoveSelected,
+            enabled = selectedCount > 0,
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.FolderOpen,
+                contentDescription = stringResource(R.string.library_action_move_selected),
             )
         }
         IconButton(

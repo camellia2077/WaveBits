@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
+import com.bag.audioandroid.ui.model.TransportModeOption
 
 @Composable
 internal fun AudioPlaybackProgressSection(
@@ -17,6 +18,8 @@ internal fun AudioPlaybackProgressSection(
     isScrubbing: Boolean,
     waveformPcm: ShortArray,
     sampleRateHz: Int,
+    transportMode: TransportModeOption?,
+    frameSamples: Int = 2205,
     isFlashMode: Boolean,
     flashVoicingStyle: FlashVoicingStyleOption?,
     followData: PayloadFollowViewData,
@@ -47,6 +50,8 @@ internal fun AudioPlaybackProgressSection(
             displayedSamples = displayedSamples,
             waveformPcm = waveformPcm,
             sampleRateHz = sampleRateHz,
+            transportMode = transportMode,
+            frameSamples = frameSamples,
             isFlashMode = isFlashMode,
             flashVoicingStyle = flashVoicingStyle,
             followData = followData,

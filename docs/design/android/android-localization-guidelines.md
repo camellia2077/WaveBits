@@ -29,7 +29,7 @@
 
 - `apps/audio_android/app/src/main/res/values-de/strings.xml`
 - `apps/audio_android/app/src/main/res/values-es/strings.xml`
-- `apps/audio_android/app/src/main/res/values-pt/strings.xml`
+- `apps/audio_android/app/src/main/res/values-pt-rBR/strings.xml`
 - `apps/audio_android/app/src/main/res/values-ru/strings.xml`
 
 如果本次改动涉及用户可见文案，默认应一起补齐，不要只改英文后留下其它语言漂移。
@@ -66,6 +66,33 @@
 - `Input text`
 
 如果要改这些词，应该成组检查相关页面和语言资源，而不是只改一处。
+
+## Mode Input Encoding
+
+`Input text` 的本地化、随机样例与默认示例，必须遵守各 transport mode 的输入编码约束；不要只按语言习惯改文案，而忽略 mode 本身的可编码范围。
+
+- `flash`
+  - 输入文本不做字符集限制。
+  - 它关注的是原始输入字节的透明传输，而不是特定字符集语义。
+  - 因此 `flash` 的默认示例与随机样例可以随 app language 本地化。
+
+- `pro`
+  - 输入文本必须保持 `ASCII-only`。
+  - 因此 `pro` 的默认示例、随机样例和任何预填文案，都不应引入非 ASCII 字符。
+  - 即使 app language 切换到中文、日文、俄文等语言，`pro` 的样例也应继续提供可直接编码的 ASCII 文本。
+
+- `ultra`
+  - 输入文本按 `UTF-8` byte 处理。
+  - 因此 `ultra` 的默认示例与随机样例可以随 app language 本地化，不需要沿用 `pro` 的 ASCII-only 约束。
+
+## Sample Text Rules
+
+如果改动涉及 `Input text` 的默认示例、随机样例或语言切换逻辑，除了检查翻译语义，还要同时检查：
+
+- 当前文案是否符合对应 mode 的输入编码约束
+- 同一个 sample slot 在不同语言下是否保持大体语义一致
+- `pro` 样例是否仍然是可直接编码的 ASCII 文本
+- `flash` / `ultra` 样例是否在符合产品风格的前提下做了自然本地化
 
 ## Non-XML Text
 

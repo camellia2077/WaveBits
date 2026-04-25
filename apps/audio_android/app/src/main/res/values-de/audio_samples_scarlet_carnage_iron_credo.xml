@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_scarlet_carnage_themed_black_iron_answers_magic">Der Kristallstab bricht unter bloßer Faust.</string>
+    <string name="audio_sample_scarlet_carnage_themed_face_to_face_truth">Kein seidener Zauber. Kein verstecktes Messer. Kein Schuss vom sicheren Hügel. Schwarzes Eisen und Messing gehen durch das Feuer, ohne den Kopf zu senken. Die Entfernung schließt sich. Ein Kristallstab splittert. Ein falscher Schild reißt in bloßen Händen. Zwei schwere Waffen treffen aufeinander, und die Funken sprechen die einzige Wahrheit: Gesicht an Gesicht, Auge an Auge, Knochen unter Eisen.</string>
+    <string name="audio_sample_scarlet_carnage_themed_metal_crushes_magic">Eisen zermalmt Magie. Nur der Schlag ist wahr.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_metal_crushes_magic">METALL ZERMALMT MAGIE. NUR DER SCHWUNG IST WAHR.</string>
+    <string name="audio_sample_scarlet_carnage_themed_iron_splits_bone">Unsichtbare Schilde falten sich wie Papier unter bloßen Händen. Energiekerne werden zu Staub zerquetscht. Sie verstecken sich hinter Tricks und Hexerei, aber die schwere Rüstung weicht nicht. Sie geht durch das Feuer, unbeeindruckt von Feigheit. Wenn die Klinge herabschwingt, verblassen alle Illusionen. Es gibt keine Magie, die dich retten kann, wenn das Eisen den Knochen spaltet. Das ist der einzige ehrliche Tod.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_iron_splits_bone">SCHILDE FALTEN SICH WIE PAPIER. KERNE ZU STAUB ZERQUETSCHT. SCHWERE RUESTUNG GEHT DURCH FEUER. KEINE MAGIE RETTET DICH. EISEN SPALTET KNOCHEN. DER EINZIGE EHRLICHE TOD.</string>
+</resources>

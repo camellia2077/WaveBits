@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_immortal_rot_themed_warm_mire_stillness">The warm mire closes softly, and the call for help fades into silence</string>
+    <string name="audio_sample_immortal_rot_ascii_warm_mire_stillness">THE WARM MIRE CLOSES. HELP IS NO LONGER REQUIRED.</string>
+    <string name="audio_sample_immortal_rot_themed_shield_sinks_from_hand">Breathe slowly now. The shield is heavy because it has served enough, and the severed arm aches only until you understand that it has been released. Rust stills the weapon, fog thickens in the lungs, and every order to stand sounds farther away than sleep. Let the mud hold what you cannot carry. When the will to fight finally loosens, despair becomes the softest bed in the world.</string>
+    <string name="audio_sample_immortal_rot_ascii_shield_sinks_from_hand">BREATHE SLOWLY. THE SHIELD IS HEAVY. THE WEAPON RUSTS SHUT. LET THE MUD HOLD WHAT YOU CANNOT CARRY. DESPAIR BECOMES A SOFT BED.</string>
+</resources>

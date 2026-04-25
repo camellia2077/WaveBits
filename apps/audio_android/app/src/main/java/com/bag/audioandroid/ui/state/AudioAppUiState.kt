@@ -2,6 +2,7 @@ package com.bag.audioandroid.ui.state
 
 import com.bag.audioandroid.domain.DecodedPayloadViewData
 import com.bag.audioandroid.domain.PayloadFollowViewData
+import com.bag.audioandroid.domain.SavedAudioFolder
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.R
 import com.bag.audioandroid.ui.model.AppLanguageOption
@@ -43,6 +44,8 @@ data class AudioAppUiState(
     val playbackSequenceMode: PlaybackSequenceMode = PlaybackSequenceMode.Normal,
     val selectedSavedAudio: SavedAudioPlaybackSelection? = null,
     val savedAudioItems: List<SavedAudioItem> = emptyList(),
+    val savedAudioFolders: List<SavedAudioFolder> = emptyList(),
+    val savedAudioFolderAssignments: Map<String, String> = emptyMap(),
     val librarySelection: LibrarySelectionUiState = LibrarySelectionUiState(),
     val showSavedAudioSheet: Boolean = false,
     val showPlayerDetailSheet: Boolean = false,
@@ -84,6 +87,26 @@ data class AudioAppUiState(
                         ?.takeIf { it.item.itemId == source.itemId }
                         ?.pcm
                         ?: shortArrayOf()
+            }
+
+    val currentPlaybackTransportMode: TransportModeOption?
+        get() =
+            when (val source = currentPlaybackSource) {
+                is AudioPlaybackSource.Generated -> source.mode
+                is AudioPlaybackSource.Saved -> currentSavedAudioItem?.modeWireName?.let(TransportModeOption::fromWireName)
+            }
+
+    val currentPlaybackFrameSamples: Int
+        get() =
+            when (val source = currentPlaybackSource) {
+                is AudioPlaybackSource.Generated ->
+                    sessions.getValue(source.mode).generatedAudioMetadata?.frameSamples ?: 2205
+                is AudioPlaybackSource.Saved ->
+                    selectedSavedAudio
+                        ?.takeIf { it.item.itemId == source.itemId }
+                        ?.metadata
+                        ?.frameSamples
+                        ?: 2205
             }
 
     val currentSavedAudioItem: SavedAudioItem?
@@ -178,6 +201,7 @@ data class AudioAppUiState(
                             subtitle = generatedMiniPlayerSubtitle(source.mode, session.generatedFlashVoicingStyle, durationMs),
                             leadingIcon = MiniPlayerLeadingIcon.Generated,
                             durationMs = durationMs,
+                            transportMode = source.mode,
                             isFlashMode = source.mode == TransportModeOption.Flash,
                             flashVoicingStyle = session.generatedFlashVoicingStyle,
                             source = MiniPlayerSource.Generated,
@@ -197,6 +221,8 @@ data class AudioAppUiState(
                                 ),
                             leadingIcon = MiniPlayerLeadingIcon.Saved,
                             durationMs = item.durationMs,
+                            transportMode =
+                                TransportModeOption.fromWireName(item.modeWireName) ?: TransportModeOption.Flash,
                             isFlashMode = item.modeWireName == TransportModeOption.Flash.wireName,
                             flashVoicingStyle = item.flashVoicingStyle,
                             source = MiniPlayerSource.Saved,

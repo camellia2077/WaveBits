@@ -1,9 +1,15 @@
 package com.bag.audioandroid.ui.screen
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.TextFollowRawDisplayUnitViewData
 import com.bag.audioandroid.domain.TextFollowTimelineEntry
@@ -13,6 +19,7 @@ import com.bag.audioandroid.ui.model.MiniPlayerLeadingIcon
 import com.bag.audioandroid.ui.model.MiniPlayerSource
 import com.bag.audioandroid.ui.model.MiniPlayerUiModel
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
+import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.model.UiText
 import org.junit.Rule
 import org.junit.Test
@@ -38,6 +45,7 @@ class PlayerDetailSheetContentTest {
                             ),
                         leadingIcon = MiniPlayerLeadingIcon.Generated,
                         durationMs = 44_000L,
+                        transportMode = TransportModeOption.Flash,
                         isFlashMode = true,
                         flashVoicingStyle = FlashVoicingStyleOption.RitualChant,
                         source = MiniPlayerSource.Generated,
@@ -70,8 +78,107 @@ class PlayerDetailSheetContentTest {
         }
 
         composeRule.onNodeWithTag("player-detail-sheet-content").assertIsDisplayed()
-        composeRule.onNodeWithTag("playback-progress-section").assertIsDisplayed()
+        composeRule.onNodeWithTag("playback-display-section").assertIsDisplayed()
         composeRule.onNodeWithTag("playback-display-switcher").assertIsDisplayed()
+        composeRule.onAllNodesWithText(composeRule.activity.getString(R.string.audio_player_detail_now_playing)).assertCountEquals(0)
+    }
+
+    @Test
+    fun `audio info button opens dialog with transport mode and duration`() {
+        composeRule.setContent {
+            PlayerDetailSheetContent(
+                miniPlayerModel =
+                    MiniPlayerUiModel(
+                        title = UiText.Plain("Pro"),
+                        subtitle = UiText.Plain("generated"),
+                        leadingIcon = MiniPlayerLeadingIcon.Generated,
+                        durationMs = 44_000L,
+                        transportMode = TransportModeOption.Pro,
+                        isFlashMode = false,
+                        flashVoicingStyle = null,
+                        source = MiniPlayerSource.Generated,
+                    ),
+                displayedSamples = 7,
+                totalSamples = 12,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4, 5, 6),
+                sampleRateHz = 44_100,
+                displayedTime = "0:07",
+                totalTime = "0:12",
+                isPlaying = false,
+                playbackSequenceMode = PlaybackSequenceMode.Normal,
+                canSkipPrevious = false,
+                canSkipNext = false,
+                canExportGeneratedAudio = true,
+                followData = sampleFollowData(),
+                savedAudioItem = null,
+                onTogglePlayback = {},
+                onSkipToPreviousTrack = {},
+                onSkipToNextTrack = {},
+                onPlaybackSequenceModeSelected = {},
+                onExportGeneratedAudio = {},
+                onShareSavedAudio = null,
+                onOpenSavedAudioSheet = {},
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.audio_action_open_audio_info)).performClick()
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.audio_info_dialog_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.transport_mode_pro_label)).assertIsDisplayed()
+        composeRule.onNodeWithText("0:44").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("audio-info-user-section", useUnmergedTree = true).assertCountEquals(1)
+        composeRule.onAllNodesWithTag("audio-info-technical-section", useUnmergedTree = true).assertCountEquals(1)
+        composeRule.onAllNodesWithTag("audio-info-row-sample-rate", useUnmergedTree = true).assertCountEquals(1)
+        composeRule.onAllNodesWithTag("audio-info-row-frame-samples", useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    @Test
+    fun `flash audio info dialog shows voicing style`() {
+        composeRule.setContent {
+            PlayerDetailSheetContent(
+                miniPlayerModel =
+                    MiniPlayerUiModel(
+                        title = UiText.Plain("Flash"),
+                        subtitle = UiText.Plain("generated"),
+                        leadingIcon = MiniPlayerLeadingIcon.Generated,
+                        durationMs = 44_000L,
+                        transportMode = TransportModeOption.Flash,
+                        isFlashMode = true,
+                        flashVoicingStyle = FlashVoicingStyleOption.RitualChant,
+                        source = MiniPlayerSource.Generated,
+                    ),
+                displayedSamples = 7,
+                totalSamples = 12,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4, 5, 6),
+                sampleRateHz = 44_100,
+                displayedTime = "0:07",
+                totalTime = "0:12",
+                isPlaying = false,
+                playbackSequenceMode = PlaybackSequenceMode.Normal,
+                canSkipPrevious = false,
+                canSkipNext = false,
+                canExportGeneratedAudio = true,
+                followData = sampleFollowData(),
+                savedAudioItem = null,
+                onTogglePlayback = {},
+                onSkipToPreviousTrack = {},
+                onSkipToNextTrack = {},
+                onPlaybackSequenceModeSelected = {},
+                onExportGeneratedAudio = {},
+                onShareSavedAudio = null,
+                onOpenSavedAudioSheet = {},
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.audio_action_open_audio_info)).performClick()
+        composeRule.onAllNodesWithTag("audio-info-row-flash-voicing-style", useUnmergedTree = true).assertCountEquals(1)
     }
 
     private fun sampleFollowData(): PayloadFollowViewData =

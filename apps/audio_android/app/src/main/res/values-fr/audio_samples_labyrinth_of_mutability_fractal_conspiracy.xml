@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_labyrinth_of_mutability_themed_thread_pulls_the_hero">Le héros coupe une corde et resserre le nœud coulant de la suivante</string>
+    <string name="audio_sample_labyrinth_of_mutability_ascii_thread_pulls_the_hero">HERO CUTS ONE STRING. THE NEXT NOOSE TIGHTENS.</string>
+    <string name="audio_sample_labyrinth_of_mutability_themed_final_trap_needs_rebellion">Le plateau brûle au milieu du coup, exactement comme prévu. Des lettres contradictoires arrivent de mains familières. Le poison est offert avec un sourire, les alliés deviennent des portes, les ennemis des clés, et chaque héros sacrifié croit que l’évasion était sa propre invention. Regardez de plus près : la rébellion, la trahison, le coup de chance — tout cela se noue pour former la dernière pièce manquante du piège.</string>
+    <string name="audio_sample_labyrinth_of_mutability_ascii_final_trap_needs_rebellion">BOARD BURNS MID-MOVE. LETTERS CONTRADICT. POISON SMILES. ALLIES ARE DOORS. ENEMIES ARE KEYS. REBELLION COMPLETES THE TRAP.</string>
+</resources>

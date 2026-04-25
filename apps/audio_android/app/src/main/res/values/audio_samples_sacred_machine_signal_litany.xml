@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_ping_canticle_confirmed">Ping confirmed; the binary canticle remains linked</string>
+    <string name="audio_sample_sacred_machine_ascii_ping_canticle_confirmed">PING CONFIRMED BINARY CANTICLE HOLDS</string>
+    <string name="audio_sample_sacred_machine_themed_deep_array_handshake">LED ranks blinked in clipped meter while white noise rasped beneath the carrier tone. Hex code rolled down the screens, burst by burst, and the deep antenna field turned toward a place where no human eye could fathom the void. The first handshake chime sounded like absolution. No packet fell, no pulse returned late, and the operators wrote that connection had been granted for one more breath of the universe.</string>
+    <string name="audio_sample_sacred_machine_ascii_deep_array_handshake">SIGNAL LITANY. LED ARRAYS BLINKED IN BINARY PULSE. CARRIER LOCKED. HEX CODE SCROLLED. THE DEEP ARRAY RETURNED HANDSHAKE ACK. NO PACKET WAS LOST.</string>
+</resources>

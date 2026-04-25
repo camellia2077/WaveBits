@@ -92,7 +92,6 @@ class PlaybackDataFollowSectionTest {
             )
         }
 
-        composeRule.onNodeWithText(string(R.string.audio_follow_title)).assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.audio_follow_text_unavailable)).assertIsDisplayed()
         composeRule.onAllNodesWithText(string(R.string.audio_follow_view_hex)).assertCountEquals(0)
     }

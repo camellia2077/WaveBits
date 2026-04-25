@@ -1,6 +1,8 @@
 package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.R
+import com.bag.audioandroid.domain.SavedAudioFolder
+import com.bag.audioandroid.domain.SavedAudioFolderMutationResult
 import com.bag.audioandroid.domain.SavedAudioImportResult
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRenameResult
@@ -18,6 +20,121 @@ internal class AudioSavedAudioMutationActions(
     private val stopPlayback: () -> Unit,
     private val setCurrentStatusText: (UiText) -> Unit,
 ) {
+    fun onCreateSavedAudioFolder(name: String) {
+        when (val result = savedAudioRepository.createSavedAudioFolder(name)) {
+            is SavedAudioFolderMutationResult.Success -> {
+                refreshSavedAudioItems()
+                uiState.update {
+                    it.copy(
+                        libraryStatusText =
+                            UiText.Resource(
+                                R.string.library_status_folder_created,
+                                listOf(result.folder.name),
+                            ),
+                    )
+                }
+            }
+
+            SavedAudioFolderMutationResult.DuplicateName ->
+                uiState.update {
+                    it.copy(libraryStatusText = UiText.Resource(R.string.library_status_folder_duplicate))
+                }
+
+            SavedAudioFolderMutationResult.Failed ->
+                uiState.update {
+                    it.copy(libraryStatusText = UiText.Resource(R.string.library_status_folder_create_failed))
+                }
+        }
+    }
+
+    fun onRenameSavedAudioFolder(
+        folderId: String,
+        name: String,
+    ) {
+        when (val result = savedAudioRepository.renameSavedAudioFolder(folderId, name)) {
+            is SavedAudioFolderMutationResult.Success -> {
+                refreshSavedAudioItems()
+                uiState.update {
+                    it.copy(
+                        libraryStatusText =
+                            UiText.Resource(
+                                R.string.library_status_folder_renamed,
+                                listOf(result.folder.name),
+                            ),
+                    )
+                }
+            }
+
+            SavedAudioFolderMutationResult.DuplicateName ->
+                uiState.update {
+                    it.copy(libraryStatusText = UiText.Resource(R.string.library_status_folder_duplicate))
+                }
+
+            SavedAudioFolderMutationResult.Failed ->
+                uiState.update {
+                    it.copy(libraryStatusText = UiText.Resource(R.string.library_status_folder_rename_failed))
+                }
+        }
+    }
+
+    fun onDeleteSavedAudioFolder(folderId: String) {
+        val folderName = uiState.value.savedAudioFolders.firstOrNull { it.folderId == folderId }?.name
+        if (!savedAudioRepository.deleteSavedAudioFolder(folderId)) {
+            uiState.update {
+                it.copy(libraryStatusText = UiText.Resource(R.string.library_status_folder_delete_failed))
+            }
+            return
+        }
+        refreshSavedAudioItems()
+        uiState.update {
+            it.copy(
+                libraryStatusText =
+                    UiText.Resource(
+                        R.string.library_status_folder_deleted,
+                        listOf(folderName ?: ""),
+                    ),
+            )
+        }
+    }
+
+    fun onMoveSavedAudioToFolder(
+        itemIds: Collection<String>,
+        folderId: String?,
+    ) {
+        val targetItemIds =
+            itemIds
+                .filter { candidateId ->
+                    uiState.value.savedAudioItems.any { it.itemId == candidateId }
+                }.toSet()
+        if (targetItemIds.isEmpty()) {
+            return
+        }
+        if (!savedAudioRepository.assignSavedAudioToFolder(targetItemIds, folderId)) {
+            uiState.update {
+                it.copy(libraryStatusText = UiText.Resource(R.string.library_status_move_failed))
+            }
+            return
+        }
+        refreshSavedAudioItems()
+        val folderName = resolveFolderName(folderId, uiState.value.savedAudioFolders)
+        uiState.update {
+            it.copy(
+                libraryStatusText =
+                    if (folderId == null) {
+                        UiText.Resource(
+                            R.string.library_status_moved_to_uncategorized,
+                            listOf(targetItemIds.size),
+                        )
+                    } else {
+                        UiText.Resource(
+                            R.string.library_status_moved_to_folder,
+                            listOf(targetItemIds.size, folderName),
+                        )
+                    },
+            )
+        }
+    }
+
     fun onDeleteSelectedSavedAudio() {
         val selectedItemIds =
             uiState.value.librarySelection.selectedItemIds
@@ -159,12 +276,15 @@ internal class AudioSavedAudioMutationActions(
 
     fun refreshSavedAudioItems() {
         val savedAudioItems = savedAudioRepository.listSavedAudio()
+        val libraryMetadata = savedAudioRepository.readLibraryMetadata()
         val savedAudioItemIds = savedAudioItems.map { it.itemId }.toSet()
         uiState.update { state ->
             val selectedItemIds = state.librarySelection.selectedItemIds.intersect(savedAudioItemIds)
             val currentPlaybackSource = state.currentPlaybackSource
             state.copy(
                 savedAudioItems = savedAudioItems,
+                savedAudioFolders = libraryMetadata.folders,
+                savedAudioFolderAssignments = libraryMetadata.itemFolderAssignments.filterKeys { it in savedAudioItemIds },
                 selectedSavedAudio = state.selectedSavedAudio?.takeIf { it.item.itemId in savedAudioItemIds },
                 currentPlaybackSource =
                     if (currentPlaybackSource is AudioPlaybackSource.Saved &&
@@ -194,4 +314,14 @@ internal class AudioSavedAudioMutationActions(
             stopPlayback()
         }
     }
+
+    private fun resolveFolderName(
+        folderId: String?,
+        folders: List<SavedAudioFolder>,
+    ): String =
+        if (folderId == null) {
+            ""
+        } else {
+            folders.firstOrNull { it.folderId == folderId }?.name.orEmpty()
+        }
 }

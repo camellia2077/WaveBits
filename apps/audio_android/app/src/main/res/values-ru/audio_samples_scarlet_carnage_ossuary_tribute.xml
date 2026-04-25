@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_scarlet_carnage_themed_skull_step_receives">Клинок опускается; еще один трофей для оссуария.</string>
+    <string name="audio_sample_scarlet_carnage_themed_red_river_pays_the_stair">Шпиль возвышается на полированных костях, стертых до блеска прикосновениями счетовода. Вязкий прилив прорезает каньоны в иле, топя каждое знамя в цвете вскрытой вены. Клинок бьет в такт пульсу: поднять, отрубить, повторить. Ненависть не имеет значения. Имена — лишь прах. Лезвие справедливее любого бога. Каждая голова — лепта; каждая душа — плата высотам.</string>
+    <string name="audio_sample_scarlet_carnage_themed_flesh_equal_bone">Вся плоть равна под взором клинка.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_flesh_equal_bone">VSYA PLOT RAVNA PERED KOSTYANYM ALTAREM.</string>
+    <string name="audio_sample_scarlet_carnage_themed_sacred_harvest_living">Монумент разрастается, возвышаясь ярусами из мириад мерцающих черепов. Черный доспех наливается свинцовой тяжестью, залакированный кровью павших. Здесь нет злобы, нет жестокости в ударе. Это священная жатва живых. Последний вздох — единственная истинная молитва. Жатва не требует верности — только урожай.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_sacred_harvest_living">ALTAR PODNIMAETSYA IZ CHEREPOV. BRONYA OKRASHENA PAVSHIMI. NET NENAVISTI. SVYASHENNAYA ZHATVA ZHIVYH. OBORVANNAYA ZHIZN ETO USLYSHANNAYA MOLITVA. ZHATVA ZABIRAET VSE.</string>
+</resources>

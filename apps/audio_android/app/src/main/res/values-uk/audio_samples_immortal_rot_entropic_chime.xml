@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_immortal_rot_themed_rust_bell_in_fog">У тумані лунає глухий дзвін, і начищені обладунки пригадують своє призначення стати прахом.</string>
+    <string name="audio_sample_immortal_rot_ascii_rust_bell_in_fog">A DULL BELL SOUNDS IN FOG. POLISHED ARMOR REMEMBERS DUST.</string>
+    <string name="audio_sample_immortal_rot_themed_patient_rain_takes_the_wall">Дзвін не квапиться. З кожним подихом туману мур скидає ще одну бліду лусочку; з кожною терплячою краплею кислотного дощу горда сталь іржавіє, кришиться і забуває форму, яку мала захищати. Шестерні мляво розмикаються у своїх кожухах. Вежі хиляться до землі без зайвого драматизму. Річки висихають, залишаючи по собі лише кірку застояної отрути. Будуйте свої стіни ще вище, якщо забажаєте. Але Часу належать і драбина, і камінь, і та сама рука, що їх підіймає.</string>
+    <string name="audio_sample_immortal_rot_ascii_patient_rain_takes_the_wall">THE BELL DOES NOT HURRY. ACID RAIN REDDENS ALLOY. GEARS UNCLENCH. TOWERS LEAN. BUILD HIGHER IF YOU WISH. TIME OWNS THE WALL.</string>
+</resources>

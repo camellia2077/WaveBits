@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_caliper_oil_rite">첫 번째 기어를 만지기 전에 황동 캘리퍼스에 정제된 오일을 도포합니다</string>
+    <string name="audio_sample_sacred_machine_ascii_caliper_oil_rite">APPLY SACRED OIL TO BRASS CALIPERS</string>
+    <string name="audio_sample_sacred_machine_themed_bolt_sequence_litany">정전기 방지 가운을 입은 정비 시종들이 들어와 성물을 배치하듯 열린 보드 옆에 부드러운 브러시를 놓았습니다. 황동 자를 따라 정제된 오일을 측정하고, 기어 열 위로 녹 방지 향을 피웠으며, 에나멜 스트립에 적힌 순서대로 각 볼트를 조였습니다. 서두르는 손길은 없었습니다. 마모는 죄요, 마찰은 타락으로 여겨졌으며, 구조된 기계는 측정된 한 번의 클릭마다 방을 용서할 수 있었습니다.</string>
+    <string name="audio_sample_sacred_machine_ascii_bolt_sequence_litany">MAINTENANCE RITE. PURIFIED OIL APPLIED. ANTIRUST INCENSE BURNED. BOLTS TIGHTENED IN THE APPROVED ORDER. WEAR IS SIN. FRICTION IS FALL.</string>
+</resources>

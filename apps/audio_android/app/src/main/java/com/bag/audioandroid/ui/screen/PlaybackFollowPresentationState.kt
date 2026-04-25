@@ -17,6 +17,9 @@ internal fun rememberPlaybackFollowPresentationState(
             PlaybackFollowViewMode.entries.firstOrNull { it.name == selectedAnnotationModeName }
                 ?: PlaybackFollowViewMode.Hex
         }
+    val activeLineIndex = remember(followData.lyricLineTimeline, displayedSamples) {
+        activeLineTimelineIndex(followData.lyricLineTimeline, displayedSamples)
+    }
     val activeTextIndex = remember(followData.textTokenTimeline, displayedSamples) {
         activeTextTimelineIndex(followData.textTokenTimeline, displayedSamples)
     }
@@ -40,12 +43,14 @@ internal fun rememberPlaybackFollowPresentationState(
         }
     return remember(
         followViewMode,
+        activeLineIndex,
         activeTextIndex,
         activeByteIndexWithinToken,
         rawDisplayUnitsByToken,
     ) {
         PlaybackFollowPresentationState(
             followViewMode = followViewMode,
+            activeLineIndex = activeLineIndex,
             activeTextIndex = activeTextIndex,
             activeByteIndexWithinToken = activeByteIndexWithinToken,
             rawDisplayUnitsByToken = rawDisplayUnitsByToken,
@@ -56,6 +61,7 @@ internal fun rememberPlaybackFollowPresentationState(
 @Immutable
 internal data class PlaybackFollowPresentationState(
     val followViewMode: PlaybackFollowViewMode,
+    val activeLineIndex: Int,
     val activeTextIndex: Int,
     val activeByteIndexWithinToken: Int,
     val rawDisplayUnitsByToken: Map<Int, List<TextFollowRawDisplayUnitViewData>>,

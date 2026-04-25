@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_kill_confirmed_equation">Вбивство підтверджено; ймовірність виживання округлюється до нуля</string>
+    <string name="audio_sample_sacred_machine_ascii_kill_confirmed_equation">KILL CONFIRMED SURVIVAL PROBABILITY ZERO</string>
+    <string name="audio_sample_sacred_machine_themed_ballistic_debug_grid">Числення зачистки завершилося ще до того, як перший ствол розжарився до червоного. Балістичні сітки перетнули кімнату, стовпчики втрат піднімалися без емоцій, і кожна ціль ставала надлишковою змінною, що чекала на видалення. Жодна ненависть не увійшла в рішення про відкриття вогню. Гвинтівки говорили синхронними залпами, тони підтвердження вбивства позначали виправлені місця, а звіт закрився, коли кожна ворожа ймовірність була округлена до нуля.</string>
+    <string name="audio_sample_sacred_machine_ascii_ballistic_debug_grid">PURGE CALCULUS. BALLISTIC GRIDS SOLVED THE ROOM. CASUALTY BARS ROSE. TARGETS WERE REDUNDANT VARIABLES. HEAT BARRELS GLOWED. PHYSICAL DESTRUCTION COMPLETED THE DEBUG.</string>
+</resources>

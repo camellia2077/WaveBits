@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_caliper_oil_rite">Les calibres de laiton reçoivent l’huile purifiée avant que le premier engrenage ne soit touché</string>
+    <string name="audio_sample_sacred_machine_ascii_caliper_oil_rite">APPLY SACRED OIL TO BRASS CALIPERS</string>
+    <string name="audio_sample_sacred_machine_themed_bolt_sequence_litany">Les acolytes de la maintenance sont entrés vêtus de robes antistatiques et ont disposé les brosses douces près du tableau ouvert comme s’ils rangeaient des reliques. L’huile purifiée était mesurée le long de l’échelle de laiton, l’encens antirouille fumait au-dessus du train d’engrenages, et chaque boulon était serré dans l’ordre écrit sur la bande d’émail. Aucune main ne bougeait rapidement. L’usure était nommée péché, la friction comme une chute, et la machine secourue fut autorisée à pardonner à la pièce, un clic mesuré à la fois.</string>
+    <string name="audio_sample_sacred_machine_ascii_bolt_sequence_litany">MAINTENANCE RITE. PURIFIED OIL APPLIED. ANTIRUST INCENSE BURNED. BOLTS TIGHTENED IN THE APPROVED ORDER. WEAR IS SIN. FRICTION IS FALL.</string>
+</resources>

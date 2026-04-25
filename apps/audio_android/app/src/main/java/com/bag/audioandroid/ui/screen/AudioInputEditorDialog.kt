@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Casino
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -22,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -30,14 +33,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.bag.audioandroid.R
+import com.bag.audioandroid.ui.model.SampleInputLengthOption
+import com.bag.audioandroid.ui.theme.appThemeAccentTokens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AudioInputEditorDialog(
     inputText: String,
+    placeholderText: String,
+    sampleInputLength: SampleInputLengthOption,
+    randomizeEnabled: Boolean,
     onInputTextChange: (String) -> Unit,
+    onRandomizeSampleInput: (SampleInputLengthOption) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val accentTokens = appThemeAccentTokens()
+    val topAppBarColors =
+        TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            titleContentColor = accentTokens.disclosureAccentTint,
+            navigationIconContentColor = accentTokens.actionAccentTint,
+            actionIconContentColor = accentTokens.actionAccentTint,
+        )
+    val topBarActionButtonColors =
+        IconButtonDefaults.iconButtonColors(
+            contentColor = accentTokens.actionAccentTint,
+            disabledContentColor = accentTokens.actionAccentTint.copy(alpha = 0.38f),
+        )
+
     Dialog(
         onDismissRequest = onDismiss,
         properties =
@@ -53,9 +76,13 @@ internal fun AudioInputEditorDialog(
             Scaffold(
                 topBar = {
                     TopAppBar(
+                        colors = topAppBarColors,
                         title = { Text(stringResource(R.string.audio_input_editor_title)) },
                         navigationIcon = {
-                            IconButton(onClick = onDismiss) {
+                            IconButton(
+                                onClick = onDismiss,
+                                colors = topBarActionButtonColors,
+                            ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                                     contentDescription = stringResource(R.string.common_back),
@@ -63,8 +90,21 @@ internal fun AudioInputEditorDialog(
                             }
                         },
                         actions = {
+                            IconButton(
+                                onClick = { onRandomizeSampleInput(sampleInputLength) },
+                                enabled = randomizeEnabled,
+                                colors = topBarActionButtonColors,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Casino,
+                                    contentDescription = stringResource(R.string.audio_action_randomize_sample_input),
+                                )
+                            }
                             TextButton(onClick = onDismiss) {
-                                Text(stringResource(R.string.audio_input_editor_done))
+                                Text(
+                                    text = stringResource(R.string.audio_input_editor_done),
+                                    color = accentTokens.disclosureAccentTint,
+                                )
                             }
                         },
                     )
@@ -95,6 +135,7 @@ internal fun AudioInputEditorDialog(
                         minLines = 18,
                         maxLines = 28,
                         label = { Text(stringResource(R.string.audio_input_label)) },
+                        placeholder = { Text(placeholderText) },
                         supportingText = {
                             Text(
                                 text = stringResource(R.string.audio_input_editor_count, inputText.length),

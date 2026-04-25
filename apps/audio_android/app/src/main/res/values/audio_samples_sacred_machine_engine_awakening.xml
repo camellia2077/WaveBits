@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_plasma_matrix_wakes">The plasma matrix brightens while the blast doors lock in sequence</string>
+    <string name="audio_sample_sacred_machine_ascii_plasma_matrix_wakes">PLASMA MATRIX WAKES UNDER RED WARNING LIGHTS</string>
+    <string name="audio_sample_sacred_machine_themed_ancient_engine_grants_motion">A subsonic note thrummed through the deck before any attendant dared to touch the final rune. Red warning lamps pulsed like a buried heart, ozone gathered at the rails, and coolant thundered through pipes large enough to swallow men. The ancient mimetic mind did not start; it considered the petition. When the parameters pleased it, the engine granted motion, and every shaking hand in the chamber knew the mercy could be withdrawn.</string>
+    <string name="audio_sample_sacred_machine_ascii_ancient_engine_grants_motion">ENGINE AWAKENING. BLAST DOORS LOCKED. OZONE DETECTED. COOLANT SURGED THROUGH THE PIPES. OPERATORS TREMBLED BEFORE THE ANCIENT MIMETIC MIND. MOTION WAS GRANTED, NOT COMMANDED.</string>
+</resources>

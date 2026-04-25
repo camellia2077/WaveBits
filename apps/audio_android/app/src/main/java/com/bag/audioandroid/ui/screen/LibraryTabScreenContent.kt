@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.DriveFileRenameOutline
 import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +46,7 @@ internal fun LibraryTabScreenContent(
             selectedCount = screenState.filteredSelectedCount,
             canSelectAll = screenState.filteredSelectedCount < screenState.filteredItems.size,
             onSelectAll = { onSelectAllLibraryItems(screenState.filteredItemIds) },
+            onMoveSelected = screenState.onMoveSelectedStarted,
             onDeleteSelected = screenState.onBulkDeleteRequested,
             onClearSelection = onClearLibrarySelection,
         )
@@ -57,8 +61,45 @@ internal fun LibraryTabScreenContent(
                     contentDescription = stringResource(R.string.library_action_import),
                 )
             }
+            Row {
+                IconButton(onClick = screenState.onCreateFolderStarted) {
+                    Icon(
+                        imageVector = Icons.Rounded.CreateNewFolder,
+                        contentDescription = stringResource(R.string.library_action_new_folder),
+                    )
+                }
+                IconButton(
+                    onClick = screenState.onRenameFolderStarted,
+                    enabled = screenState.selectedCustomFolder != null,
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.DriveFileRenameOutline,
+                        contentDescription = stringResource(R.string.library_action_rename_folder),
+                    )
+                }
+                IconButton(
+                    onClick = screenState.onDeleteFolderStarted,
+                    enabled = screenState.selectedCustomFolder != null,
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.DeleteOutline,
+                        contentDescription = stringResource(R.string.library_action_delete_folder),
+                    )
+                }
+            }
         }
     }
+
+    LibraryFolderFilterBar(
+        folders = screenState.savedAudioFolders,
+        selectedFilter = screenState.selectedFolderFilter,
+        onFilterSelected = { filter ->
+            screenState.onFolderFilterSelected(filter)
+            if (librarySelection.isSelectionMode) {
+                onClearLibrarySelection()
+            }
+        },
+    )
 
     SavedAudioModeFilterBar(
         selectedFilter = screenState.selectedFilter,
@@ -101,6 +142,9 @@ internal fun LibraryTabScreenContent(
                     item = item,
                     isSelectionMode = librarySelection.isSelectionMode,
                     isSelected = item.itemId in librarySelection.selectedItemIds,
+                    folderName =
+                        screenState.savedAudioFolderAssignments[item.itemId]
+                            ?.let(screenState.displayFolderNames::get),
                     onClick = {
                         if (librarySelection.isSelectionMode) {
                             onToggleLibrarySelection(item.itemId)
@@ -110,6 +154,7 @@ internal fun LibraryTabScreenContent(
                     },
                     onLongClick = { onEnterLibrarySelection(item.itemId) },
                     onShare = { onShareSavedAudio(item) },
+                    onMove = { screenState.onMoveStarted(item) },
                     onRename = { screenState.onRenameStarted(item) },
                     onDelete = { screenState.onDeleteStarted(item) },
                 )

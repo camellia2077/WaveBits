@@ -1,0 +1,17 @@
+[
+  {
+    "original": "CURRENT TEXT HERE",
+    "optimized": "REPLACEMENT TEXT HERE",
+    "comment": "OPTIONAL HUMAN NOTE"
+  },
+  {
+    "original": "CURRENT TEXT HERE",
+    "optimized": "REPLACEMENT TEXT HERE",
+    "comment": "OPTIONAL HUMAN NOTE"
+  },
+  {
+    "original": "CURRENT TEXT HERE",
+    "optimized": "REPLACEMENT TEXT HERE",
+    "comment": "OPTIONAL HUMAN NOTE"
+  }
+]

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_kill_confirmed_equation">击杀确认；生存概率已向下取整为零。</string>
+    <string name="audio_sample_sacred_machine_themed_ballistic_debug_grid">在第一根枪管泛红之前，净化演算便已完成。弹道网格交叉覆盖了整个房间，伤亡柱状图毫无波澜地上升，每一个目标都沦为了等待被剔除的冗余变量。射击解算中不掺杂任何仇恨。步枪以同步的齐射轰鸣，击杀确认的提示音标记着被清肃的空间，当所有敌对概率都被向下取整为零时，报告正式关闭。</string>
+</resources>

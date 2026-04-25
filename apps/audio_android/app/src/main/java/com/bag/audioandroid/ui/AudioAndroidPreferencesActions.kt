@@ -33,6 +33,7 @@ internal class AudioAndroidPreferencesActions(
                     sampleInputSessionUpdater.refreshForLanguageChange(
                         state.sessions,
                         language,
+                        state.currentSampleFlavor,
                     ),
             )
         }
@@ -54,14 +55,14 @@ internal class AudioAndroidPreferencesActions(
     }
 
     fun onThemeStyleSelected(themeStyle: ThemeStyleOption) {
-        uiState.update { it.copy(selectedThemeStyle = themeStyle) }
+        uiState.update { state -> state.withSelectedThemeStyle(themeStyle, sampleInputSessionUpdater) }
         scope.launch {
             appSettingsRepository.setSelectedThemeStyleId(themeStyle.id)
         }
     }
 
     fun onBrandThemeSelected(brandTheme: BrandThemeOption) {
-        uiState.update { it.copy(selectedBrandTheme = brandTheme) }
+        uiState.update { state -> state.withSelectedBrandTheme(brandTheme, sampleInputSessionUpdater) }
         scope.launch {
             appSettingsRepository.setSelectedBrandThemeId(brandTheme.id)
         }

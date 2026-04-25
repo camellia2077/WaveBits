@@ -10,8 +10,16 @@ data class BrandThemeOption(
     @param:StringRes val titleResId: Int,
     @param:StringRes val descriptionResId: Int,
     @param:StringRes val accessibilityLabelResId: Int,
+    val sampleFlavor: SampleFlavor,
     val isDarkTheme: Boolean,
-    val primaryColor: Color,
-    val secondaryColor: Color,
+    val backgroundColor: Color,
+    val accentColor: Color,
+    val outlineColor: Color,
     val colorScheme: ColorScheme,
-)
+) {
+    val primaryColor: Color
+        get() = backgroundColor
+
+    val secondaryColor: Color
+        get() = accentColor
+}

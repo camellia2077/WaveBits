@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_scarlet_carnage_themed_black_iron_answers_magic">Кришталевий посох розлітається на друзки. Тільки голі кулаки.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_black_iron_answers_magic">CRYSTAL STAFF BREAKS UNDER BARE FIST.</string>
+    <string name="audio_sample_scarlet_carnage_themed_face_to_face_truth">Ніяких чарів. Ніяких кинджалів у спину. Ніяких пострілів зі сховку. Залізо й латунь непохитно крокують крізь полум’я. Голови не схилені. Відстань невблаганно скорочується. Посохи розлітаються на скалки. Щити рвуть голими руками. Сталь зчіплюється зі сталлю. Висічені іскри промовляють єдину істину: віч-на-віч, око в око, кістка хрустить під залізом.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_face_to_face_truth">NO SPELL. NO HIDDEN KNIFE. NO SAFE SHOT. BLACK IRON ADVANCES. DISTANCE CLOSES. STAFF SHATTERS. SHIELD TEARS. FACE TO FACE. BONE UNDER IRON.</string>
+    <string name="audio_sample_scarlet_carnage_themed_metal_crushes_magic">Залізо чавить магію. Єдина істина — це удар.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_metal_crushes_magic">METAL CRUSHES MAGIC. ONLY THE SWING IS TRUE.</string>
+    <string name="audio_sample_scarlet_carnage_themed_iron_splits_bone">Обереги мнуться, наче папір. Магічні ядра розтираються на пил. Вони ховаються за фокусами та чаклунством. Але залізний панцир не гнеться. Він невблаганно йде крізь полум’я. Він зневажає боягузтво. Коли опускається лезо, усім ілюзіям настає кінець. Ніяка магія не врятує, коли залізо трощить твої кістки. Це і є єдина чесна смерть.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_iron_splits_bone">SHIELDS FOLD LIKE PAPER. CORES CRUSHED TO DUST. HEAVY ARMOR WALKS THROUGH FIRE. NO MAGIC SAVES YOU. IRON SPLITS BONE. THE ONLY HONEST DEATH.</string>
+</resources>

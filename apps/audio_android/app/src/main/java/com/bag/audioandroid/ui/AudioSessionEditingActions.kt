@@ -28,6 +28,7 @@ internal class AudioSessionEditingActions(
             sampleInputTextProvider.randomSample(
                 mode = currentState.transportMode,
                 language = currentState.selectedLanguage,
+                flavor = currentState.currentSampleFlavor,
                 length = length,
                 excludingSampleId = currentState.currentSession.sampleInputId,
             )

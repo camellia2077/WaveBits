@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_labyrinth_of_mutability_themed_thread_pulls_the_hero">영웅이 실 하나를 끊으면, 다음 올가미가 죄어옵니다.</string>
+    <string name="audio_sample_labyrinth_of_mutability_ascii_thread_pulls_the_hero">HERO CUTS ONE STRING. THE NEXT NOOSE TIGHTENS.</string>
+    <string name="audio_sample_labyrinth_of_mutability_themed_final_trap_needs_rebellion">계획된 대로, 수 한가운데서 보드가 타오릅니다. 익숙한 손에서 모순된 편지들이 도착합니다. 미소와 함께 독이 제공되고, 아군은 문이 되며, 적군은 열쇠가 되고, 버려진 모든 영웅은 탈출이 자신의 발명품이라고 믿습니다. 더 자세히 보십시오: 반란, 배신, 우연의 일격—이 모든 것이 함정의 마지막 빠진 조각으로 묶여 들어갑니다.</string>
+    <string name="audio_sample_labyrinth_of_mutability_ascii_final_trap_needs_rebellion">BOARD BURNS MID-MOVE. LETTERS CONTRADICT. POISON SMILES. ALLIES ARE DOORS. ENEMIES ARE KEYS. REBELLION COMPLETES THE TRAP.</string>
+</resources>

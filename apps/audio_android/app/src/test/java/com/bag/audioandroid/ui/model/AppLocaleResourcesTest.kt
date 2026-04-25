@@ -12,6 +12,17 @@ import java.util.Locale
 @RunWith(RobolectricTestRunner::class)
 class AppLocaleResourcesTest {
     private val appContext: Context = ApplicationProvider.getApplicationContext()
+    private val selfNamedLanguageLabels =
+        mapOf(
+            R.string.config_language_chinese to "简体中文",
+            R.string.config_language_traditional_chinese to "繁體中文",
+            R.string.config_language_english to "English",
+            R.string.config_language_japanese to "日本語",
+            R.string.config_language_german to "Deutsch",
+            R.string.config_language_russian to "Русский",
+            R.string.config_language_spanish to "Español",
+            R.string.config_language_portuguese to "Português",
+        )
 
     @Test
     fun `extended locales resolve their own translated resources`() {
@@ -28,6 +39,27 @@ class AppLocaleResourcesTest {
                 expectedSubtitle,
                 localizedString(language, R.string.config_language_subtitle),
             )
+        }
+    }
+
+    @Test
+    fun `language names stay self named across localized resource bundles`() {
+        val localesToCheck =
+            listOf(
+                AppLanguageOption.English,
+                AppLanguageOption.Chinese,
+                AppLanguageOption.TraditionalChinese,
+                AppLanguageOption.Japanese,
+                AppLanguageOption.German,
+                AppLanguageOption.Russian,
+                AppLanguageOption.Spanish,
+                AppLanguageOption.Portuguese,
+            )
+
+        localesToCheck.forEach { language ->
+            selfNamedLanguageLabels.forEach { (resId, expectedLabel) ->
+                assertEquals(expectedLabel, localizedString(language, resId))
+            }
         }
     }
 

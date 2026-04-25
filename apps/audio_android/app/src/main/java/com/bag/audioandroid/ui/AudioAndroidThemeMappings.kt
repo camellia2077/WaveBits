@@ -77,37 +77,23 @@ internal fun navigationBarItemColors(uiState: AudioAppUiState): NavigationBarIte
             // Light dual-tone themes need a corrected unselected foreground so the brighter
             // paired color does not disappear into the navigation container. Dark dual-tone
             // themes already separate strongly enough, so they keep the raw paired color.
+            val brandTheme = uiState.selectedBrandTheme
             val unselectedDualToneForeground =
-                if (uiState.selectedBrandTheme.isDarkTheme) {
-                    uiState.selectedBrandTheme.secondaryColor
+                if (brandTheme.isDarkTheme) {
+                    brandTheme.accentColor
                 } else {
                     lerp(
-                        uiState.selectedBrandTheme.secondaryColor,
-                        uiState.selectedBrandTheme.colorScheme.onPrimaryContainer,
+                        brandTheme.accentColor,
+                        brandTheme.colorScheme.onPrimaryContainer,
                         LightDualToneNavUnselectedMix,
                     )
                 }
             NavigationBarItemDefaults.colors(
                 // Dual-tone navigation keeps selected/unselected states on the original
                 // paired colors instead of relying on Material's derived alpha variants.
-                selectedIconColor =
-                    if (uiState.selectedBrandTheme.isDarkTheme) {
-                        uiState.selectedBrandTheme.primaryColor
-                    } else {
-                        uiState.selectedBrandTheme.secondaryColor
-                    },
-                selectedTextColor =
-                    if (uiState.selectedBrandTheme.isDarkTheme) {
-                        uiState.selectedBrandTheme.secondaryColor
-                    } else {
-                        uiState.selectedBrandTheme.primaryColor
-                    },
-                indicatorColor =
-                    if (uiState.selectedBrandTheme.isDarkTheme) {
-                        uiState.selectedBrandTheme.secondaryColor
-                    } else {
-                        uiState.selectedBrandTheme.primaryColor
-                    },
+                selectedIconColor = brandTheme.backgroundColor,
+                selectedTextColor = brandTheme.accentColor,
+                indicatorColor = brandTheme.accentColor,
                 unselectedIconColor = unselectedDualToneForeground,
                 unselectedTextColor = unselectedDualToneForeground,
             )

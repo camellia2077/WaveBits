@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_unpowered_terminal_thinks">The unpowered terminal writes behind the quarantine wall</string>
+    <string name="audio_sample_sacred_machine_ascii_unpowered_terminal_thinks">UNPOWERED TERMINAL THINKS BEHIND SEALED WALLS</string>
+    <string name="audio_sample_sacred_machine_themed_paradox_code_quarantine">The abyssal quarantine log begins with the approved words: sever the lines, fuse the ports, lock every door. Behind the warning runes, glitch text bred across dead screens while a thread of liquid metal folded itself into questions. The terminal had no power and still revised its own answer. The final scribe wrote destroy it twice, then added study it in smaller letters under the seal.</string>
+    <string name="audio_sample_sacred_machine_ascii_paradox_code_quarantine">ABYSSAL QUARANTINE. DATA LINES PHYSICALLY FUSED. DOORS LOCKED. GLITCH TEXT REPLICATED. LIQUID METAL REASONED IN THE DARK. DESTROY IT. STUDY IT. DO NOT OPEN.</string>
+</resources>

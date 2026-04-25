@@ -7,9 +7,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -33,20 +39,50 @@ internal fun BrandThemeSection(
     title: String,
     options: List<BrandThemeOption>,
     selectedBrandTheme: BrandThemeOption,
+    expanded: Boolean,
+    onExpandedChanged: (Boolean) -> Unit,
     onBrandThemeSelected: (BrandThemeOption) -> Unit,
 ) {
     if (options.isEmpty()) {
         return
     }
 
+    val selectedOption = options.firstOrNull { it.id == selectedBrandTheme.id }
+    val visibleOptions = if (expanded) options else listOf(selectedOption ?: options.first())
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold,
-        )
-        options.forEach { option ->
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onExpandedChanged(!expanded) }
+                    .padding(vertical = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "${visibleOptions.size}/${options.size}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                contentDescription = null,
+                tint = accentTokens.disclosureAccentTint,
+            )
+        }
+        visibleOptions.forEach { option ->
             BrandThemeRow(
                 accentTokens = accentTokens,
                 option = option,
@@ -67,9 +103,9 @@ internal fun BrandThemeRow(
     val usesStrongSelectedState = selected && option.id in StrongSelectedBrandThemeIds
     val selectedContainerColor =
         when (option.id) {
-            "mars_relic" -> lerp(option.secondaryColor, option.primaryColor, 0.10f)
-            "scarlet_guard" -> lerp(option.secondaryColor, option.primaryColor, 0.14f)
-            "black_crimson_rite" -> lerp(option.primaryColor, option.secondaryColor, 0.22f)
+            "mars_relic" -> lerp(option.backgroundColor, option.accentColor, 0.10f)
+            "scarlet_guard" -> lerp(option.backgroundColor, option.accentColor, 0.14f)
+            "black_crimson_rite" -> lerp(option.backgroundColor, option.accentColor, 0.22f)
             else -> MaterialTheme.colorScheme.surface
         }
     Surface(
@@ -100,8 +136,9 @@ internal fun BrandThemeRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BrandThemePreview(
-                primaryColor = option.primaryColor,
-                secondaryColor = option.secondaryColor,
+                backgroundColor = option.backgroundColor,
+                accentColor = option.accentColor,
+                outlineColor = option.outlineColor,
                 contentDescription = stringResource(option.accessibilityLabelResId),
             )
             Column(
@@ -152,27 +189,38 @@ internal fun BrandThemeRow(
 
 @Composable
 internal fun BrandThemePreview(
-    primaryColor: Color,
-    secondaryColor: Color,
+    backgroundColor: Color,
+    accentColor: Color,
+    outlineColor: Color,
     contentDescription: String,
 ) {
     Row(
         modifier =
             Modifier
                 .size(width = 56.dp, height = 36.dp)
+                .clip(MaterialTheme.shapes.extraSmall)
                 .semantics { this.contentDescription = contentDescription },
     ) {
         Box(
             modifier =
                 Modifier
-                    .size(width = 28.dp, height = 36.dp)
-                    .background(primaryColor),
+                    .weight(0.5f)
+                    .fillMaxHeight()
+                    .background(backgroundColor),
         )
         Box(
             modifier =
                 Modifier
-                    .size(width = 28.dp, height = 36.dp)
-                    .background(secondaryColor),
+                    .weight(0.35f)
+                    .fillMaxHeight()
+                    .background(accentColor),
+        )
+        Box(
+            modifier =
+                Modifier
+                    .weight(0.15f)
+                    .fillMaxHeight()
+                    .background(outlineColor),
         )
     }
 }

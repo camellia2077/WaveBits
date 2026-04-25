@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
+import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.playerSegmentedButtonColors
 
 @Composable
@@ -23,6 +24,8 @@ internal fun PlaybackDisplaySection(
     displayedSamples: Int,
     waveformPcm: ShortArray,
     sampleRateHz: Int,
+    transportMode: TransportModeOption?,
+    frameSamples: Int,
     isFlashMode: Boolean,
     flashVoicingStyle: FlashVoicingStyleOption?,
     followData: PayloadFollowViewData,
@@ -67,33 +70,75 @@ internal fun PlaybackDisplaySection(
         }
         if (playbackDisplayMode == PlaybackDisplayMode.Visual) {
             if (waveformPcm.isNotEmpty()) {
-                if (isFlashMode) {
-                    val flashVisualizationMode =
-                        FlashSignalVisualizationMode.values().firstOrNull { mode ->
-                            mode.name == flashVisualizationModeName
-                        } ?: FlashSignalVisualizationMode.ToneTracks
-                    FlashSignalVisualizationModeSwitcher(
-                        selectedMode = flashVisualizationMode,
-                        onModeSelected = onFlashVisualizationModeSelected,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    AudioFlashSignalVisualizer(
-                        pcm = waveformPcm,
-                        sampleRateHz = sampleRateHz,
-                        displayedSamples = displayedSamples,
-                        isPlaying = isPlaying,
-                        mode = flashVisualizationMode,
-                        flashVoicingStyle = flashVoicingStyle,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                } else {
-                    AudioPcmWaveform(
-                        pcm = waveformPcm,
-                        sampleRateHz = sampleRateHz,
-                        displayedSamples = displayedSamples,
-                        isPlaying = isPlaying,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                when (transportMode) {
+                    TransportModeOption.Flash -> {
+                        val flashVisualizationMode =
+                            FlashSignalVisualizationMode.values().firstOrNull { mode ->
+                                mode.name == flashVisualizationModeName
+                            } ?: FlashSignalVisualizationMode.ToneTracks
+                        FlashSignalVisualizationModeSwitcher(
+                            selectedMode = flashVisualizationMode,
+                            onModeSelected = onFlashVisualizationModeSelected,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        AudioFlashSignalVisualizer(
+                            pcm = waveformPcm,
+                            sampleRateHz = sampleRateHz,
+                            displayedSamples = displayedSamples,
+                            isPlaying = isPlaying,
+                            mode = flashVisualizationMode,
+                            flashVoicingStyle = flashVoicingStyle,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    TransportModeOption.Pro, TransportModeOption.Ultra ->
+                        if (transportMode == TransportModeOption.Pro) {
+                            ProEncodingExplanationVisualizer(
+                                followData = followData,
+                                displayedSamples = displayedSamples,
+                                frameSamples = frameSamples,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        } else {
+                            UltraSymbolStepVisualizer(
+                                pcm = waveformPcm,
+                                sampleRateHz = sampleRateHz,
+                                displayedSamples = displayedSamples,
+                                frameSamples = frameSamples,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+
+                    null ->
+                        if (isFlashMode) {
+                            val flashVisualizationMode =
+                                FlashSignalVisualizationMode.values().firstOrNull { mode ->
+                                    mode.name == flashVisualizationModeName
+                                } ?: FlashSignalVisualizationMode.ToneTracks
+                            FlashSignalVisualizationModeSwitcher(
+                                selectedMode = flashVisualizationMode,
+                                onModeSelected = onFlashVisualizationModeSelected,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            AudioFlashSignalVisualizer(
+                                pcm = waveformPcm,
+                                sampleRateHz = sampleRateHz,
+                                displayedSamples = displayedSamples,
+                                isPlaying = isPlaying,
+                                mode = flashVisualizationMode,
+                                flashVoicingStyle = flashVoicingStyle,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        } else {
+                            AudioPcmWaveform(
+                                pcm = waveformPcm,
+                                sampleRateHz = sampleRateHz,
+                                displayedSamples = displayedSamples,
+                                isPlaying = isPlaying,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                 }
             }
         } else {
@@ -107,6 +152,7 @@ internal fun PlaybackDisplaySection(
         PlaybackTokenContextTape(
             followData = followData,
             displayedSamples = displayedSamples,
+            visibleLineCount = if (playbackDisplayMode == PlaybackDisplayMode.Visual) 5 else 3,
         )
     }
 }

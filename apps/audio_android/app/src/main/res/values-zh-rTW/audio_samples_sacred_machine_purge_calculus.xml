@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_kill_confirmed_equation">擊殺確認；存活機率向下取整為零</string>
+    <string name="audio_sample_sacred_machine_themed_ballistic_debug_grid">淨化演算在第一根槍管炙紅前便已完成。彈道網格交織覆蓋了整個房間，傷亡指示條毫無感情地攀升，每一個目標都淪為等待抹除的冗餘變數。火控解算中不摻雜一絲仇恨。步槍以同步的齊射轟鳴發聲，擊殺確認的提示音標記著那些被「修正」的空間，當所有敵對機率皆被向下取整為零時，這份報告才宣告關閉。</string>
+</resources>

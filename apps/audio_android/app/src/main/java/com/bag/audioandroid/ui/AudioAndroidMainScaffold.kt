@@ -1,8 +1,11 @@
 package com.bag.audioandroid.ui
 
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -98,6 +101,7 @@ internal fun AudioAndroidMainScaffold(
     if (uiState.showPlayerDetailSheet && miniPlayerModel != null) {
         ModalBottomSheet(
             onDismissRequest = viewModel::onClosePlayerDetailSheet,
+            modifier = Modifier.safeDrawingPadding(),
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             Scaffold(
@@ -112,6 +116,7 @@ internal fun AudioAndroidMainScaffold(
                     isScrubbing = currentPlayback.isScrubbing,
                     waveformPcm = uiState.currentPlaybackPcm,
                     sampleRateHz = currentPlayback.sampleRateHz,
+                    frameSamples = uiState.currentPlaybackFrameSamples,
                     displayedTime = displayedTime,
                     totalTime = totalTime,
                     isPlaying = currentPlayback.isPlaying,
@@ -209,6 +214,7 @@ internal fun AudioAndroidMainScaffold(
                     selectedFlashVoicingStyle = uiState.selectedFlashVoicingStyle,
                     onFlashVoicingStyleSelected = viewModel::onFlashVoicingStyleSelected,
                     inputText = currentSession.inputText,
+                    inputPlaceholderText = viewModel.currentPlaceholderText(uiState.transportMode),
                     onInputTextChange = viewModel::onInputTextChange,
                     onRandomizeSampleInput = viewModel::onRandomizeSampleInput,
                     decodedPayload = uiState.audioTabDecodedPayload,
@@ -227,6 +233,8 @@ internal fun AudioAndroidMainScaffold(
             AppTab.Library ->
                 LibraryTabScreen(
                     savedAudioItems = uiState.savedAudioItems,
+                    savedAudioFolders = uiState.savedAudioFolders,
+                    savedAudioFolderAssignments = uiState.savedAudioFolderAssignments,
                     librarySelection = uiState.librarySelection,
                     statusText = uiState.libraryStatusText,
                     onImportAudio = onImportAudio,
@@ -238,6 +246,10 @@ internal fun AudioAndroidMainScaffold(
                     onClearLibrarySelection = viewModel::onClearLibrarySelection,
                     onDeleteSavedAudio = viewModel::onDeleteSavedAudio,
                     onRenameSavedAudio = viewModel::onRenameSavedAudio,
+                    onCreateSavedAudioFolder = viewModel::onCreateSavedAudioFolder,
+                    onRenameSavedAudioFolder = viewModel::onRenameSavedAudioFolder,
+                    onDeleteSavedAudioFolder = viewModel::onDeleteSavedAudioFolder,
+                    onMoveSavedAudioToFolder = viewModel::onMoveSavedAudioToFolder,
                     onShareSavedAudio = viewModel::onShareSavedAudio,
                     contentPadding = contentPadding,
                     modifier =

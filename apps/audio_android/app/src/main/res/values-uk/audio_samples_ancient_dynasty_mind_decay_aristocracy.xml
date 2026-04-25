@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_ancient_dynasty_themed_rusted_throne_bad_memory">Вкритий іржею трон приймає черговий указ від розколотої пам’яті.</string>
+    <string name="audio_sample_ancient_dynasty_ascii_rusted_throne_bad_memory">RUSTED THRONE ACCEPTS A DECREE FROM BROKEN MEMORY.</string>
+    <string name="audio_sample_ancient_dynasty_themed_court_debates_dead_realm">Скелетні металеві фаланги стоять німотно, поки вельможі сперечаються через кордони, які стерлися в пил ще до початку Великого Сну. Розкішні плащі зі сплавів незворушно спадають із тіл, які більше ніколи не відчують їхньої ваги. Владика монотонно повторює титул придворного, чию особистість було назавжди знищено під час Перенесення, а рада покірно фіксує одностайну згоду. Наші безсмертні механізми ідеально зберегли велич династії. Шкода лише, що розуми всередині них давно вже згнили.</string>
+    <string name="audio_sample_ancient_dynasty_ascii_court_debates_dead_realm">MUTE METAL PHALANXES STAND. NOBLES ARGUE OVER VANISHED BORDERS. BROKEN MEMORY SIGNS THE DECREE. IMMORTAL MACHINERY PRESERVES A MIND ALREADY ROTTING.</string>
+</resources>

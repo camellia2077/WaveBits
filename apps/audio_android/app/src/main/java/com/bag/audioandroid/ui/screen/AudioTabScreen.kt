@@ -37,6 +37,7 @@ fun AudioTabScreen(
     selectedFlashVoicingStyle: FlashVoicingStyleOption,
     onFlashVoicingStyleSelected: (FlashVoicingStyleOption) -> Unit,
     inputText: String,
+    inputPlaceholderText: String,
     onInputTextChange: (String) -> Unit,
     onRandomizeSampleInput: (SampleInputLengthOption) -> Unit,
     decodedPayload: DecodedPayloadViewData,
@@ -62,7 +63,11 @@ fun AudioTabScreen(
     if (showInputEditor) {
         AudioInputEditorDialog(
             inputText = inputText,
+            placeholderText = inputPlaceholderText,
+            sampleInputLength = sampleInputLength,
+            randomizeEnabled = !isCodecBusy,
             onInputTextChange = onInputTextChange,
+            onRandomizeSampleInput = onRandomizeSampleInput,
             onDismiss = { showInputEditor = false },
         )
     }
@@ -106,6 +111,7 @@ fun AudioTabScreen(
                 inputCardExpanded = inputCardExpanded,
                 onToggleInputCardExpanded = { inputCardExpanded = !inputCardExpanded },
                 inputText = inputText,
+                inputPlaceholderText = inputPlaceholderText,
                 onInputTextChange = onInputTextChange,
                 onOpenInputEditor = { showInputEditor = true },
                 sampleInputLength = sampleInputLength,

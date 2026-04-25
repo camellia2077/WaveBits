@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_labyrinth_of_mutability_themed_thread_pulls_the_hero">Герой перерізає одну нитку і тим самим затягує на собі наступний зашморг.</string>
+    <string name="audio_sample_labyrinth_of_mutability_ascii_thread_pulls_the_hero">HERO CUTS ONE STRING. THE NEXT NOOSE TIGHTENS.</string>
+    <string name="audio_sample_labyrinth_of_mutability_themed_final_trap_needs_rebellion">Ігрова дошка згорає посеред ходу — точно за планом. Суперечливі послання опиняються у знайомих руках. Отруту подають із щирою посмішкою, союзники стають дверима, вороги — ключами, і кожен використаний герой свято вірить, що план втечі був його власним винаходом. Придивіться уважніше: заколот, зрада, сліпий випадок — усе це сплітається в останній, вирішальний вузол цієї ідеальної пастки.</string>
+    <string name="audio_sample_labyrinth_of_mutability_ascii_final_trap_needs_rebellion">BOARD BURNS MID-MOVE. LETTERS CONTRADICT. POISON SMILES. ALLIES ARE DOORS. ENEMIES ARE KEYS. REBELLION COMPLETES THE TRAP.</string>
+</resources>

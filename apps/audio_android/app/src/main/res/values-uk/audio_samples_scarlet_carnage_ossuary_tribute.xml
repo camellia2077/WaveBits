@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_scarlet_carnage_themed_skull_step_receives">Лезо опускається — ще один трофей для кістниці.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_skull_step_receives">BLADE FALLS CLEAN. ANOTHER SKULL JOINS THE STAIR.</string>
+    <string name="audio_sample_scarlet_carnage_themed_red_river_pays_the_stair">Вежа здіймається на відполірованих кістках, стертих до блиску пальцями рахівника. Густий приплив вимиває каньйони в багнюці, топлячи кожен стяг у кольорі розітнутої вени. Лезо пульсує в єдиному ритмі: замахнутись, відсікти, повторити. Ненависть тут зайва. Імена давно стерті на пил. Гостре лезо справедливіше за будь-яке божество. Кожна відтята голова — це дрібна монета, кожна душа — плата за вознесіння шпилю.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_red_river_pays_the_stair">SKULL STAIR RISES. RED RIVER CUTS THE GROUND. BOTH BANNERS BECOME ONE COLOR. LIFT. BEAT. FALL. EACH HEAD IS COIN.</string>
+    <string name="audio_sample_scarlet_carnage_themed_flesh_equal_bone">Уся плоть рівна перед байдужим поглядом леза.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_flesh_equal_bone">ALL FLESH EQUAL BEFORE BONE ALTAR.</string>
+    <string name="audio_sample_scarlet_carnage_themed_sacred_harvest_living">Монумент росте у височінь, викладений ярусами міріад вибілених черепів. Чорний обладунок важчає, покритий густим лаком із крові полеглих. У цих ударах немає ні злоби, ні садизму. Це просто священні жнива живих. Останній передсмертний хрип — це єдина справжня молитва. Жнива не вимагають відданості — вони вимагають лише врожаю.</string>
+    <string name="audio_sample_scarlet_carnage_ascii_sacred_harvest_living">ALTAR RISES FROM POLISHED SKULLS. ARMOR PAINTED WITH FALLEN. NO HATRED. SACRED HARVEST OF THE LIVING. LIFE ENDED IS PRAYER ANSWERED. HARVEST TAKES ALL.</string>
+</resources>

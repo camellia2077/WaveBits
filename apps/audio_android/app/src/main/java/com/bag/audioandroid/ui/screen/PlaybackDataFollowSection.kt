@@ -39,10 +39,7 @@ internal fun PlaybackDataFollowSection(
                 .testTag("playback-follow-section"),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(
-            text = stringResource(R.string.audio_follow_title),
-            style = MaterialTheme.typography.titleSmall,
-        )
+
         if (!followData.followAvailable) {
             Text(
                 text = stringResource(R.string.audio_follow_unavailable),

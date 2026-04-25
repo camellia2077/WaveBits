@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_unpowered_terminal_thinks">Знеструмлений термінал пише за карантинною стіною</string>
+    <string name="audio_sample_sacred_machine_ascii_unpowered_terminal_thinks">UNPOWERED TERMINAL THINKS BEHIND SEALED WALLS</string>
+    <string name="audio_sample_sacred_machine_themed_paradox_code_quarantine">Журнал безоднього карантину починається зі схвалених слів: обірвати лінії, сплавити порти, замкнути кожні двері. За рунами застереження текст збою розмножувався на мертвих екранах, поки нитка рідкого металу згорталася в питання. Термінал не мав живлення, але все одно переглядав власну відповідь. Останній писар двічі написав "знищити", а потім додав "вивчити" дрібнішими літерами під печаткою.</string>
+    <string name="audio_sample_sacred_machine_ascii_paradox_code_quarantine">ABYSSAL QUARANTINE. DATA LINES PHYSICALLY FUSED. DOORS LOCKED. GLITCH TEXT REPLICATED. LIQUID METAL REASONED IN THE DARK. DESTROY IT. STUDY IT. DO NOT OPEN.</string>
+</resources>

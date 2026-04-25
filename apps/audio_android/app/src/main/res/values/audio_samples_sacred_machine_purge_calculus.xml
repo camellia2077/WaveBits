@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_kill_confirmed_equation">Kill confirmed; the survival probability rounds to zero</string>
+    <string name="audio_sample_sacred_machine_ascii_kill_confirmed_equation">KILL CONFIRMED SURVIVAL PROBABILITY ZERO</string>
+    <string name="audio_sample_sacred_machine_themed_ballistic_debug_grid">The purge calculus completed before the first barrel glowed red. Ballistic grids crossed the room, casualty bars rose without emotion, and each target became a redundant variable waiting to be removed. No hatred entered the firing solution. The rifles spoke in synchronized volleys, kill-confirmed tones marked the corrected spaces, and the report closed when every hostile probability had been rounded down to zero.</string>
+    <string name="audio_sample_sacred_machine_ascii_ballistic_debug_grid">PURGE CALCULUS. BALLISTIC GRIDS SOLVED THE ROOM. CASUALTY BARS ROSE. TARGETS WERE REDUNDANT VARIABLES. HEAT BARRELS GLOWED. PHYSICAL DESTRUCTION COMPLETED THE DEBUG.</string>
+</resources>

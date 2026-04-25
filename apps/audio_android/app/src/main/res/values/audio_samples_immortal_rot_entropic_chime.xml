@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_immortal_rot_themed_rust_bell_in_fog">A dull bell tolls in the fog, and polished armor remembers dust</string>
+    <string name="audio_sample_immortal_rot_ascii_rust_bell_in_fog">A DULL BELL SOUNDS IN FOG. POLISHED ARMOR REMEMBERS DUST.</string>
+    <string name="audio_sample_immortal_rot_themed_patient_rain_takes_the_wall">The bell does not hurry. With each breath of fog, the wall sheds another pale scale; with each patient drop of acid rain, proud alloy reddens, crumbles, and forgets the shape it defended. Gears unclench inside their casings. Towers lean without drama. Rivers dry to a crust of old poison. Build higher if you wish. Time owns the ladder, the stone, and the hand that lifts them.</string>
+    <string name="audio_sample_immortal_rot_ascii_patient_rain_takes_the_wall">THE BELL DOES NOT HURRY. ACID RAIN REDDENS ALLOY. GEARS UNCLENCH. TOWERS LEAN. BUILD HIGHER IF YOU WISH. TIME OWNS THE WALL.</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_ping_canticle_confirmed">Пінг підтверджено; бінарний піснеспів не розірвано</string>
+    <string name="audio_sample_sacred_machine_ascii_ping_canticle_confirmed">PING CONFIRMED BINARY CANTICLE HOLDS</string>
+    <string name="audio_sample_sacred_machine_themed_deep_array_handshake">Ряди світлодіодів блимали у рваному ритмі, поки білий шум скреготав під несучим тоном. Шістнадцятковий код спалахами лився по екранах, і масив глибинних антен повернувся туди, де людське око бачить лише порожнечу. Перший звук "рукостискання" пролунав як відпущення гріхів. Жоден пакет даних не було втрачено, жоден імпульс не запізнився, і оператори занотували: з’єднання дароване ще на один подих всесвіту.</string>
+    <string name="audio_sample_sacred_machine_ascii_deep_array_handshake">SIGNAL LITANY. LED ARRAYS BLINKED IN BINARY PULSE. CARRIER LOCKED. HEX CODE SCROLLED. THE DEEP ARRAY RETURNED HANDSHAKE ACK. NO PACKET WAS LOST.</string>
+</resources>

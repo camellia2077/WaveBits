@@ -11,6 +11,7 @@ import com.bag.audioandroid.domain.TextFollowLineRawSegmentViewData
 import com.bag.audioandroid.domain.TextFollowLineTokenRangeViewData
 import com.bag.audioandroid.domain.TextFollowLyricLineTimelineEntry
 import com.bag.audioandroid.domain.TextFollowTimelineEntry
+import com.bag.audioandroid.ui.model.TransportModeOption
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,6 +30,7 @@ class PlayerDetailSheetInstrumentedTest {
                 isScrubbing = false,
                 waveformPcm = shortArrayOf(1, 2, 3, 4, 5, 6),
                 sampleRateHz = 44_100,
+                transportMode = TransportModeOption.Flash,
                 isFlashMode = true,
                 flashVoicingStyle = null,
                 followData = sampleFollowData(),

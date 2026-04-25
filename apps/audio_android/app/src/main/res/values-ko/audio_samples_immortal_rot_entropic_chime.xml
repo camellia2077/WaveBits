@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_immortal_rot_themed_rust_bell_in_fog">안개 속에서 둔탁한 종소리가 울리고, 매끄러운 갑옷은 먼지를 기억합니다</string>
+    <string name="audio_sample_immortal_rot_ascii_rust_bell_in_fog">A DULL BELL SOUNDS IN FOG. POLISHED ARMOR REMEMBERS DUST.</string>
+    <string name="audio_sample_immortal_rot_themed_patient_rain_takes_the_wall">종은 서두르지 않습니다. 안개가 한 번 숨을 쉴 때마다 성벽은 또 다른 창백한 비늘을 떨어뜨립니다. 인내심 있게 떨어지는 산성비에 당당했던 합금은 붉게 물들고, 바스러지며, 자신이 지켰던 형태를 잊어갑니다. 케이싱 안에서 기어들이 맞물림을 풉니다. 탑은 요란함 없이 기울어집니다. 강물은 오래된 독의 찌꺼기만 남긴 채 말라붙습니다. 원한다면 더 높이 쌓아 올리십시오. 시간은 사다리와 돌, 그리고 그것들을 들어 올리는 손 모두를 소유하고 있습니다.</string>
+    <string name="audio_sample_immortal_rot_ascii_patient_rain_takes_the_wall">THE BELL DOES NOT HURRY. ACID RAIN REDDENS ALLOY. GEARS UNCLENCH. TOWERS LEAN. BUILD HIGHER IF YOU WISH. TIME OWNS THE WALL.</string>
+</resources>

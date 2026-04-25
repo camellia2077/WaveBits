@@ -25,4 +25,20 @@ interface SavedAudioRepository {
     fun importAudio(uriString: String): SavedAudioImportResult
 
     fun shareSavedAudio(item: SavedAudioItem): Boolean
+
+    fun readLibraryMetadata(): SavedAudioLibraryMetadata = SavedAudioLibraryMetadata()
+
+    fun createSavedAudioFolder(name: String): SavedAudioFolderMutationResult = SavedAudioFolderMutationResult.Failed
+
+    fun renameSavedAudioFolder(
+        folderId: String,
+        name: String,
+    ): SavedAudioFolderMutationResult = SavedAudioFolderMutationResult.Failed
+
+    fun deleteSavedAudioFolder(folderId: String): Boolean = false
+
+    fun assignSavedAudioToFolder(
+        itemIds: Collection<String>,
+        folderId: String?,
+    ): Boolean = false
 }

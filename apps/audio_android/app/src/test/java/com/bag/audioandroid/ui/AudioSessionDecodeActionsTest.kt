@@ -23,6 +23,7 @@ import com.bag.audioandroid.domain.TextFollowLineTokenRangeViewData
 import com.bag.audioandroid.domain.TextFollowLyricLineTimelineEntry
 import com.bag.audioandroid.ui.model.AppLanguageOption
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
+import com.bag.audioandroid.ui.model.SampleFlavor
 import com.bag.audioandroid.ui.model.SampleInputLengthOption
 import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.model.UiText
@@ -330,11 +331,13 @@ private class LocalFakeSampleInputTextProvider : SampleInputTextProvider {
     override fun defaultSample(
         mode: TransportModeOption,
         language: AppLanguageOption,
+        flavor: SampleFlavor,
     ): SampleInput = SampleInput(id = "default", text = "sample")
 
     override fun randomSample(
         mode: TransportModeOption,
         language: AppLanguageOption,
+        flavor: SampleFlavor,
         length: SampleInputLengthOption,
         excludingSampleId: String?,
     ): SampleInput = SampleInput(id = "random", text = "sample")
@@ -342,6 +345,7 @@ private class LocalFakeSampleInputTextProvider : SampleInputTextProvider {
     override fun sampleById(
         mode: TransportModeOption,
         language: AppLanguageOption,
+        flavor: SampleFlavor,
         sampleId: String,
     ): SampleInput? = SampleInput(id = sampleId, text = "sample")
 }

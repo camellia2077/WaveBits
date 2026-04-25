@@ -19,6 +19,7 @@ import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.MiniPlayerUiModel
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
+import com.bag.audioandroid.ui.model.TransportModeOption
 
 @Composable
 internal fun PlayerDetailSheetContent(
@@ -28,6 +29,7 @@ internal fun PlayerDetailSheetContent(
     isScrubbing: Boolean,
     waveformPcm: ShortArray,
     sampleRateHz: Int,
+    frameSamples: Int = 2205,
     displayedTime: String,
     totalTime: String,
     isPlaying: Boolean,
@@ -69,18 +71,16 @@ internal fun PlayerDetailSheetContent(
                     .fillMaxWidth()
                     .weight(1f)
                     .verticalScroll(scrollState),
-            miniPlayerModel = miniPlayerModel,
             displayedSamples = displayedSamples,
             waveformPcm = waveformPcm,
             sampleRateHz = sampleRateHz,
+            frameSamples = frameSamples,
+            transportMode = miniPlayerModel.transportMode,
             isFlashMode = miniPlayerModel.isFlashMode,
             flashVoicingStyle = miniPlayerModel.flashVoicingStyle,
             followData = followData,
             isPlaying = isPlaying,
             displaySectionState = displaySectionState,
-            canExportGeneratedAudio = canExportGeneratedAudio,
-            onExportGeneratedAudio = onExportGeneratedAudio,
-            onShareSavedAudio = onShareSavedAudio,
             savedAudioItem = savedAudioItem,
         )
         PlayerDetailBottomDock(
@@ -95,6 +95,11 @@ internal fun PlayerDetailSheetContent(
             canSkipPrevious = canSkipPrevious,
             canSkipNext = canSkipNext,
             canExportGeneratedAudio = canExportGeneratedAudio,
+            transportMode = miniPlayerModel.transportMode,
+            durationMs = miniPlayerModel.durationMs,
+            sampleRateHz = sampleRateHz,
+            frameSamples = frameSamples,
+            flashVoicingStyle = miniPlayerModel.flashVoicingStyle,
             onTogglePlayback = onTogglePlayback,
             onSkipToPreviousTrack = onSkipToPreviousTrack,
             onSkipToNextTrack = onSkipToNextTrack,
@@ -110,18 +115,16 @@ internal fun PlayerDetailSheetContent(
 
 @Composable
 private fun PlayerDetailScrollContent(
-    miniPlayerModel: MiniPlayerUiModel,
     displayedSamples: Int,
     waveformPcm: ShortArray,
     sampleRateHz: Int,
+    frameSamples: Int,
+    transportMode: TransportModeOption,
     isFlashMode: Boolean,
     flashVoicingStyle: FlashVoicingStyleOption?,
     followData: PayloadFollowViewData,
     isPlaying: Boolean,
     displaySectionState: PlaybackDisplaySectionState,
-    canExportGeneratedAudio: Boolean,
-    onExportGeneratedAudio: () -> Unit,
-    onShareSavedAudio: (() -> Unit)?,
     savedAudioItem: SavedAudioItem?,
     modifier: Modifier = Modifier,
 ) {
@@ -130,19 +133,14 @@ private fun PlayerDetailScrollContent(
             modifier.padding(horizontal = PlayerDetailHorizontalPadding, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        PlayerDetailSummarySection(
-            miniPlayerModel = miniPlayerModel,
-            canExportGeneratedAudio = canExportGeneratedAudio,
-            onExportGeneratedAudio = onExportGeneratedAudio,
-            onShareSavedAudio = onShareSavedAudio,
-        )
-
         savedAudioItem?.let { PlayerDetailSavedInfoSection(item = it) }
 
         AudioPlaybackDisplayBlock(
             displayedSamples = displayedSamples,
             waveformPcm = waveformPcm,
             sampleRateHz = sampleRateHz,
+            transportMode = transportMode,
+            frameSamples = frameSamples,
             isFlashMode = isFlashMode,
             flashVoicingStyle = flashVoicingStyle,
             followData = followData,
@@ -166,6 +164,11 @@ private fun PlayerDetailBottomDock(
     canSkipPrevious: Boolean,
     canSkipNext: Boolean,
     canExportGeneratedAudio: Boolean,
+    transportMode: TransportModeOption,
+    durationMs: Long,
+    sampleRateHz: Int,
+    frameSamples: Int,
+    flashVoicingStyle: FlashVoicingStyleOption?,
     onTogglePlayback: () -> Unit,
     onSkipToPreviousTrack: () -> Unit,
     onSkipToNextTrack: () -> Unit,
@@ -200,6 +203,11 @@ private fun PlayerDetailBottomDock(
             canSkipPrevious = canSkipPrevious,
             canSkipNext = canSkipNext,
             canExportGeneratedAudio = canExportGeneratedAudio,
+            transportMode = transportMode,
+            durationMs = durationMs,
+            sampleRateHz = sampleRateHz,
+            frameSamples = frameSamples,
+            flashVoicingStyle = flashVoicingStyle,
             onTogglePlayback = onTogglePlayback,
             onSkipToPreviousTrack = onSkipToPreviousTrack,
             onSkipToNextTrack = onSkipToNextTrack,

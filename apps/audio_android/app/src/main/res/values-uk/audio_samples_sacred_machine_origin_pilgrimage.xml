@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_sacred_machine_themed_source_matrix_recovered">Вихідна матриця знайдена неушкодженою під давнім пилом</string>
+    <string name="audio_sample_sacred_machine_ascii_source_matrix_recovered">SOURCE MATRIX RECOVERED FROM ANCIENT DUST</string>
+    <string name="audio_sample_sacred_machine_themed_ancient_database_pilgrimage">Флот паломників знайшов покинутий корабель, що холодно дрейфував у глибокій темряві. Під шаром пилу, достатнім, щоб поховати століття, карта пам’яті все ще зберігала один непошкоджений шлях до стародавньої бази даних. Дешифрування просувалося поодинокими світловими позначками, і екіпаж містка плакав, коли відповіла ідеальна вихідна матриця. Шість кораблів було втрачено під час переходу; примітка на полях називає ціну скромною.</string>
+    <string name="audio_sample_sacred_machine_ascii_ancient_database_pilgrimage">ORIGIN PILGRIMAGE. DERELICT HULL FOUND IN DEEP SPACE. DATA CHIPS CLEANED. ANCIENT DATABASE DECRYPTION REACHED ONE PERFECT LINE. THE FLEET LOSS WAS ACCEPTABLE.</string>
+</resources>

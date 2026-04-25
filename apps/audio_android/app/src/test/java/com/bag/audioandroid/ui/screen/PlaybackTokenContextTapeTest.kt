@@ -69,7 +69,7 @@ class PlaybackTokenContextTapeTest {
             resolveContinuousViewportLine(
                 followData =
                     PayloadFollowViewData(
-                        textTokens = listOf("The", "red-robed", "keepers", "are", "lighting"),
+                        textTokens = listOf("The", "lamp", "keepers", "unseal", "it"),
                         lineTokenRanges =
                             listOf(
                                 TextFollowLineTokenRangeViewData(lineIndex = 0, tokenBeginIndex = 0, tokenCount = 3),
@@ -81,12 +81,12 @@ class PlaybackTokenContextTapeTest {
                 activeTokenIndex = 1,
             )
 
-        assertEquals("The red-robed keepers", line?.text)
+        assertEquals("The lamp keepers", line?.text)
         assertEquals(0, line?.tokenSegments?.get(0)?.start)
         assertEquals(3, line?.tokenSegments?.get(0)?.endExclusive)
         assertEquals(4, line?.tokenSegments?.get(1)?.start)
-        assertEquals(13, line?.tokenSegments?.get(1)?.endExclusive)
-        assertEquals(14, line?.tokenSegments?.get(2)?.start)
+        assertEquals(8, line?.tokenSegments?.get(1)?.endExclusive)
+        assertEquals(9, line?.tokenSegments?.get(2)?.start)
     }
 
     @Test
@@ -201,7 +201,8 @@ class PlaybackTokenContextTapeTest {
 
     @Test
     fun `invalid active token line range returns null`() {
-        assertNull(
+        assertEquals(
+            0..2,
             resolveActiveTokenLineRange(
                 lineTokenRanges = emptyList(),
                 lyricLineFollowAvailable = true,

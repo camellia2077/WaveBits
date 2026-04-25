@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio_sample_ancient_dynasty_themed_rusted_throne_bad_memory">Le trône rouillé accepte un nouveau décret issu d’une mémoire fracturée</string>
+    <string name="audio_sample_ancient_dynasty_ascii_rusted_throne_bad_memory">RUSTED THRONE ACCEPTS A DECREE FROM BROKEN MEMORY.</string>
+    <string name="audio_sample_ancient_dynasty_themed_court_debates_dead_realm">Les cohortes de métal squelettiques restent muettes pendant que les nobles se disputent une frontière qui a disparu avant le sommeil éternel. Des capes d’alliage pendent, splendides et rigides, sur des corps qui n’en sentent pas le poids. Le suzerain répète un titre honorifique à un courtisan dont l’être a été effacé lors du transfert, et le conseil enregistre un consentement unanime. La machinerie immortelle préserve parfaitement la dynastie, à l’exception des esprits qui pourrissent déjà à l’intérieur.</string>
+    <string name="audio_sample_ancient_dynasty_ascii_court_debates_dead_realm">MUTE METAL PHALANXES STAND. NOBLES ARGUE OVER VANISHED BORDERS. BROKEN MEMORY SIGNS THE DECREE. IMMORTAL MACHINERY PRESERVES A MIND ALREADY ROTTING.</string>
+</resources>
