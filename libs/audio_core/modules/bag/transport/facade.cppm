@@ -38,6 +38,10 @@ ErrorCode EncodeTextToPcm16WithFollowData(
     const CoreConfig& config, const std::string& text,
     EncodedPcmFollowResult* out_result,
     const EncodeProgressSink* progress_sink);
+ErrorCode BuildEncodeFollowData(const CoreConfig& config,
+                                const std::string& text,
+                                PayloadFollowData* out_follow_data,
+                                TextFollowData* out_text_follow_data);
 std::unique_ptr<ITransportDecoder> CreateTransportDecoder(
     const CoreConfig& config);
 

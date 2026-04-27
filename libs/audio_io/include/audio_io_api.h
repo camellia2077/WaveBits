@@ -41,6 +41,12 @@ typedef enum audio_io_metadata_flash_voicing_style {
   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL = 3
 } audio_io_metadata_flash_voicing_style;
 
+typedef enum audio_io_metadata_input_source_kind {
+  AUDIO_IO_METADATA_INPUT_SOURCE_KIND_UNKNOWN = 0,
+  AUDIO_IO_METADATA_INPUT_SOURCE_KIND_MANUAL = 1,
+  AUDIO_IO_METADATA_INPUT_SOURCE_KIND_SAMPLE = 2
+} audio_io_metadata_input_source_kind;
+
 typedef struct audio_io_string_view {
   const char* data;
   size_t size;
@@ -58,8 +64,14 @@ typedef struct audio_io_metadata_view {
   audio_io_metadata_flash_voicing_style flash_voicing_style;
   audio_io_string_view created_at_iso_utc;
   uint32_t duration_ms;
+  uint32_t sample_rate_hz;
   uint32_t frame_samples;
   uint32_t pcm_sample_count;
+  uint32_t payload_byte_count;
+  audio_io_metadata_input_source_kind input_source_kind;
+  uint32_t segment_count;
+  const uint32_t* segment_sample_counts;
+  size_t segment_sample_count_count;
   audio_io_string_view app_version;
   audio_io_string_view core_version;
 } audio_io_metadata_view;
@@ -71,8 +83,14 @@ typedef struct audio_io_metadata {
   audio_io_metadata_flash_voicing_style flash_voicing_style;
   audio_io_owned_string created_at_iso_utc;
   uint32_t duration_ms;
+  uint32_t sample_rate_hz;
   uint32_t frame_samples;
   uint32_t pcm_sample_count;
+  uint32_t payload_byte_count;
+  audio_io_metadata_input_source_kind input_source_kind;
+  uint32_t segment_count;
+  uint32_t* segment_sample_counts;
+  size_t segment_sample_count_count;
   audio_io_owned_string app_version;
   audio_io_owned_string core_version;
 } audio_io_metadata;

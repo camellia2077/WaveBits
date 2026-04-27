@@ -11,6 +11,7 @@ struct TextTokenSpec {
   std::string display_text;
   std::size_t covered_byte_count = 0;
   std::size_t display_unit_count = 0;
+  std::uint32_t tail_code_point = 0;
   std::string joiner_after;
   bool force_line_break_after = false;
 };
@@ -53,8 +54,15 @@ bool IsCjkPunctuation(std::uint32_t code_point) {
          (code_point >= 0xFF5B && code_point <= 0xFF65);
 }
 
+bool IsUnicodePunctuationBlock(std::uint32_t code_point) {
+  return (code_point >= 0x00A1 && code_point <= 0x00BF) ||
+         (code_point >= 0x2000 && code_point <= 0x206F) ||
+         (code_point >= 0x2E00 && code_point <= 0x2E7F);
+}
+
 bool IsPunctuationCodePoint(std::uint32_t code_point) {
-  return IsAsciiPunctuation(code_point) || IsCjkPunctuation(code_point);
+  return IsAsciiPunctuation(code_point) || IsCjkPunctuation(code_point) ||
+         IsUnicodePunctuationBlock(code_point);
 }
 
 bool IsStrongLineBreakCodePoint(std::uint32_t code_point) {
@@ -87,15 +95,6 @@ bool IsWeakLineBreakCodePoint(std::uint32_t code_point) {
 }
 
 std::vector<Utf8CodePointSlice> DecodeUtf8CodePointSlices(std::string_view text);
-
-std::size_t CountDisplayUnits(std::string_view text) {
-  return DecodeUtf8CodePointSlices(text).size();
-}
-
-std::uint32_t LastCodePoint(std::string_view text) {
-  const auto slices = DecodeUtf8CodePointSlices(text);
-  return slices.empty() ? 0U : slices.back().code_point;
-}
 
 std::vector<Utf8CodePointSlice> DecodeUtf8CodePointSlices(std::string_view text) {
   std::vector<Utf8CodePointSlice> slices;
@@ -138,50 +137,68 @@ std::vector<Utf8CodePointSlice> DecodeUtf8CodePointSlices(std::string_view text)
   return slices;
 }
 
-std::vector<TextTokenSpec> TokenizeCjkSegment(
-    const std::vector<Utf8CodePointSlice>& slices) {
+void AppendStandaloneSliceToken(const Utf8CodePointSlice& slice,
+                                std::vector<TextTokenSpec>* out_tokens) {
+  if (out_tokens == nullptr) {
+    return;
+  }
+  out_tokens->push_back(TextTokenSpec{
+      .display_text = std::string(slice.bytes),
+      .covered_byte_count = slice.bytes.size(),
+      .display_unit_count = 1,
+      .tail_code_point = slice.code_point,
+  });
+}
+
+void FlushGroupedTextToken(std::string* grouped_text,
+                           std::size_t* grouped_bytes,
+                           std::size_t* grouped_display_units,
+                           std::uint32_t* grouped_tail_code_point,
+                           std::vector<TextTokenSpec>* out_tokens) {
+  if (grouped_text == nullptr || grouped_bytes == nullptr ||
+      grouped_display_units == nullptr || grouped_tail_code_point == nullptr ||
+      out_tokens == nullptr || grouped_text->empty()) {
+    return;
+  }
+  out_tokens->push_back(TextTokenSpec{
+      .display_text = *grouped_text,
+      .covered_byte_count = *grouped_bytes,
+      .display_unit_count = *grouped_display_units,
+      .tail_code_point = *grouped_tail_code_point,
+  });
+  grouped_text->clear();
+  *grouped_bytes = 0;
+  *grouped_display_units = 0;
+  *grouped_tail_code_point = 0;
+}
+
+std::vector<TextTokenSpec> TokenizeSegmentForFollow(
+    const Utf8CodePointSlice* slices, std::size_t slice_count,
+    bool split_non_punctuation_per_code_point) {
   std::vector<TextTokenSpec> tokens;
-  std::string pending_prefix;
-  std::size_t pending_prefix_bytes = 0;
-  for (const auto& slice : slices) {
+  std::string grouped_text;
+  std::size_t grouped_bytes = 0;
+  std::size_t grouped_display_units = 0;
+  std::uint32_t grouped_tail_code_point = 0;
+  for (std::size_t slice_index = 0; slice_index < slice_count; ++slice_index) {
+    const auto& slice = slices[slice_index];
     if (IsPunctuationCodePoint(slice.code_point)) {
-      if (tokens.empty()) {
-        pending_prefix.append(slice.bytes);
-        pending_prefix_bytes += slice.bytes.size();
-      } else {
-        tokens.back().display_text.append(slice.bytes);
-        tokens.back().covered_byte_count += slice.bytes.size();
-      }
+      FlushGroupedTextToken(&grouped_text, &grouped_bytes, &grouped_display_units,
+                            &grouped_tail_code_point, &tokens);
+      AppendStandaloneSliceToken(slice, &tokens);
       continue;
     }
-    tokens.push_back(TextTokenSpec{
-        .display_text = std::string(pending_prefix) + std::string(slice.bytes),
-        .covered_byte_count = pending_prefix_bytes + slice.bytes.size(),
-        .display_unit_count =
-            CountDisplayUnits(std::string(pending_prefix) + std::string(slice.bytes)),
-    });
-    pending_prefix.clear();
-    pending_prefix_bytes = 0;
-  }
-  if (!pending_prefix.empty()) {
-    if (tokens.empty()) {
-      tokens.push_back(TextTokenSpec{
-          .display_text = pending_prefix,
-          .covered_byte_count = pending_prefix_bytes,
-          .display_unit_count = CountDisplayUnits(pending_prefix),
-      });
+    if (split_non_punctuation_per_code_point) {
+      AppendStandaloneSliceToken(slice, &tokens);
     } else {
-      tokens.back().display_text.append(pending_prefix);
-      tokens.back().covered_byte_count += pending_prefix_bytes;
-      tokens.back().display_unit_count =
-          CountDisplayUnits(tokens.back().display_text);
+      grouped_text.append(slice.bytes);
+      grouped_bytes += slice.bytes.size();
+      ++grouped_display_units;
+      grouped_tail_code_point = slice.code_point;
     }
   }
-  for (auto& token : tokens) {
-    if (token.display_unit_count == 0) {
-      token.display_unit_count = CountDisplayUnits(token.display_text);
-    }
-  }
+  FlushGroupedTextToken(&grouped_text, &grouped_bytes, &grouped_display_units,
+                        &grouped_tail_code_point, &tokens);
   return tokens;
 }
 
@@ -205,23 +222,9 @@ std::vector<TextTokenSpec> TokenizeTextForFollow(std::string_view text) {
       contains_cjk = contains_cjk || IsCjkCodePoint(slices[index].code_point);
     }
     std::vector<TextTokenSpec> segment_tokens;
-    if (contains_cjk) {
-      segment_tokens = TokenizeCjkSegment(std::vector<Utf8CodePointSlice>(
-          slices.begin() + static_cast<std::ptrdiff_t>(segment_begin),
-          slices.begin() + static_cast<std::ptrdiff_t>(segment_end)));
-    } else {
-      std::string segment_text;
-      std::size_t segment_bytes = 0;
-      for (std::size_t index = segment_begin; index < segment_end; ++index) {
-        segment_text.append(slices[index].bytes);
-        segment_bytes += slices[index].bytes.size();
-      }
-      segment_tokens.push_back(TextTokenSpec{
-          .display_text = segment_text,
-          .covered_byte_count = segment_bytes,
-          .display_unit_count = CountDisplayUnits(segment_text),
-      });
-    }
+    segment_tokens = TokenizeSegmentForFollow(
+        slices.data() + segment_begin, segment_end - segment_begin,
+        contains_cjk);
     if (pending_whitespace_bytes > 0 && !tokens.empty()) {
       tokens.back().covered_byte_count += pending_whitespace_bytes;
       tokens.back().joiner_after = pending_contains_newline ? "" : pending_separator;
@@ -257,7 +260,8 @@ std::vector<TextTokenSpec> TokenizeTextForFollow(std::string_view text) {
     tokens.push_back(TextTokenSpec{
         .display_text = std::string(text),
         .covered_byte_count = text.size(),
-        .display_unit_count = CountDisplayUnits(text),
+        .display_unit_count = slices.size(),
+        .tail_code_point = slices.back().code_point,
     });
   }
   return tokens;
@@ -345,14 +349,13 @@ void BuildLyricLineData(const std::vector<TextTokenSpec>& token_specs,
     const auto& token_spec = token_specs[token_index];
     current_line_units += token_spec.display_unit_count;
 
-    const std::uint32_t tail_code_point = LastCodePoint(token_spec.display_text);
     // Keep line grouping formal and deterministic: newline first, then strong
     // punctuation, then softer pauses, and only then fall back to the hard cap.
     const bool should_break_here =
         token_spec.force_line_break_after ||
-        IsStrongLineBreakCodePoint(tail_code_point) ||
+        IsStrongLineBreakCodePoint(token_spec.tail_code_point) ||
         (current_line_units >= kPreferredLineUnitLimit &&
-         IsWeakLineBreakCodePoint(tail_code_point)) ||
+         IsWeakLineBreakCodePoint(token_spec.tail_code_point)) ||
         current_line_units >= kHardLineUnitLimit ||
         token_index + 1 == token_specs.size();
     if (!should_break_here) {

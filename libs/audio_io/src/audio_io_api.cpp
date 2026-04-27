@@ -107,6 +107,32 @@ audio_io_metadata_flash_voicing_style ToApiFlashStyle(
   }
 }
 
+audio_io::FlipBitsAudioMetadataInputSourceKind ToLibraryInputSourceKind(
+    audio_io_metadata_input_source_kind kind) {
+  switch (kind) {
+    case AUDIO_IO_METADATA_INPUT_SOURCE_KIND_MANUAL:
+      return audio_io::FlipBitsAudioMetadataInputSourceKind::kManual;
+    case AUDIO_IO_METADATA_INPUT_SOURCE_KIND_SAMPLE:
+      return audio_io::FlipBitsAudioMetadataInputSourceKind::kSample;
+    case AUDIO_IO_METADATA_INPUT_SOURCE_KIND_UNKNOWN:
+    default:
+      return audio_io::FlipBitsAudioMetadataInputSourceKind::kUnknown;
+  }
+}
+
+audio_io_metadata_input_source_kind ToApiInputSourceKind(
+    audio_io::FlipBitsAudioMetadataInputSourceKind kind) {
+  switch (kind) {
+    case audio_io::FlipBitsAudioMetadataInputSourceKind::kManual:
+      return AUDIO_IO_METADATA_INPUT_SOURCE_KIND_MANUAL;
+    case audio_io::FlipBitsAudioMetadataInputSourceKind::kSample:
+      return AUDIO_IO_METADATA_INPUT_SOURCE_KIND_SAMPLE;
+    case audio_io::FlipBitsAudioMetadataInputSourceKind::kUnknown:
+    default:
+      return AUDIO_IO_METADATA_INPUT_SOURCE_KIND_UNKNOWN;
+  }
+}
+
 bool IsValidStringView(audio_io_string_view value) {
   return value.size == 0 || value.data != nullptr;
 }
@@ -136,8 +162,14 @@ void ResetMetadata(audio_io_metadata* metadata) {
   metadata->flash_voicing_style = AUDIO_IO_METADATA_FLASH_VOICING_STYLE_UNKNOWN;
   ResetOwnedString(&metadata->created_at_iso_utc);
   metadata->duration_ms = 0;
+  metadata->sample_rate_hz = 0;
   metadata->frame_samples = 0;
   metadata->pcm_sample_count = 0;
+  metadata->payload_byte_count = 0;
+  metadata->input_source_kind = AUDIO_IO_METADATA_INPUT_SOURCE_KIND_UNKNOWN;
+  metadata->segment_count = 1;
+  metadata->segment_sample_counts = nullptr;
+  metadata->segment_sample_count_count = 0;
   ResetOwnedString(&metadata->app_version);
   ResetOwnedString(&metadata->core_version);
 }
@@ -174,6 +206,28 @@ bool DuplicateOwnedString(const std::string& input, audio_io_owned_string* out) 
   return true;
 }
 
+bool DuplicateSegmentSampleCounts(
+    const std::vector<std::uint32_t>& input,
+    audio_io_metadata* out_metadata) {
+  if (out_metadata == nullptr) {
+    return false;
+  }
+  out_metadata->segment_sample_counts = nullptr;
+  out_metadata->segment_sample_count_count = 0;
+  if (input.empty()) {
+    return true;
+  }
+
+  auto* buffer = new (std::nothrow) std::uint32_t[input.size()];
+  if (buffer == nullptr) {
+    return false;
+  }
+  std::copy(input.begin(), input.end(), buffer);
+  out_metadata->segment_sample_counts = buffer;
+  out_metadata->segment_sample_count_count = input.size();
+  return true;
+}
+
 bool FillApiMetadata(const audio_io::FlipBitsAudioMetadata& native_metadata,
                      audio_io_metadata* out_metadata) {
   if (out_metadata == nullptr) {
@@ -190,8 +244,18 @@ bool FillApiMetadata(const audio_io::FlipBitsAudioMetadata& native_metadata,
           ? ToApiFlashStyle(native_metadata.flash_voicing_style)
           : AUDIO_IO_METADATA_FLASH_VOICING_STYLE_UNKNOWN;
   out_metadata->duration_ms = native_metadata.duration_ms;
+  out_metadata->sample_rate_hz = native_metadata.sample_rate_hz;
   out_metadata->frame_samples = native_metadata.frame_samples;
   out_metadata->pcm_sample_count = native_metadata.pcm_sample_count;
+  out_metadata->payload_byte_count = native_metadata.payload_byte_count;
+  out_metadata->input_source_kind =
+      ToApiInputSourceKind(native_metadata.input_source_kind);
+  out_metadata->segment_count = native_metadata.segment_count;
+  if (!DuplicateSegmentSampleCounts(native_metadata.segment_sample_counts,
+                                    out_metadata)) {
+    audio_io_free_metadata(out_metadata);
+    return false;
+  }
 
   if (!DuplicateOwnedString(native_metadata.created_at_iso_utc,
                             &out_metadata->created_at_iso_utc) ||
@@ -216,6 +280,10 @@ bool ToNativeMetadata(const audio_io_metadata_view* metadata,
       !IsValidStringView(metadata->core_version)) {
     return false;
   }
+  if (metadata->segment_sample_count_count > 0 &&
+      metadata->segment_sample_counts == nullptr) {
+    return false;
+  }
 
   out_metadata->version = metadata->version;
   out_metadata->mode = ToLibraryMode(metadata->mode);
@@ -227,8 +295,16 @@ bool ToNativeMetadata(const audio_io_metadata_view* metadata,
           : audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kUnknown;
   out_metadata->created_at_iso_utc = ToStdString(metadata->created_at_iso_utc);
   out_metadata->duration_ms = metadata->duration_ms;
+  out_metadata->sample_rate_hz = metadata->sample_rate_hz;
   out_metadata->frame_samples = metadata->frame_samples;
   out_metadata->pcm_sample_count = metadata->pcm_sample_count;
+  out_metadata->payload_byte_count = metadata->payload_byte_count;
+  out_metadata->input_source_kind =
+      ToLibraryInputSourceKind(metadata->input_source_kind);
+  out_metadata->segment_count = std::max<std::uint32_t>(1u, metadata->segment_count);
+  out_metadata->segment_sample_counts.assign(
+      metadata->segment_sample_counts,
+      metadata->segment_sample_counts + metadata->segment_sample_count_count);
   out_metadata->app_version = ToStdString(metadata->app_version);
   out_metadata->core_version = ToStdString(metadata->core_version);
   return true;
@@ -431,6 +507,7 @@ void audio_io_free_metadata(audio_io_metadata* metadata) {
   }
 
   delete[] metadata->created_at_iso_utc.data;
+  delete[] metadata->segment_sample_counts;
   delete[] metadata->app_version.data;
   delete[] metadata->core_version.data;
   ResetMetadata(metadata);

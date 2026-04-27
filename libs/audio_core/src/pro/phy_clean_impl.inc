@@ -85,6 +85,34 @@ bool IsValidConfig(const DualToneConfig& config) {
          config.amplitude > 0.0;
 }
 
+using SymbolTemplateBank = std::array<std::vector<int16_t>, 16>;
+
+// Precompute the 16 DTMF-like symbol waveforms once per encode so long payloads
+// can reuse them without paying the trig cost for every rendered sample.
+SymbolTemplateBank BuildSymbolTemplateBank(const DualToneConfig& config) {
+  SymbolTemplateBank templates{};
+  for (std::size_t symbol = 0; symbol < templates.size(); ++symbol) {
+    auto& pcm = templates[symbol];
+    pcm.resize(static_cast<std::size_t>(config.symbol_samples));
+    const double low_freq_hz = config.low_freqs_hz[symbol / 4];
+    const double high_freq_hz = config.high_freqs_hz[symbol % 4];
+    const double low_omega = 2.0 * kPi * low_freq_hz;
+    const double high_omega = 2.0 * kPi * high_freq_hz;
+    for (int index = 0; index < config.symbol_samples; ++index) {
+      const double time = static_cast<double>(index) /
+                          static_cast<double>(config.sample_rate_hz);
+      const double low_sample = std::sin(low_omega * time);
+      const double high_sample = std::sin(high_omega * time);
+      const double sample =
+          config.amplitude * 0.5 * (low_sample + high_sample);
+      const double clamped = std::max(-1.0, std::min(1.0, sample));
+      pcm[static_cast<std::size_t>(index)] =
+          static_cast<int16_t>(std::lround(clamped * 32767.0));
+    }
+  }
+  return templates;
+}
+
 double GoertzelPower(const int16_t* chunk, int chunk_size, int sample_rate_hz,
                      double target_freq_hz) {
   const double normalized_freq =
@@ -246,10 +274,9 @@ ErrorCode EncodeSymbolsToPcm16(const std::vector<uint8_t>& symbols,
   }
 
   out_pcm->clear();
-  out_pcm->reserve(symbols.size() * static_cast<size_t>(config.symbol_samples));
-
   const std::size_t total_samples =
       symbols.size() * static_cast<std::size_t>(config.symbol_samples);
+  out_pcm->resize(total_samples);
   ReportEncodeProgress(progress_sink, EncodeProgressPhase::kRenderingPcm,
                        progress_begin);
   if (total_samples == 0) {
@@ -258,8 +285,10 @@ ErrorCode EncodeSymbolsToPcm16(const std::vector<uint8_t>& symbols,
     return ErrorCode::kOk;
   }
 
+  const SymbolTemplateBank templates = BuildSymbolTemplateBank(config);
   std::size_t rendered_samples = 0;
   std::size_t last_reported_samples = 0;
+  std::size_t write_offset = 0;
   for (size_t symbol_index = 0; symbol_index < symbols.size(); ++symbol_index) {
     if (ShouldCancelEncode(progress_sink)) {
       out_pcm->clear();
@@ -270,27 +299,11 @@ ErrorCode EncodeSymbolsToPcm16(const std::vector<uint8_t>& symbols,
       return ErrorCode::kInvalidArgument;
     }
 
-    const double low_freq_hz =
-        config.low_freqs_hz[static_cast<size_t>(symbol / 4)];
-    const double high_freq_hz =
-        config.high_freqs_hz[static_cast<size_t>(symbol % 4)];
-    const double low_omega = 2.0 * kPi * low_freq_hz;
-    const double high_omega = 2.0 * kPi * high_freq_hz;
-
-    for (int index = 0; index < config.symbol_samples; ++index) {
-      const double time = static_cast<double>(index) /
-                          static_cast<double>(config.sample_rate_hz);
-      const double low_sample = std::sin(low_omega * time);
-      const double high_sample = std::sin(high_omega * time);
-      const double sample = config.amplitude * 0.5 * (low_sample + high_sample);
-      const double clamped = std::max(-1.0, std::min(1.0, sample));
-      out_pcm->push_back(static_cast<int16_t>(clamped * 32767.0));
-      ++rendered_samples;
-      MaybeReportCompletedSampleProgress(
-          progress_sink, EncodeProgressPhase::kRenderingPcm, progress_begin,
-          progress_end, rendered_samples, total_samples,
-          &last_reported_samples);
-    }
+    const auto& template_pcm = templates[static_cast<std::size_t>(symbol)];
+    std::copy(template_pcm.begin(), template_pcm.end(),
+              out_pcm->begin() + static_cast<std::ptrdiff_t>(write_offset));
+    write_offset += template_pcm.size();
+    rendered_samples += template_pcm.size();
     MaybeReportCompletedSampleProgress(
         progress_sink, EncodeProgressPhase::kRenderingPcm, progress_begin,
         progress_end, rendered_samples, total_samples, &last_reported_samples,

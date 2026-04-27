@@ -581,6 +581,140 @@ void TestApiEncodeAndDecodeFollowStayAligned() {
     }
 }
 
+void TestApiBuildEncodeFollowDataMatchesStructuredEncode() {
+    const std::array<bag_transport_mode, 3> modes = {
+        BAG_TRANSPORT_FLASH,
+        BAG_TRANSPORT_PRO,
+        BAG_TRANSPORT_ULTRA,
+    };
+    const std::string text = "FOLLOW";
+
+    for (const auto& config_case : test::ConfigCases()) {
+        for (const auto mode : modes) {
+            const auto encoder_config = MakeEncoderConfig(config_case, mode);
+            std::array<char, 4096> structured_raw_hex_buffer{};
+            std::array<char, 32768> structured_raw_bits_buffer{};
+            std::array<char, 256> structured_text_tokens_buffer{};
+            std::array<char, 256> structured_lyric_lines_buffer{};
+            std::array<bag_payload_follow_byte_entry, 2048> structured_byte_entries{};
+            std::array<bag_payload_follow_binary_group_entry, 4096> structured_binary_entries{};
+            std::array<bag_text_follow_token_entry, 64> structured_text_entries{};
+            std::array<bag_text_follow_raw_segment_entry, 64> structured_text_raw_segments{};
+            std::array<bag_text_follow_raw_display_unit_entry, 256> structured_text_raw_display_units{};
+            std::array<bag_text_follow_lyric_line_entry, 64> structured_lyric_line_entries{};
+            std::array<bag_text_follow_line_token_range_entry, 64> structured_line_token_ranges{};
+            std::array<bag_text_follow_line_raw_segment_entry, 64> structured_line_raw_segments{};
+            bag_encode_result structured_result{};
+            structured_result.raw_bytes_hex_buffer = structured_raw_hex_buffer.data();
+            structured_result.raw_bytes_hex_buffer_size = structured_raw_hex_buffer.size();
+            structured_result.raw_bits_binary_buffer = structured_raw_bits_buffer.data();
+            structured_result.raw_bits_binary_buffer_size = structured_raw_bits_buffer.size();
+            structured_result.text_follow_data.text_tokens_buffer = structured_text_tokens_buffer.data();
+            structured_result.text_follow_data.text_tokens_buffer_size = structured_text_tokens_buffer.size();
+            structured_result.text_follow_data.lyric_lines_buffer = structured_lyric_lines_buffer.data();
+            structured_result.text_follow_data.lyric_lines_buffer_size = structured_lyric_lines_buffer.size();
+            structured_result.text_follow_data.text_token_timeline_buffer = structured_text_entries.data();
+            structured_result.text_follow_data.text_token_timeline_buffer_count = structured_text_entries.size();
+            structured_result.text_follow_data.token_raw_segments_buffer = structured_text_raw_segments.data();
+            structured_result.text_follow_data.token_raw_segments_buffer_count = structured_text_raw_segments.size();
+            structured_result.text_follow_data.token_raw_display_units_buffer = structured_text_raw_display_units.data();
+            structured_result.text_follow_data.token_raw_display_units_buffer_count = structured_text_raw_display_units.size();
+            structured_result.text_follow_data.lyric_line_timeline_buffer = structured_lyric_line_entries.data();
+            structured_result.text_follow_data.lyric_line_timeline_buffer_count = structured_lyric_line_entries.size();
+            structured_result.text_follow_data.line_token_ranges_buffer = structured_line_token_ranges.data();
+            structured_result.text_follow_data.line_token_ranges_buffer_count = structured_line_token_ranges.size();
+            structured_result.text_follow_data.line_raw_segments_buffer = structured_line_raw_segments.data();
+            structured_result.text_follow_data.line_raw_segments_buffer_count = structured_line_raw_segments.size();
+            structured_result.follow_data.byte_timeline_buffer = structured_byte_entries.data();
+            structured_result.follow_data.byte_timeline_buffer_count = structured_byte_entries.size();
+            structured_result.follow_data.binary_group_timeline_buffer = structured_binary_entries.data();
+            structured_result.follow_data.binary_group_timeline_buffer_count = structured_binary_entries.size();
+
+            std::array<char, 4096> follow_only_raw_hex_buffer{};
+            std::array<char, 32768> follow_only_raw_bits_buffer{};
+            std::array<char, 256> follow_only_text_tokens_buffer{};
+            std::array<char, 256> follow_only_lyric_lines_buffer{};
+            std::array<bag_payload_follow_byte_entry, 2048> follow_only_byte_entries{};
+            std::array<bag_payload_follow_binary_group_entry, 4096> follow_only_binary_entries{};
+            std::array<bag_text_follow_token_entry, 64> follow_only_text_entries{};
+            std::array<bag_text_follow_raw_segment_entry, 64> follow_only_text_raw_segments{};
+            std::array<bag_text_follow_raw_display_unit_entry, 256> follow_only_text_raw_display_units{};
+            std::array<bag_text_follow_lyric_line_entry, 64> follow_only_lyric_line_entries{};
+            std::array<bag_text_follow_line_token_range_entry, 64> follow_only_line_token_ranges{};
+            std::array<bag_text_follow_line_raw_segment_entry, 64> follow_only_line_raw_segments{};
+            bag_encode_result follow_only_result{};
+            follow_only_result.raw_bytes_hex_buffer = follow_only_raw_hex_buffer.data();
+            follow_only_result.raw_bytes_hex_buffer_size = follow_only_raw_hex_buffer.size();
+            follow_only_result.raw_bits_binary_buffer = follow_only_raw_bits_buffer.data();
+            follow_only_result.raw_bits_binary_buffer_size = follow_only_raw_bits_buffer.size();
+            follow_only_result.text_follow_data.text_tokens_buffer = follow_only_text_tokens_buffer.data();
+            follow_only_result.text_follow_data.text_tokens_buffer_size = follow_only_text_tokens_buffer.size();
+            follow_only_result.text_follow_data.lyric_lines_buffer = follow_only_lyric_lines_buffer.data();
+            follow_only_result.text_follow_data.lyric_lines_buffer_size = follow_only_lyric_lines_buffer.size();
+            follow_only_result.text_follow_data.text_token_timeline_buffer = follow_only_text_entries.data();
+            follow_only_result.text_follow_data.text_token_timeline_buffer_count = follow_only_text_entries.size();
+            follow_only_result.text_follow_data.token_raw_segments_buffer = follow_only_text_raw_segments.data();
+            follow_only_result.text_follow_data.token_raw_segments_buffer_count = follow_only_text_raw_segments.size();
+            follow_only_result.text_follow_data.token_raw_display_units_buffer = follow_only_text_raw_display_units.data();
+            follow_only_result.text_follow_data.token_raw_display_units_buffer_count = follow_only_text_raw_display_units.size();
+            follow_only_result.text_follow_data.lyric_line_timeline_buffer = follow_only_lyric_line_entries.data();
+            follow_only_result.text_follow_data.lyric_line_timeline_buffer_count = follow_only_lyric_line_entries.size();
+            follow_only_result.text_follow_data.line_token_ranges_buffer = follow_only_line_token_ranges.data();
+            follow_only_result.text_follow_data.line_token_ranges_buffer_count = follow_only_line_token_ranges.size();
+            follow_only_result.text_follow_data.line_raw_segments_buffer = follow_only_line_raw_segments.data();
+            follow_only_result.text_follow_data.line_raw_segments_buffer_count = follow_only_line_raw_segments.size();
+            follow_only_result.follow_data.byte_timeline_buffer = follow_only_byte_entries.data();
+            follow_only_result.follow_data.byte_timeline_buffer_count = follow_only_byte_entries.size();
+            follow_only_result.follow_data.binary_group_timeline_buffer = follow_only_binary_entries.data();
+            follow_only_result.follow_data.binary_group_timeline_buffer_count = follow_only_binary_entries.size();
+
+            test::AssertEq(
+                bag_encode_text_with_follow(&encoder_config, text.c_str(), &structured_result),
+                BAG_OK,
+                "Structured encode should succeed before follow-only comparison.");
+            test::AssertEq(
+                bag_build_encode_follow_data(&encoder_config, text.c_str(), &follow_only_result),
+                BAG_OK,
+                "Follow-only encode metadata build should succeed.");
+            test::AssertEq(
+                follow_only_result.sample_count,
+                static_cast<std::size_t>(0),
+                "Follow-only metadata build should not allocate PCM output.");
+            test::AssertEq(
+                std::string(structured_raw_hex_buffer.data(), structured_result.raw_bytes_hex_size),
+                std::string(follow_only_raw_hex_buffer.data(), follow_only_result.raw_bytes_hex_size),
+                "Follow-only metadata build should match structured encode raw hex.");
+            test::AssertEq(
+                std::string(structured_raw_bits_buffer.data(), structured_result.raw_bits_binary_size),
+                std::string(follow_only_raw_bits_buffer.data(), follow_only_result.raw_bits_binary_size),
+                "Follow-only metadata build should match structured encode raw bits.");
+            test::AssertEq(
+                structured_result.follow_data.payload_begin_sample,
+                follow_only_result.follow_data.payload_begin_sample,
+                "Follow-only metadata build should preserve payload begin sample.");
+            test::AssertEq(
+                structured_result.follow_data.payload_sample_count,
+                follow_only_result.follow_data.payload_sample_count,
+                "Follow-only metadata build should preserve payload sample count.");
+            test::AssertEq(
+                structured_result.follow_data.byte_timeline_count,
+                follow_only_result.follow_data.byte_timeline_count,
+                "Follow-only metadata build should preserve byte timeline count.");
+            test::AssertEq(
+                structured_result.text_follow_data.text_token_timeline_count,
+                follow_only_result.text_follow_data.text_token_timeline_count,
+                "Follow-only metadata build should preserve text token timeline count.");
+            test::AssertEq(
+                structured_result.text_follow_data.token_raw_display_units_count,
+                follow_only_result.text_follow_data.token_raw_display_units_count,
+                "Follow-only metadata build should preserve raw display units.");
+
+            bag_free_encode_result(&structured_result);
+            bag_free_encode_result(&follow_only_result);
+        }
+    }
+}
+
 void TestApiFlashFollowTimingRespectsStyleRules() {
     struct StyleCase {
         bag_flash_signal_profile signal_profile;
@@ -878,6 +1012,101 @@ void TestApiStructuredEncodePublishesCjkTextFollow() {
                    "New token display units should reset their local byte index.");
 
     bag_free_encode_result(&result);
+}
+
+void TestApiStructuredEncodeDetachesPunctuationAcrossScripts() {
+    const auto config_case = test::ConfigCases().front();
+
+    {
+        const auto encoder_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_FLASH);
+        std::array<char, 256> text_tokens_buffer{};
+        std::array<char, 256> lyric_lines_buffer{};
+        std::array<bag_text_follow_token_entry, 32> text_entries{};
+        std::array<bag_text_follow_line_token_range_entry, 32> line_token_ranges{};
+        bag_encode_result result{};
+        result.text_follow_data.text_tokens_buffer = text_tokens_buffer.data();
+        result.text_follow_data.text_tokens_buffer_size = text_tokens_buffer.size();
+        result.text_follow_data.lyric_lines_buffer = lyric_lines_buffer.data();
+        result.text_follow_data.lyric_lines_buffer_size = lyric_lines_buffer.size();
+        result.text_follow_data.text_token_timeline_buffer = text_entries.data();
+        result.text_follow_data.text_token_timeline_buffer_count = text_entries.size();
+        result.text_follow_data.line_token_ranges_buffer = line_token_ranges.data();
+        result.text_follow_data.line_token_ranges_buffer_count = line_token_ranges.size();
+
+        test::AssertEq(
+            bag_encode_text_with_follow(&encoder_config, "HELLO, WORLD!", &result),
+            BAG_OK,
+            "Structured encode should succeed for Latin punctuation splitting.");
+        const auto tokens = SplitLineSeparatedTokens(
+            std::string(text_tokens_buffer.data(), result.text_follow_data.text_tokens_size));
+        const auto lyric_lines = SplitLineSeparatedTokens(
+            std::string(lyric_lines_buffer.data(), result.text_follow_data.lyric_lines_size));
+        test::AssertEq(tokens.size(), static_cast<std::size_t>(4),
+                       "Latin punctuation should be detached into standalone tokens.");
+        test::AssertEq(tokens[0], std::string("HELLO"),
+                       "Latin word token should preserve text before punctuation.");
+        test::AssertEq(tokens[1], std::string(","),
+                       "Comma should become its own token.");
+        test::AssertEq(tokens[2], std::string("WORLD"),
+                       "Latin word token should preserve text after punctuation.");
+        test::AssertEq(tokens[3], std::string("!"),
+                       "Exclamation mark should become its own token.");
+        test::AssertEq(lyric_lines.front(), std::string("HELLO, WORLD!"),
+                       "Lyric line text should preserve original punctuation placement.");
+        test::AssertEq(line_token_ranges[0].token_count, static_cast<std::size_t>(4),
+                       "Lyric line token range should include detached punctuation tokens.");
+        bag_free_encode_result(&result);
+    }
+
+    {
+        const auto encoder_config = MakeEncoderConfig(config_case, BAG_TRANSPORT_ULTRA);
+        std::array<char, 256> text_tokens_buffer{};
+        std::array<char, 256> lyric_lines_buffer{};
+        std::array<bag_text_follow_token_entry, 32> text_entries{};
+        std::array<bag_text_follow_line_token_range_entry, 32> line_token_ranges{};
+        bag_encode_result result{};
+        result.text_follow_data.text_tokens_buffer = text_tokens_buffer.data();
+        result.text_follow_data.text_tokens_buffer_size = text_tokens_buffer.size();
+        result.text_follow_data.lyric_lines_buffer = lyric_lines_buffer.data();
+        result.text_follow_data.lyric_lines_buffer_size = lyric_lines_buffer.size();
+        result.text_follow_data.text_token_timeline_buffer = text_entries.data();
+        result.text_follow_data.text_token_timeline_buffer_count = text_entries.size();
+        result.text_follow_data.line_token_ranges_buffer = line_token_ranges.data();
+        result.text_follow_data.line_token_ranges_buffer_count = line_token_ranges.size();
+
+        const auto input = test::Utf8Literal(u8"「神机」，启动。");
+        test::AssertEq(
+            bag_encode_text_with_follow(&encoder_config, input.c_str(), &result),
+            BAG_OK,
+            "Structured encode should succeed for CJK punctuation splitting.");
+        const auto tokens = SplitLineSeparatedTokens(
+            std::string(text_tokens_buffer.data(), result.text_follow_data.text_tokens_size));
+        const auto lyric_lines = SplitLineSeparatedTokens(
+            std::string(lyric_lines_buffer.data(), result.text_follow_data.lyric_lines_size));
+        test::AssertEq(tokens.size(), static_cast<std::size_t>(8),
+                       "CJK punctuation should also be detached into standalone tokens.");
+        test::AssertEq(tokens[0], test::Utf8Literal(u8"「"),
+                       "Opening quote should become its own token.");
+        test::AssertEq(tokens[1], test::Utf8Literal(u8"神"),
+                       "CJK character tokens should remain character-sized.");
+        test::AssertEq(tokens[2], test::Utf8Literal(u8"机"),
+                       "CJK character tokens should remain character-sized.");
+        test::AssertEq(tokens[3], test::Utf8Literal(u8"」"),
+                       "Closing quote should become its own token.");
+        test::AssertEq(tokens[4], test::Utf8Literal(u8"，"),
+                       "CJK comma should become its own token.");
+        test::AssertEq(tokens[5], test::Utf8Literal(u8"启"),
+                       "CJK text should continue to tokenize by character between punctuation marks.");
+        test::AssertEq(tokens[6], test::Utf8Literal(u8"动"),
+                       "CJK text should continue to tokenize by character between punctuation marks.");
+        test::AssertEq(tokens[7], test::Utf8Literal(u8"。"),
+                       "CJK full stop should become its own token.");
+        test::AssertEq(lyric_lines.front(), input,
+                       "Lyric line text should preserve original CJK punctuation placement.");
+        test::AssertEq(line_token_ranges[0].token_count, static_cast<std::size_t>(8),
+                       "Lyric line token range should include detached CJK punctuation tokens.");
+        bag_free_encode_result(&result);
+    }
 }
 
 void TestApiStructuredDecodePublishesTextFollowAndKeepsRawOnlyFallback() {
@@ -1481,9 +1710,13 @@ void RegisterApiSyncTests(test::Runner& runner) {
     runner.Add("Api.DecodeResultBufferBoundaries", TestApiDecodeResultBufferBoundaries);
     runner.Add("Api.StructuredEncodePublishesFollowAcrossModes", TestApiStructuredEncodePublishesFollowAcrossModes);
     runner.Add("Api.EncodeAndDecodeFollowStayAligned", TestApiEncodeAndDecodeFollowStayAligned);
+    runner.Add("Api.BuildEncodeFollowDataMatchesStructuredEncode",
+               TestApiBuildEncodeFollowDataMatchesStructuredEncode);
     runner.Add("Api.FlashFollowTimingRespectsStyleRules", TestApiFlashFollowTimingRespectsStyleRules);
     runner.Add("Api.StructuredEncodePublishesWordLevelTextFollow", TestApiStructuredEncodePublishesWordLevelTextFollow);
     runner.Add("Api.StructuredEncodePublishesCjkTextFollow", TestApiStructuredEncodePublishesCjkTextFollow);
+    runner.Add("Api.StructuredEncodeDetachesPunctuationAcrossScripts",
+               TestApiStructuredEncodeDetachesPunctuationAcrossScripts);
     runner.Add("Api.StructuredEncodePublishesShortPhraseLyricLines",
                TestApiStructuredEncodePublishesShortPhraseLyricLines);
     runner.Add("Api.StructuredDecodePublishesTextFollowAndKeepsRawOnlyFallback",

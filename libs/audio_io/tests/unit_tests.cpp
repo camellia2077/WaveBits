@@ -17,26 +17,45 @@ constexpr std::size_t kWavChunkPayloadOffset = 44;
 constexpr std::size_t kMetadataVersionOffset = kWavChunkPayloadOffset + 0;
 constexpr std::size_t kMetadataModeOffset = kWavChunkPayloadOffset + 1;
 constexpr std::size_t kMetadataFlashStyleOffset = kWavChunkPayloadOffset + 3;
-constexpr std::size_t kMetadataCreatedAtOffset = kWavChunkPayloadOffset + 8;
-constexpr std::size_t kMetadataAppVersionOffset = kWavChunkPayloadOffset + 36;
+constexpr std::size_t kMetadataInputSourceKindOffset = kWavChunkPayloadOffset + 4;
+constexpr std::size_t kMetadataCreatedAtOffset = kWavChunkPayloadOffset + 12;
+constexpr std::size_t kMetadataAppVersionOffset = kWavChunkPayloadOffset + 44;
+
+std::vector<std::uint32_t> MakeValidSegmentSampleCounts(
+    std::uint32_t pcm_sample_count) {
+    const std::uint32_t first = std::max<std::uint32_t>(1u, pcm_sample_count / 3u);
+    const std::uint32_t remaining_after_first = pcm_sample_count - first;
+    const std::uint32_t second = std::max<std::uint32_t>(1u, remaining_after_first / 2u);
+    const std::uint32_t third = pcm_sample_count - first - second;
+    return {first, second, third};
+}
 
 audio_io::FlipBitsAudioMetadata MakeValidMetadata(std::uint32_t pcm_sample_count) {
     audio_io::FlipBitsAudioMetadata metadata{};
-    metadata.version = 3;
+    metadata.version = 6;
     metadata.mode = audio_io::FlipBitsAudioMetadataMode::kFlash;
     metadata.has_flash_voicing_style = true;
     metadata.flash_voicing_style = audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kDeepRitual;
     metadata.created_at_iso_utc = "2026-03-17T09:45:00Z";
     metadata.duration_ms = 4321u;
+    metadata.sample_rate_hz = 44100u;
     metadata.frame_samples = 2205u;
     metadata.pcm_sample_count = pcm_sample_count;
+    metadata.payload_byte_count = 37u;
+    metadata.input_source_kind = audio_io::FlipBitsAudioMetadataInputSourceKind::kSample;
+    metadata.segment_count = 3u;
+    metadata.segment_sample_counts = MakeValidSegmentSampleCounts(pcm_sample_count);
     metadata.app_version = kTestAppVersion;
     metadata.core_version = kTestCoreVersion;
     return metadata;
 }
 
+const test::AudioIoRoundTripCase& MetadataRoundTripCase() {
+    return test::AudioIoRoundTripCases().at(1);
+}
+
 std::vector<std::uint8_t> MakeMetadataWavBytes() {
-    const auto& test_case = test::AudioIoRoundTripCases().front();
+    const auto& test_case = MetadataRoundTripCase();
     return audio_io::SerializeMonoPcm16WavWithMetadata(
         test_case.sample_rate_hz,
         test_case.mono_pcm,
@@ -47,19 +66,33 @@ audio_io_string_view MakeStringView(std::string_view value) {
     return audio_io_string_view{value.data(), value.size()};
 }
 
-audio_io_metadata_view MakeApiMetadataView(std::uint32_t pcm_sample_count) {
-    return audio_io_metadata_view{
-        3u,
+struct ApiMetadataFixture {
+    std::vector<std::uint32_t> segment_sample_counts;
+    audio_io_metadata_view view{};
+};
+
+ApiMetadataFixture MakeApiMetadataView(std::uint32_t pcm_sample_count) {
+    ApiMetadataFixture fixture{};
+    fixture.segment_sample_counts = MakeValidSegmentSampleCounts(pcm_sample_count);
+    fixture.view = audio_io_metadata_view{
+        6u,
         AUDIO_IO_METADATA_MODE_FLASH,
         1u,
         AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL,
         MakeStringView("2026-03-17T09:45:00Z"),
         4321u,
+        44100u,
         2205u,
         pcm_sample_count,
+        37u,
+        AUDIO_IO_METADATA_INPUT_SOURCE_KIND_SAMPLE,
+        3u,
+        fixture.segment_sample_counts.data(),
+        fixture.segment_sample_counts.size(),
         MakeStringView(kTestAppVersion),
         MakeStringView(kTestCoreVersion),
     };
+    return fixture;
 }
 
 void TestWavIoHeaderRoundTripContract() {
@@ -195,7 +228,7 @@ void TestWavIoCApiRejectsInvalidBytes() {
 }
 
 void TestWavIoCApiMetadataRoundTripContract() {
-    const auto& test_case = test::AudioIoRoundTripCases().front();
+    const auto& test_case = MetadataRoundTripCase();
     auto metadata = MakeApiMetadataView(static_cast<std::uint32_t>(test_case.mono_pcm.size()));
 
     audio_io_byte_buffer wav_bytes{};
@@ -203,7 +236,7 @@ void TestWavIoCApiMetadataRoundTripContract() {
         test_case.sample_rate_hz,
         test_case.mono_pcm.data(),
         test_case.mono_pcm.size(),
-        &metadata,
+        &metadata.view,
         &wav_bytes);
     test::AssertEq(
         encode_status,
@@ -219,7 +252,7 @@ void TestWavIoCApiMetadataRoundTripContract() {
     test::AssertEq(decoded.metadata_status,
                    AUDIO_IO_METADATA_OK,
                    "C ABI unified decode should report metadata success.");
-    test::AssertEq(decoded.metadata.version, static_cast<std::uint8_t>(3u), "C ABI metadata version should round-trip.");
+    test::AssertEq(decoded.metadata.version, static_cast<std::uint8_t>(6u), "C ABI metadata version should round-trip.");
     test::AssertEq(decoded.metadata.mode, AUDIO_IO_METADATA_MODE_FLASH, "C ABI metadata mode should round-trip.");
     test::AssertEq(decoded.metadata.has_flash_voicing_style,
                    static_cast<std::uint8_t>(1u),
@@ -231,11 +264,33 @@ void TestWavIoCApiMetadataRoundTripContract() {
                    std::string("2026-03-17T09:45:00Z"),
                    "C ABI metadata timestamp should round-trip.");
     test::AssertEq(decoded.metadata.duration_ms, static_cast<std::uint32_t>(4321u), "C ABI metadata duration should round-trip.");
+    test::AssertEq(decoded.metadata.sample_rate_hz,
+                   static_cast<std::uint32_t>(44100u),
+                   "C ABI metadata sample rate should round-trip.");
     test::AssertEq(decoded.metadata.frame_samples, static_cast<std::uint32_t>(2205u), "C ABI frame_samples should round-trip.");
     test::AssertEq(
         decoded.metadata.pcm_sample_count,
         static_cast<std::uint32_t>(test_case.mono_pcm.size()),
         "C ABI metadata PCM sample count should round-trip.");
+    test::AssertEq(decoded.metadata.payload_byte_count,
+                   static_cast<std::uint32_t>(37u),
+                   "C ABI metadata payload byte count should round-trip.");
+    test::AssertEq(decoded.metadata.input_source_kind,
+                   AUDIO_IO_METADATA_INPUT_SOURCE_KIND_SAMPLE,
+                   "C ABI metadata input source kind should round-trip.");
+    test::AssertEq(decoded.metadata.segment_count,
+                   static_cast<std::uint32_t>(3u),
+                   "C ABI metadata segment count should round-trip.");
+    test::AssertEq(decoded.metadata.segment_sample_count_count,
+                   static_cast<std::size_t>(3u),
+                   "C ABI metadata segment boundary count should round-trip.");
+    test::AssertTrue(
+        std::equal(
+            decoded.metadata.segment_sample_counts,
+            decoded.metadata.segment_sample_counts +
+                decoded.metadata.segment_sample_count_count,
+            metadata.segment_sample_counts.begin()),
+        "C ABI metadata segment boundaries should round-trip.");
     test::AssertEq(std::string(decoded.metadata.app_version.data, decoded.metadata.app_version.size),
                    std::string(kTestAppVersion),
                    "C ABI metadata app version should round-trip.");
@@ -248,7 +303,7 @@ void TestWavIoCApiMetadataRoundTripContract() {
 }
 
 void TestWavIoCApiMetadataMissingOnCanonicalWav() {
-    const auto& test_case = test::AudioIoRoundTripCases().front();
+    const auto& test_case = MetadataRoundTripCase();
     const auto wav_bytes = audio_io::SerializeMonoPcm16Wav(test_case.sample_rate_hz, test_case.mono_pcm);
 
     audio_io_decoded_wav decoded{};
@@ -299,7 +354,7 @@ void TestWavIoCApiFreeFunctionsAreIdempotentOnZeroedBuffers() {
 }
 
 void TestWavIoMetadataRoundTripContract() {
-    const auto test_case = test::AudioIoRoundTripCases().front();
+    const auto test_case = MetadataRoundTripCase();
     const auto metadata = MakeValidMetadata(static_cast<std::uint32_t>(test_case.mono_pcm.size()));
     const auto wav_bytes = audio_io::SerializeMonoPcm16WavWithMetadata(
         test_case.sample_rate_hz,
@@ -313,7 +368,7 @@ void TestWavIoMetadataRoundTripContract() {
 
     const auto parsed_metadata = audio_io::ParseFlipBitsAudioMetadata(wav_bytes);
     test::AssertEq(parsed_metadata.status, audio_io::FlipBitsAudioMetadataStatus::kOk, "Metadata parse should succeed.");
-    test::AssertEq(parsed_metadata.metadata.version, 3u, "Metadata version should round-trip.");
+    test::AssertEq(parsed_metadata.metadata.version, 6u, "Metadata version should round-trip.");
     test::AssertEq(parsed_metadata.metadata.mode,
                    audio_io::FlipBitsAudioMetadataMode::kFlash,
                    "Metadata mode should round-trip.");
@@ -328,12 +383,28 @@ void TestWavIoMetadataRoundTripContract() {
     test::AssertEq(parsed_metadata.metadata.duration_ms,
                    static_cast<std::uint32_t>(4321u),
                    "Metadata duration should round-trip.");
+    test::AssertEq(parsed_metadata.metadata.sample_rate_hz,
+                   static_cast<std::uint32_t>(44100u),
+                   "Metadata sample rate should round-trip.");
     test::AssertEq(parsed_metadata.metadata.frame_samples,
                    static_cast<std::uint32_t>(2205u),
                    "Metadata frame sample count should round-trip.");
     test::AssertEq(parsed_metadata.metadata.pcm_sample_count,
                    static_cast<std::uint32_t>(test_case.mono_pcm.size()),
                    "Metadata PCM sample count should round-trip.");
+    test::AssertEq(parsed_metadata.metadata.payload_byte_count,
+                   static_cast<std::uint32_t>(37u),
+                   "Metadata payload byte count should round-trip.");
+    test::AssertEq(parsed_metadata.metadata.input_source_kind,
+                   audio_io::FlipBitsAudioMetadataInputSourceKind::kSample,
+                   "Metadata input source kind should round-trip.");
+    test::AssertEq(parsed_metadata.metadata.segment_count,
+                   static_cast<std::uint32_t>(3u),
+                   "Metadata segment count should round-trip.");
+    test::AssertEq(parsed_metadata.metadata.segment_sample_counts,
+                   MakeValidSegmentSampleCounts(
+                       static_cast<std::uint32_t>(test_case.mono_pcm.size())),
+                   "Metadata segment sample counts should round-trip.");
     test::AssertEq(parsed_metadata.metadata.app_version,
                    std::string(kTestAppVersion),
                    "Metadata app version should round-trip.");
@@ -343,7 +414,7 @@ void TestWavIoMetadataRoundTripContract() {
 }
 
 void TestWavIoMetadataMissingOnCanonicalWav() {
-    const auto test_case = test::AudioIoRoundTripCases().front();
+    const auto test_case = MetadataRoundTripCase();
     const auto wav_bytes = audio_io::SerializeMonoPcm16Wav(test_case.sample_rate_hz, test_case.mono_pcm);
     const auto parsed_metadata = audio_io::ParseFlipBitsAudioMetadata(wav_bytes);
     test::AssertEq(parsed_metadata.status,
@@ -352,7 +423,7 @@ void TestWavIoMetadataMissingOnCanonicalWav() {
 }
 
 void TestWavIoMetadataRespectsChunkPadding() {
-    const auto test_case = test::AudioIoRoundTripCases().front();
+    const auto test_case = MetadataRoundTripCase();
     auto wav_bytes = audio_io::SerializeMonoPcm16Wav(test_case.sample_rate_hz, test_case.mono_pcm);
     std::vector<std::uint8_t> padded_bytes;
     padded_bytes.reserve(wav_bytes.size() + 18);
@@ -382,7 +453,7 @@ void TestWavIoMetadataRespectsChunkPadding() {
 }
 
 void TestWavIoMetadataRejectsOlderVersions() {
-    const auto test_case = test::AudioIoRoundTripCases().front();
+    const auto test_case = MetadataRoundTripCase();
     audio_io::FlipBitsAudioMetadata metadata_v2{};
     metadata_v2.version = 2;
     metadata_v2.mode = audio_io::FlipBitsAudioMetadataMode::kUltra;
@@ -394,7 +465,7 @@ void TestWavIoMetadataRejectsOlderVersions() {
         metadata_v2);
     test::AssertTrue(
         wav_bytes_v2.empty(),
-        "Serialization should reject older metadata versions now that only v3 is supported.");
+        "Serialization should reject older metadata versions now that only v6 is writable.");
 }
 
 void TestWavIoMetadataParseRejectsUnsupportedVersion() {
@@ -404,6 +475,19 @@ void TestWavIoMetadataParseRejectsUnsupportedVersion() {
     test::AssertEq(parsed_metadata.status,
                    audio_io::FlipBitsAudioMetadataStatus::kUnsupportedVersion,
                    "Metadata parsing should surface unsupported versions from existing WBAG chunks.");
+}
+
+void TestWavIoMetadataRejectsSegmentBoundariesThatDoNotMatchPcm() {
+    const auto test_case = MetadataRoundTripCase();
+    auto metadata = MakeValidMetadata(static_cast<std::uint32_t>(test_case.mono_pcm.size()));
+    metadata.segment_sample_counts = {1u, 1u, 1u};
+    const auto wav_bytes = audio_io::SerializeMonoPcm16WavWithMetadata(
+        test_case.sample_rate_hz,
+        test_case.mono_pcm,
+        metadata);
+    test::AssertTrue(
+        wav_bytes.empty(),
+        "Serialization should reject segment boundaries that do not add up to the PCM sample count.");
 }
 
 void TestWavIoMetadataRejectsTruncatedChunkData() {
@@ -494,5 +578,6 @@ int main() {
     runner.Add("Unit.WavIoMetadataRejectsUnknownModeValues", TestWavIoMetadataRejectsUnknownModeValues);
     runner.Add("Unit.WavIoMetadataRejectsUnknownFlashStyleValues", TestWavIoMetadataRejectsUnknownFlashStyleValues);
     runner.Add("Unit.WavIoMetadataRejectsCorruptedFields", TestWavIoMetadataRejectsCorruptedFields);
+    runner.Add("Unit.WavIoMetadataRejectsSegmentBoundariesThatDoNotMatchPcm", TestWavIoMetadataRejectsSegmentBoundariesThatDoNotMatchPcm);
     return runner.Run();
 }

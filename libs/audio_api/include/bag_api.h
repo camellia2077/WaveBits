@@ -240,6 +240,25 @@ typedef struct bag_encode_result {
   bag_text_follow_data text_follow_data;
 } bag_encode_result;
 
+typedef struct bag_encode_result_layout {
+  size_t sample_count;
+  size_t raw_bytes_hex_size;
+  size_t raw_bits_binary_size;
+  int raw_payload_available;
+  size_t byte_timeline_count;
+  size_t binary_group_timeline_count;
+  size_t text_tokens_size;
+  size_t text_token_timeline_count;
+  size_t token_raw_segments_count;
+  size_t token_raw_display_units_count;
+  size_t lyric_lines_size;
+  size_t lyric_line_timeline_count;
+  size_t line_token_ranges_count;
+  size_t line_raw_segments_count;
+  int follow_available;
+  int text_follow_available;
+} bag_encode_result_layout;
+
 typedef enum bag_encode_job_state {
   BAG_ENCODE_JOB_QUEUED = 0,
   BAG_ENCODE_JOB_RUNNING = 1,
@@ -277,6 +296,9 @@ bag_error_code bag_encode_text(const bag_encoder_config* config,
 bag_error_code bag_encode_text_with_follow(const bag_encoder_config* config,
                                            const char* text,
                                            bag_encode_result* out_result);
+bag_error_code bag_build_encode_follow_data(
+    const bag_encoder_config* config, const char* text,
+    bag_encode_result* out_result);
 bag_error_code bag_start_encode_text_job(const bag_encoder_config* config,
                                          const char* text,
                                          bag_encode_job** out_job);
@@ -285,6 +307,8 @@ bag_error_code bag_poll_encode_text_job(const bag_encode_job* job,
 bag_error_code bag_cancel_encode_text_job(bag_encode_job* job);
 bag_error_code bag_take_encode_text_job_result(const bag_encode_job* job,
                                                bag_pcm16_result* out_result);
+bag_error_code bag_peek_encode_text_job_result_layout(
+    const bag_encode_job* job, bag_encode_result_layout* out_layout);
 bag_error_code bag_take_encode_text_job_result_with_follow(
     const bag_encode_job* job, bag_encode_result* out_result);
 void bag_destroy_encode_text_job(bag_encode_job* job);

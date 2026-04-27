@@ -86,15 +86,34 @@ int ChunkSize(const BfskConfig& config) {
   return static_cast<int>(config.samples_per_bit);
 }
 
-std::vector<int> BytesToBits(const std::vector<uint8_t>& bytes) {
-  std::vector<int> bits;
-  bits.reserve(bytes.size() * 8);
-  for (uint8_t value : bytes) {
-    for (int shift = 7; shift >= 0; --shift) {
-      bits.push_back((value >> shift) & 0x01U);
+using BitTemplateBank = std::array<std::vector<int16_t>, 2>;
+
+// Flash only needs two carrier blocks per payload timing profile, so cache the
+// rendered low/high bit templates once and copy them into the payload buffer.
+BitTemplateBank BuildBitTemplateBank(const BfskConfig& config) {
+  const int chunk_size = ChunkSize(config);
+  if (chunk_size <= 0 || config.sample_rate_hz <= 0) {
+    throw std::invalid_argument("Invalid BFSK config.");
+  }
+
+  BitTemplateBank templates{};
+  constexpr double kPi = 3.14159265358979323846;
+  for (std::size_t bit = 0; bit < templates.size(); ++bit) {
+    auto& pcm = templates[bit];
+    pcm.resize(static_cast<std::size_t>(chunk_size));
+    const double carrier_freq_hz =
+        bit == 1 ? config.high_freq_hz : config.low_freq_hz;
+    const double two_pi_f = 2.0 * kPi * carrier_freq_hz;
+    for (int index = 0; index < chunk_size; ++index) {
+      const double time = static_cast<double>(index) /
+                          static_cast<double>(config.sample_rate_hz);
+      const double sample = config.amplitude * std::sin(two_pi_f * time);
+      const double clamped = std::max(-1.0, std::min(1.0, sample));
+      pcm[static_cast<std::size_t>(index)] =
+          static_cast<int16_t>(clamped * 32767.0);
     }
   }
-  return bits;
+  return templates;
 }
 
 std::vector<uint8_t> BitsToBytes(const std::vector<int>& bits) {
@@ -161,19 +180,22 @@ FlashPayloadLayout BuildPayloadLayout(const std::vector<uint8_t>& bytes,
     throw std::invalid_argument("Invalid BFSK config.");
   }
 
-  const std::vector<int> bits = BytesToBits(bytes);
   FlashPayloadLayout layout{};
-  layout.chunks.reserve(bits.size());
+  layout.chunks.reserve(bytes.size() * static_cast<std::size_t>(8));
 
   size_t sample_offset = 0;
-  for (int bit : bits) {
-    FlashPayloadChunk chunk{};
-    chunk.bit_value = static_cast<uint8_t>(bit);
-    chunk.sample_offset = sample_offset;
-    chunk.sample_count = static_cast<size_t>(chunk_size);
-    chunk.carrier_freq_hz = bit == 1 ? config.high_freq_hz : config.low_freq_hz;
-    layout.chunks.push_back(chunk);
-    sample_offset += chunk.sample_count;
+  for (uint8_t value : bytes) {
+    for (int shift = 7; shift >= 0; --shift) {
+      const uint8_t bit = static_cast<uint8_t>((value >> shift) & 0x01U);
+      FlashPayloadChunk chunk{};
+      chunk.bit_value = bit;
+      chunk.sample_offset = sample_offset;
+      chunk.sample_count = static_cast<size_t>(chunk_size);
+      chunk.carrier_freq_hz =
+          bit == 1 ? config.high_freq_hz : config.low_freq_hz;
+      layout.chunks.push_back(chunk);
+      sample_offset += chunk.sample_count;
+    }
   }
   layout.payload_sample_count = sample_offset;
   return layout;
@@ -185,11 +207,8 @@ std::vector<int16_t> EncodeBytesToPcm16(const std::vector<uint8_t>& bytes,
                                         float progress_begin,
                                         float progress_end) {
   const FlashPayloadLayout layout = BuildPayloadLayout(bytes, config);
-  std::vector<int16_t> pcm;
-  pcm.reserve(layout.payload_sample_count);
-
-  constexpr double kPi = 3.14159265358979323846;
   const std::size_t total_samples = layout.payload_sample_count;
+  std::vector<int16_t> pcm;
   ReportEncodeProgress(progress_sink, EncodeProgressPhase::kRenderingPcm,
                        progress_begin);
   ThrowIfEncodeCancelled(progress_sink);
@@ -199,25 +218,18 @@ std::vector<int16_t> EncodeBytesToPcm16(const std::vector<uint8_t>& bytes,
     return pcm;
   }
 
+  pcm.resize(total_samples);
+  const BitTemplateBank templates = BuildBitTemplateBank(config);
   std::size_t rendered_samples = 0;
   std::size_t last_reported_samples = 0;
   for (std::size_t chunk_index = 0; chunk_index < layout.chunks.size();
        ++chunk_index) {
     const FlashPayloadChunk& chunk = layout.chunks[chunk_index];
     ThrowIfEncodeCancelled(progress_sink);
-    const double two_pi_f = 2.0 * kPi * chunk.carrier_freq_hz;
-    for (size_t index = 0; index < chunk.sample_count; ++index) {
-      const double time = static_cast<double>(index) /
-                          static_cast<double>(config.sample_rate_hz);
-      const double sample = config.amplitude * std::sin(two_pi_f * time);
-      const double clamped = std::max(-1.0, std::min(1.0, sample));
-      pcm.push_back(static_cast<int16_t>(clamped * 32767.0));
-      ++rendered_samples;
-      MaybeReportCompletedSampleProgress(
-          progress_sink, EncodeProgressPhase::kRenderingPcm, progress_begin,
-          progress_end, rendered_samples, total_samples,
-          &last_reported_samples);
-    }
+    const auto& template_pcm = templates[chunk.bit_value];
+    std::copy(template_pcm.begin(), template_pcm.end(),
+              pcm.begin() + static_cast<std::ptrdiff_t>(chunk.sample_offset));
+    rendered_samples += template_pcm.size();
     MaybeReportCompletedSampleProgress(
         progress_sink, EncodeProgressPhase::kRenderingPcm, progress_begin,
         progress_end, rendered_samples, total_samples, &last_reported_samples,

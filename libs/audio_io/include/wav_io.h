@@ -30,6 +30,12 @@ enum class FlipBitsAudioMetadataFlashVoicingStyle : std::uint8_t {
   kDeepRitual = 3,
 };
 
+enum class FlipBitsAudioMetadataInputSourceKind : std::uint8_t {
+  kUnknown = 0,
+  kManual = 1,
+  kSample = 2,
+};
+
 struct WavPcm16 {
   int sample_rate_hz = 0;
   int channels = 1;
@@ -42,10 +48,21 @@ struct FlipBitsAudioMetadata {
   bool has_flash_voicing_style = false;
   FlipBitsAudioMetadataFlashVoicingStyle flash_voicing_style =
       FlipBitsAudioMetadataFlashVoicingStyle::kUnknown;
+  // ISO-8601 UTC generation timestamp for the PCM payload.
   std::string created_at_iso_utc;
   std::uint32_t duration_ms = 0;
+  // Saved explicitly so library/index surfaces can render audio settings
+  // without decoding the full data chunk.
+  std::uint32_t sample_rate_hz = 0;
   std::uint32_t frame_samples = 0;
   std::uint32_t pcm_sample_count = 0;
+  // Original UTF-8 payload size from the encode request.
+  std::uint32_t payload_byte_count = 0;
+  // Records whether the payload came from manual text entry or a sample deck.
+  FlipBitsAudioMetadataInputSourceKind input_source_kind =
+      FlipBitsAudioMetadataInputSourceKind::kUnknown;
+  std::uint32_t segment_count = 1;
+  std::vector<std::uint32_t> segment_sample_counts;
   std::string app_version;
   std::string core_version;
 };
