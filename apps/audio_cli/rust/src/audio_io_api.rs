@@ -1,5 +1,5 @@
 use crate::util::c_str_to_string;
-use crate::{CliError, TransportMode};
+use crate::{CliError, FlashStyle, TransportMode};
 use std::os::raw::{c_char, c_int};
 use std::ptr;
 
@@ -15,6 +15,7 @@ const AUDIO_IO_METADATA_MODE_PRO: AudioIoMetadataMode = 2;
 const AUDIO_IO_METADATA_MODE_ULTRA: AudioIoMetadataMode = 3;
 const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_CODED_BURST: AudioIoMetadataFlashVoicingStyle = 1;
 const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT: AudioIoMetadataFlashVoicingStyle = 2;
+const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL: AudioIoMetadataFlashVoicingStyle = 3;
 
 #[repr(C)]
 struct AudioIoStringView {
@@ -44,6 +45,11 @@ struct AudioIoMetadataView {
     duration_ms: u32,
     frame_samples: u32,
     pcm_sample_count: u32,
+    segment_count: u32,
+    // Keep the Rust FFI layout aligned with the native audio_io C ABI even
+    // when the CLI itself only writes single-segment metadata today.
+    segment_sample_counts: *const u32,
+    segment_sample_count_count: usize,
     app_version: AudioIoStringView,
     core_version: AudioIoStringView,
 }
@@ -58,6 +64,9 @@ struct AudioIoMetadata {
     duration_ms: u32,
     frame_samples: u32,
     pcm_sample_count: u32,
+    segment_count: u32,
+    segment_sample_counts: *mut u32,
+    segment_sample_count_count: usize,
     app_version: AudioIoOwnedString,
     core_version: AudioIoOwnedString,
 }
@@ -72,17 +81,11 @@ struct AudioIoDecodedWav {
     metadata: AudioIoMetadata,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum FlashVoicingStyle {
-    CodedBurst,
-    RitualChant,
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FlipBitsMetadata {
     pub version: u8,
     pub mode: TransportMode,
-    pub flash_voicing_style: Option<FlashVoicingStyle>,
+    pub flash_voicing_style: Option<FlashStyle>,
     pub created_at_iso_utc: String,
     pub duration_ms: u32,
     pub frame_samples: i32,
@@ -142,6 +145,9 @@ pub fn encode_mono_pcm16_wav_with_metadata(
         duration_ms: metadata.duration_ms,
         frame_samples: metadata.frame_samples as u32,
         pcm_sample_count: metadata.pcm_sample_count as u32,
+        segment_count: 1,
+        segment_sample_counts: ptr::null(),
+        segment_sample_count_count: 0,
         app_version: AudioIoStringView {
             data: app_version_bytes.as_ptr() as *const c_char,
             size: app_version_bytes.len(),
@@ -196,6 +202,9 @@ pub fn decode_mono_pcm16_wav(wav_bytes: &[u8]) -> Result<DecodedWav, CliError> {
             duration_ms: 0,
             frame_samples: 0,
             pcm_sample_count: 0,
+            segment_count: 1,
+            segment_sample_counts: ptr::null_mut(),
+            segment_sample_count_count: 0,
             app_version: AudioIoOwnedString {
                 data: ptr::null_mut(),
                 size: 0,
@@ -252,6 +261,9 @@ pub fn free_empty_metadata_for_contract_test() {
         duration_ms: 0,
         frame_samples: 0,
         pcm_sample_count: 0,
+        segment_count: 1,
+        segment_sample_counts: ptr::null_mut(),
+        segment_sample_count_count: 0,
         app_version: AudioIoOwnedString {
             data: ptr::null_mut(),
             size: 0,
@@ -312,19 +324,21 @@ fn from_metadata_mode(mode: AudioIoMetadataMode) -> Result<TransportMode, CliErr
     }
 }
 
-fn to_flash_voicing_style(style: FlashVoicingStyle) -> AudioIoMetadataFlashVoicingStyle {
+fn to_flash_voicing_style(style: FlashStyle) -> AudioIoMetadataFlashVoicingStyle {
     match style {
-        FlashVoicingStyle::CodedBurst => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_CODED_BURST,
-        FlashVoicingStyle::RitualChant => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT,
+        FlashStyle::CodedBurst => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_CODED_BURST,
+        FlashStyle::RitualChant => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT,
+        FlashStyle::DeepRitual => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL,
     }
 }
 
 fn from_flash_voicing_style(
     style: AudioIoMetadataFlashVoicingStyle,
-) -> Result<FlashVoicingStyle, CliError> {
+) -> Result<FlashStyle, CliError> {
     match style {
-        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_CODED_BURST => Ok(FlashVoicingStyle::CodedBurst),
-        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT => Ok(FlashVoicingStyle::RitualChant),
+        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_CODED_BURST => Ok(FlashStyle::CodedBurst),
+        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_RITUAL_CHANT => Ok(FlashStyle::RitualChant),
+        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_DEEP_RITUAL => Ok(FlashStyle::DeepRitual),
         _ => Err(CliError::Api(
             "WAV metadata contained an unknown flash voicing style".to_string(),
         )),

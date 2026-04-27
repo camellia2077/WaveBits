@@ -24,7 +24,16 @@ fn parses_licenses_command() {
 #[test]
 fn parses_encode_command_with_text() {
     let cli = Cli::try_parse_from([
-        "FlipBits", "encode", "--text", "hello", "--mode", "ultra", "--out", "out.wav",
+        "FlipBits",
+        "encode",
+        "--text",
+        "hello",
+        "--mode",
+        "ultra",
+        "--flash-style",
+        "deep_ritual",
+        "--out",
+        "out.wav",
     ])
     .unwrap();
 
@@ -33,6 +42,7 @@ fn parses_encode_command_with_text() {
     };
     assert_eq!(args.text.as_deref(), Some("hello"));
     assert_eq!(args.mode, TransportMode::Ultra);
+    assert_eq!(args.flash_style, FlashStyle::DeepRitual);
     assert_eq!(args.out, PathBuf::from("out.wav"));
 }
 
@@ -55,6 +65,7 @@ fn rejects_encode_command_without_input() {
 #[test]
 fn version_output_includes_core_version_line() {
     let output = version_output();
+    assert!(output.contains("presentation: v0.2.1"));
     assert!(output.contains("core: v"));
 }
 
@@ -73,10 +84,11 @@ fn licenses_output_mentions_notice_scope() {
 
 #[test]
 fn wav_bytes_start_with_riff_header() {
-    let config = bag_api::CodecConfig::for_mode(TransportMode::Ultra);
+    let mut config = bag_api::CodecConfig::for_mode(TransportMode::Ultra);
+    config.flash_style = FlashStyle::DeepRitual;
     let pcm_samples = bag_api::encode_text_with_progress(&config, "FlipBits WAV", |_| {}).unwrap();
     let metadata = audio_io_api::FlipBitsMetadata {
-        version: 3,
+        version: 5,
         mode: TransportMode::Ultra,
         flash_voicing_style: None,
         created_at_iso_utc: "1970-01-01T00:00:00Z".to_string(),
@@ -115,6 +127,28 @@ fn help_mentions_decode_command() {
     assert!(help.contains("encode"));
     assert!(help.contains("Encode text into a FlipBits WAV file"));
     assert!(help.contains("Decode a FlipBits WAV file back into text"));
-    assert!(help.contains("FlipBits decode --in out.wav"));
+    assert!(help.contains("Use a subcommand and then `--help` on that subcommand"));
     assert!(!help.contains("requires an explicit --mode"));
+    assert!(!help.contains("--flash-style"));
+}
+
+#[test]
+fn encode_help_mentions_flash_style() {
+    let mut command = Cli::command();
+    let help = command
+        .find_subcommand_mut("encode")
+        .expect("encode subcommand")
+        .render_long_help()
+        .to_string();
+    assert!(help.contains("--flash-style"));
+    assert!(help.contains("flash  Flexible byte-oriented mode with FSK-like signaling. At the protocol level it is not restricted to ASCII."));
+    assert!(help.contains("pro    Telephone-tone-style high/low audio mode. ASCII-only input."));
+    assert!(help.contains("ultra  UTF-8 text mode for broader character coverage."));
+    assert!(help.contains("CLI input boundary:"));
+    assert!(help.contains("The current CLI accepts UTF-8 text only:"));
+    assert!(help.contains("--text is parsed as a Rust UTF-8 string."));
+    assert!(help.contains("--text-file is read as a UTF-8 text file."));
+    assert!(help.contains("coded_burst"));
+    assert!(help.contains("ritual_chant"));
+    assert!(help.contains("deep_ritual"));
 }

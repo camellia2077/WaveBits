@@ -15,6 +15,17 @@ def register_build_host_commands(subparsers: argparse._SubParsersAction[argparse
         default=DEFAULT_GENERATOR,
         help="CMake generator to use. Defaults to Ninja. The only supported root-host generator is Ninja.",
     )
+    configure_parser.add_argument(
+        "--build-type",
+        choices=["Debug", "Release"],
+        help="Single-config CMake build type to write into the cache.",
+    )
+    configure_parser.add_argument(
+        "--build-tests",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Whether to include Test/ targets during configure.",
+    )
     configure_parser.set_defaults(func=cmd_configure)
 
     build_parser_cmd = subparsers.add_parser("build", help="Build the configured CMake tree.")

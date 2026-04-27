@@ -41,6 +41,11 @@ def register_windows_group(
         help="Build the debug CLI executable instead of the default optimized release build.",
     )
     windows_parser.add_argument(
+        "--build-tests",
+        action="store_true",
+        help="Also configure and keep native Test/ executables in this build tree. Default is off for windows delivery builds.",
+    )
+    windows_parser.add_argument(
         "--out-dir",
         help="Optional export directory. If set, copy FlipBits.exe there after a successful build.",
     )

@@ -1,5 +1,5 @@
 use crate::util::c_str_to_string;
-use crate::{CliError, TransportMode, DEFAULT_FRAME_RATE_DIVISOR, DEFAULT_SAMPLE_RATE_HZ};
+use crate::{CliError, FlashStyle, TransportMode, DEFAULT_FRAME_RATE_DIVISOR, DEFAULT_SAMPLE_RATE_HZ};
 use std::ffi::CString;
 use std::os::raw::c_int;
 use std::ptr;
@@ -19,7 +19,11 @@ const BAG_TRANSPORT_FLASH: BagTransportMode = 0;
 const BAG_TRANSPORT_PRO: BagTransportMode = 1;
 const BAG_TRANSPORT_ULTRA: BagTransportMode = 2;
 const BAG_FLASH_SIGNAL_PROFILE_CODED_BURST: BagFlashSignalProfile = 0;
+const BAG_FLASH_SIGNAL_PROFILE_RITUAL_CHANT: BagFlashSignalProfile = 1;
+const BAG_FLASH_SIGNAL_PROFILE_DEEP_RITUAL: BagFlashSignalProfile = 2;
 const BAG_FLASH_VOICING_FLAVOR_CODED_BURST: BagFlashVoicingFlavor = 0;
+const BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT: BagFlashVoicingFlavor = 1;
+const BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL: BagFlashVoicingFlavor = 2;
 const BAG_VALIDATION_OK: BagValidationIssue = 0;
 const BAG_ENCODE_JOB_QUEUED: c_int = 0;
 const BAG_ENCODE_JOB_RUNNING: c_int = 1;
@@ -128,6 +132,7 @@ pub struct CodecConfig {
     pub sample_rate_hz: i32,
     pub frame_samples: i32,
     pub mode: TransportMode,
+    pub flash_style: FlashStyle,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -161,6 +166,7 @@ impl CodecConfig {
             sample_rate_hz: DEFAULT_SAMPLE_RATE_HZ,
             frame_samples: default_frame_samples(DEFAULT_SAMPLE_RATE_HZ),
             mode,
+            flash_style: FlashStyle::CodedBurst,
         }
     }
 }
@@ -295,26 +301,47 @@ fn default_frame_samples(sample_rate_hz: i32) -> i32 {
 }
 
 fn make_encoder_config(config: &CodecConfig) -> BagEncoderConfig {
+    let (flash_signal_profile, flash_voicing_flavor) = flash_style_pair(config.flash_style);
     BagEncoderConfig {
         sample_rate_hz: config.sample_rate_hz,
         frame_samples: config.frame_samples,
         enable_diagnostics: 0,
         mode: to_bag_mode(config.mode),
-        flash_signal_profile: BAG_FLASH_SIGNAL_PROFILE_CODED_BURST,
-        flash_voicing_flavor: BAG_FLASH_VOICING_FLAVOR_CODED_BURST,
+        flash_signal_profile,
+        flash_voicing_flavor,
         reserved: 0,
     }
 }
 
 fn make_decoder_config(config: &CodecConfig) -> BagDecoderConfig {
+    let (flash_signal_profile, flash_voicing_flavor) = flash_style_pair(config.flash_style);
     BagDecoderConfig {
         sample_rate_hz: config.sample_rate_hz,
         frame_samples: config.frame_samples,
         enable_diagnostics: 0,
         mode: to_bag_mode(config.mode),
-        flash_signal_profile: BAG_FLASH_SIGNAL_PROFILE_CODED_BURST,
-        flash_voicing_flavor: BAG_FLASH_VOICING_FLAVOR_CODED_BURST,
+        flash_signal_profile,
+        flash_voicing_flavor,
         reserved: 0,
+    }
+}
+
+fn flash_style_pair(
+    style: FlashStyle,
+) -> (BagFlashSignalProfile, BagFlashVoicingFlavor) {
+    match style {
+        FlashStyle::CodedBurst => (
+            BAG_FLASH_SIGNAL_PROFILE_CODED_BURST,
+            BAG_FLASH_VOICING_FLAVOR_CODED_BURST,
+        ),
+        FlashStyle::RitualChant => (
+            BAG_FLASH_SIGNAL_PROFILE_RITUAL_CHANT,
+            BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT,
+        ),
+        FlashStyle::DeepRitual => (
+            BAG_FLASH_SIGNAL_PROFILE_DEEP_RITUAL,
+            BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL,
+        ),
     }
 }
 

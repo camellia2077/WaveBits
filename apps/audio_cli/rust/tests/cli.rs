@@ -48,14 +48,17 @@ fn encode_writes_wav_file() {
             "--text",
             "FlipBits stub",
             "--mode",
-            "ultra",
+            "flash",
+            "--flash-style",
+            "deep_ritual",
             "--out",
             output_path.to_str().unwrap(),
         ])
         .assert()
         .success()
         .stdout(predicate::str::contains("Output WAV:"))
-        .stdout(predicate::str::contains("Format: mono PCM16 WAV"));
+        .stdout(predicate::str::contains("Format: mono PCM16 WAV"))
+        .stdout(predicate::str::contains("Mode: flash"));
 
     let artifact = fs::read(output_path).unwrap();
     assert!(artifact.starts_with(b"RIFF"));
@@ -213,7 +216,23 @@ fn help_describes_decode_without_mode() {
         .stdout(predicate::str::contains(
             "licenses  Show third-party license notice coverage for the CLI",
         ))
-        .stdout(predicate::str::contains("FlipBits encode --text"))
         .stdout(predicate::str::contains("encode"))
-        .stdout(predicate::str::contains("decode"));
+        .stdout(predicate::str::contains("decode"))
+        .stdout(predicate::str::contains(
+            "Use a subcommand and then `--help` on that subcommand",
+        ))
+        .stdout(predicate::str::contains("--flash-style").not());
+}
+
+#[test]
+fn encode_help_mentions_android_aligned_flash_styles() {
+    let mut command = Command::cargo_bin("FlipBits").unwrap();
+    command
+        .args(["encode", "--help"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("--flash-style"))
+        .stdout(predicate::str::contains("coded_burst"))
+        .stdout(predicate::str::contains("ritual_chant"))
+        .stdout(predicate::str::contains("deep_ritual"));
 }

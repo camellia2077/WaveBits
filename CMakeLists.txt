@@ -11,6 +11,8 @@ endif()
 
 project(BinaryAudioGeneratorCpp LANGUAGES CXX)
 
+option(FLIPBITS_BUILD_TESTS "Build native test executables under Test/." ON)
+
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/flipbits_core_version.cmake")
 set(FLIPBITS_CORE_GENERATED_INCLUDE_DIR "${PROJECT_BINARY_DIR}/generated/include")
 
@@ -71,4 +73,6 @@ add_dependencies(
 )
 
 add_subdirectory(apps/audio_cli/rust/cmake)
-add_subdirectory(Test)
+if(FLIPBITS_BUILD_TESTS)
+    add_subdirectory(Test)
+endif()

@@ -49,4 +49,10 @@ def cmd_configure(args: argparse.Namespace) -> None:
     ])
     command.append(f"-DCMAKE_CXX_COMPILER={desired_compiler}")
     command.append("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
+    build_type = getattr(args, "build_type", None)
+    if build_type:
+        command.append(f"-DCMAKE_BUILD_TYPE={build_type}")
+    build_tests = getattr(args, "build_tests", None)
+    if build_tests is not None:
+        command.append(f"-DFLIPBITS_BUILD_TESTS={'ON' if build_tests else 'OFF'}")
     run(command, env=env)
