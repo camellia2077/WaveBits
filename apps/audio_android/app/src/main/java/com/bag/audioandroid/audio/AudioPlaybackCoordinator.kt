@@ -31,6 +31,8 @@ class AudioPlaybackCoordinator(
         scope: CoroutineScope,
         sourceKey: String,
         pcm: ShortArray,
+        pcmFilePath: String?,
+        totalSamples: Int,
         sampleRateHz: Int,
         playbackSpeed: Float,
         startSampleIndex: Int,
@@ -42,19 +44,33 @@ class AudioPlaybackCoordinator(
         val playbackHandle = audioPlayer.prepareForNewPlayback()
         val requestId = beginPlayback(sourceKey)
         onStarted()
-        val pcmCopy = pcm.copyOf()
         scope.launch(Dispatchers.IO) {
             try {
                 val result =
-                    audioPlayer.playPcm(
-                        playback = playbackHandle,
-                        pcm = pcmCopy,
-                        sampleRateHz = sampleRateHz,
-                        playbackSpeed = playbackSpeed,
-                        startSampleIndex = startSampleIndex,
-                    ) { playedSamples, totalSamples ->
-                        if (isPlaybackActive(requestId, sourceKey)) {
-                            onProgressChanged(playedSamples, totalSamples)
+                    if (pcmFilePath.isNullOrBlank()) {
+                        audioPlayer.playPcm(
+                            playback = playbackHandle,
+                            pcm = pcm.copyOf(),
+                            sampleRateHz = sampleRateHz,
+                            playbackSpeed = playbackSpeed,
+                            startSampleIndex = startSampleIndex,
+                        ) { playedSamples, reportedTotalSamples ->
+                            if (isPlaybackActive(requestId, sourceKey)) {
+                                onProgressChanged(playedSamples, reportedTotalSamples)
+                            }
+                        }
+                    } else {
+                        audioPlayer.playPcmFile(
+                            playback = playbackHandle,
+                            pcmFilePath = pcmFilePath,
+                            sampleRateHz = sampleRateHz,
+                            totalSamples = totalSamples,
+                            playbackSpeed = playbackSpeed,
+                            startSampleIndex = startSampleIndex,
+                        ) { playedSamples, reportedTotalSamples ->
+                            if (isPlaybackActive(requestId, sourceKey)) {
+                                onProgressChanged(playedSamples, reportedTotalSamples)
+                            }
                         }
                     }
                 if (!isPlaybackActive(requestId, sourceKey)) {

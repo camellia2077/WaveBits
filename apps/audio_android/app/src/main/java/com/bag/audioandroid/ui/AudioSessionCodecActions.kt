@@ -1,6 +1,7 @@
 package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.domain.AudioCodecGateway
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import kotlinx.coroutines.CoroutineDispatcher
@@ -19,6 +20,7 @@ internal class AudioSessionCodecActions(
     frameSamples: Int,
     stopPlayback: () -> Unit,
     workerDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    generatedAudioCacheGateway: GeneratedAudioCacheGateway,
 ) {
     private val encodeActions =
         AudioSessionEncodeActions(
@@ -32,6 +34,7 @@ internal class AudioSessionCodecActions(
             frameSamples = frameSamples,
             stopPlayback = stopPlayback,
             workerDispatcher = workerDispatcher,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
         )
 
     private val decodeActions =

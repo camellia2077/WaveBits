@@ -9,6 +9,7 @@
     <string name="library_empty">저장된 항목이 없습니다.</string>
     <string name="library_action_import">가져오기</string>
     <string name="library_action_share">공유</string>
+    <string name="library_action_export_to_file">파일로 내보내기</string>
     <string name="library_action_rename">이름 바꾸기</string>
     <string name="library_action_delete">삭제</string>
     <string name="library_action_select_all">전체 선택</string>

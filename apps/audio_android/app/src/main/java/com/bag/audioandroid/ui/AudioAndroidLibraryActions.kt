@@ -3,6 +3,7 @@ package com.bag.audioandroid.ui
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRepository
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.ui.model.UiText
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ internal class AudioAndroidLibraryActions(
     playbackRuntimeGateway: PlaybackRuntimeGateway,
     savedAudioRepository: SavedAudioRepository,
     stopPlayback: () -> Unit,
+    generatedAudioCacheGateway: GeneratedAudioCacheGateway,
 ) {
     private val setCurrentStatusText: (UiText) -> Unit = { statusText ->
         sessionStateStore.updateCurrentSession {
@@ -26,6 +28,7 @@ internal class AudioAndroidLibraryActions(
             savedAudioRepository = savedAudioRepository,
             stopPlayback = stopPlayback,
             setCurrentStatusText = setCurrentStatusText,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
         )
     private val mutationActions =
         AudioSavedAudioMutationActions(
@@ -33,6 +36,7 @@ internal class AudioAndroidLibraryActions(
             savedAudioRepository = savedAudioRepository,
             stopPlayback = stopPlayback,
             setCurrentStatusText = setCurrentStatusText,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
         )
 
     fun onSavedAudioSelected(itemId: String) {

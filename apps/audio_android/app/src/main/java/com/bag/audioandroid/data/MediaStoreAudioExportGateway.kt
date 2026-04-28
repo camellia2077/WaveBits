@@ -2,6 +2,7 @@ package com.bag.audioandroid.data
 
 import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
 import android.provider.MediaStore
 import com.bag.audioandroid.domain.AudioExportGateway
 import com.bag.audioandroid.domain.AudioExportResult
@@ -19,15 +20,21 @@ class MediaStoreAudioExportGateway(
 ) : AudioExportGateway {
     private val contentResolver = context.contentResolver
 
+    override fun suggestGeneratedAudioDisplayName(
+        mode: TransportModeOption,
+        inputText: String,
+    ): String = buildBaseName(mode, inputText)
+
     override fun exportGeneratedAudio(
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
+        pcmFilePath: String?,
         sampleRateHz: Int,
         metadata: GeneratedAudioMetadata,
     ): AudioExportResult {
-        val wavBytes = audioIoGateway.encodeMonoPcm16ToWavBytes(sampleRateHz, pcm, metadata)
-        if (wavBytes.isEmpty()) {
+        val hasInMemoryPcm = pcm.isNotEmpty()
+        if (!hasInMemoryPcm && pcmFilePath.isNullOrBlank()) {
             return AudioExportResult.Failed
         }
 
@@ -46,7 +53,20 @@ class MediaStoreAudioExportGateway(
         val uri = contentResolver.insert(collection, contentValues) ?: return AudioExportResult.Failed
         return try {
             contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(wavBytes)
+                if (hasInMemoryPcm) {
+                    val wavBytes = audioIoGateway.encodeMonoPcm16ToWavBytes(sampleRateHz, pcm, metadata)
+                    if (wavBytes.isEmpty()) {
+                        return AudioExportResult.Failed.also { contentResolver.delete(uri, null, null) }
+                    }
+                    outputStream.write(wavBytes)
+                } else {
+                    writeMonoPcm16WavFromFile(
+                        output = outputStream,
+                        pcmFilePath = requireNotNull(pcmFilePath),
+                        sampleRateHz = sampleRateHz,
+                        totalSamples = metadata.pcmSampleCount,
+                    )
+                }
             } ?: return AudioExportResult.Failed.also { contentResolver.delete(uri, null, null) }
 
             contentResolver.update(
@@ -62,6 +82,45 @@ class MediaStoreAudioExportGateway(
         } catch (_: SecurityException) {
             contentResolver.delete(uri, null, null)
             AudioExportResult.Failed
+        }
+    }
+
+    override fun exportGeneratedAudioToDocument(
+        mode: TransportModeOption,
+        inputText: String,
+        pcm: ShortArray,
+        pcmFilePath: String?,
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata,
+        destinationUriString: String,
+    ): Boolean {
+        val hasInMemoryPcm = pcm.isNotEmpty()
+        if (!hasInMemoryPcm && pcmFilePath.isNullOrBlank()) {
+            return false
+        }
+        val destinationUri = runCatching { Uri.parse(destinationUriString) }.getOrNull() ?: return false
+        return try {
+            contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
+                if (hasInMemoryPcm) {
+                    val wavBytes = audioIoGateway.encodeMonoPcm16ToWavBytes(sampleRateHz, pcm, metadata)
+                    if (wavBytes.isEmpty()) {
+                        return false
+                    }
+                    outputStream.write(wavBytes)
+                } else {
+                    writeMonoPcm16WavFromFile(
+                        output = outputStream,
+                        pcmFilePath = requireNotNull(pcmFilePath),
+                        sampleRateHz = sampleRateHz,
+                        totalSamples = metadata.pcmSampleCount,
+                    )
+                }
+                outputStream.flush()
+            } != null
+        } catch (_: IOException) {
+            false
+        } catch (_: SecurityException) {
+            false
         }
     }
 

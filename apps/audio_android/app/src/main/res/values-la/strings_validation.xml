@@ -14,5 +14,6 @@
     <string name="error_not_ready">Calculus nondum perfectus est.</string>
     <string name="error_not_implemented">Ritualia desunt.</string>
     <string name="error_cancelled">Processus interrumptus est.</string>
+    <string name="error_encoded_audio_too_large">Carmen genitum tam prolixum est ut hac in machina tuto recipi non possit.</string>
     <string name="error_internal">Exceptio fatalis.</string>
 </resources>

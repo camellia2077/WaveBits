@@ -10,6 +10,8 @@
     <string name="library_action_import">Import</string>
     <!-- CONTEXT: Row action that shares one saved audio file through Android's share sheet. -->
     <string name="library_action_share">Share</string>
+    <!-- CONTEXT: Row action that exports one saved audio file through Android's file picker so the user can choose the destination document. -->
+    <string name="library_action_export_to_file">Export to file</string>
     <!-- CONTEXT: Row or dialog confirm action for renaming a saved audio file. -->
     <string name="library_action_rename">Rename</string>
     <!-- CONTEXT: Row or dialog confirm action for deleting one saved audio file. -->

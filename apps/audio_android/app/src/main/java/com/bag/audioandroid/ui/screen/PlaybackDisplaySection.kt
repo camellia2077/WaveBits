@@ -23,7 +23,9 @@ import com.bag.audioandroid.ui.playerSegmentedButtonColors
 @Composable
 internal fun PlaybackDisplaySection(
     displayedSamples: Int,
+    visualDisplayedSamples: Int = displayedSamples,
     waveformPcm: ShortArray,
+    isWaveformPreview: Boolean = false,
     sampleRateHz: Int,
     transportMode: TransportModeOption?,
     frameSamples: Int,
@@ -37,6 +39,18 @@ internal fun PlaybackDisplaySection(
     onFlashVisualizationModeSelected: (FlashSignalVisualizationMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val visualizationRoute =
+        resolvePlaybackVisualizationRoute(
+            transportMode = transportMode,
+            isFlashMode = isFlashMode,
+            waveformPcm = waveformPcm,
+            isWaveformPreview = isWaveformPreview,
+            sampleRateHz = sampleRateHz,
+            visualDisplayedSamples = visualDisplayedSamples,
+            displayedSamples = displayedSamples,
+            followData = followData,
+        )
+
     Column(
         modifier =
             modifier
@@ -71,8 +85,28 @@ internal fun PlaybackDisplaySection(
         }
         if (playbackDisplayMode == PlaybackDisplayMode.Visual) {
             if (waveformPcm.isNotEmpty()) {
-                when (transportMode) {
-                    TransportModeOption.Flash -> {
+                when (val route = visualizationRoute) {
+                    PlaybackVisualizationRoute.PcmWaveform ->
+                        AudioPcmWaveform(
+                            pcm = waveformPcm,
+                            sampleRateHz = sampleRateHz,
+                            displayedSamples = visualDisplayedSamples,
+                            isPlaying = isPlaying,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+
+                    is PlaybackVisualizationRoute.SymbolEnvelope ->
+                        AudioSymbolEnvelopeVisualizer(
+                            pcm = waveformPcm,
+                            sampleRateHz = sampleRateHz,
+                            displayedSamples = visualDisplayedSamples,
+                            isPlaying = isPlaying,
+                            transportMode = route.transportMode,
+                            frameSamples = frameSamples,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+
+                    is PlaybackVisualizationRoute.FlashSignal -> {
                         val flashVisualizationMode =
                             FlashSignalVisualizationMode.values().firstOrNull { mode ->
                                 mode.name == flashVisualizationModeName
@@ -83,9 +117,7 @@ internal fun PlaybackDisplaySection(
                             modifier = Modifier.fillMaxWidth(),
                         )
                         AudioFlashSignalVisualizer(
-                            pcm = waveformPcm,
-                            sampleRateHz = sampleRateHz,
-                            displayedSamples = displayedSamples,
+                            input = route.input,
                             isPlaying = isPlaying,
                             mode = flashVisualizationMode,
                             flashVoicingStyle = flashVoicingStyle,
@@ -93,53 +125,22 @@ internal fun PlaybackDisplaySection(
                         )
                     }
 
-                    TransportModeOption.Pro, TransportModeOption.Ultra ->
-                        if (transportMode == TransportModeOption.Pro) {
-                            ProEncodingExplanationVisualizer(
-                                followData = followData,
-                                displayedSamples = displayedSamples,
-                                frameSamples = frameSamples,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        } else {
-                            UltraSymbolStepVisualizer(
-                                pcm = waveformPcm,
-                                sampleRateHz = sampleRateHz,
-                                displayedSamples = displayedSamples,
-                                frameSamples = frameSamples,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
+                    PlaybackVisualizationRoute.ProExplanation ->
+                        ProEncodingExplanationVisualizer(
+                            followData = followData,
+                            displayedSamples = displayedSamples,
+                            frameSamples = frameSamples,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
 
-                    null ->
-                        if (isFlashMode) {
-                            val flashVisualizationMode =
-                                FlashSignalVisualizationMode.values().firstOrNull { mode ->
-                                    mode.name == flashVisualizationModeName
-                                } ?: FlashSignalVisualizationMode.ToneTracks
-                            FlashSignalVisualizationModeSwitcher(
-                                selectedMode = flashVisualizationMode,
-                                onModeSelected = onFlashVisualizationModeSelected,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            AudioFlashSignalVisualizer(
-                                pcm = waveformPcm,
-                                sampleRateHz = sampleRateHz,
-                                displayedSamples = displayedSamples,
-                                isPlaying = isPlaying,
-                                mode = flashVisualizationMode,
-                                flashVoicingStyle = flashVoicingStyle,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        } else {
-                            AudioPcmWaveform(
-                                pcm = waveformPcm,
-                                sampleRateHz = sampleRateHz,
-                                displayedSamples = displayedSamples,
-                                isPlaying = isPlaying,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
+                    PlaybackVisualizationRoute.UltraStep ->
+                        UltraSymbolStepVisualizer(
+                            pcm = waveformPcm,
+                            sampleRateHz = sampleRateHz,
+                            displayedSamples = visualDisplayedSamples,
+                            frameSamples = frameSamples,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                 }
             }
         } else {

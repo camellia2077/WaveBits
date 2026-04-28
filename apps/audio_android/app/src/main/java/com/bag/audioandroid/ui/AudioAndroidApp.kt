@@ -27,6 +27,12 @@ fun AudioAndroidApp() {
         ) { uri ->
             uri?.let { viewModel.onImportAudio(it.toString()) }
         }
+    val exportAudioLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument("audio/wav"),
+        ) { uri ->
+            viewModel.onDocumentExportPicked(uri?.toString())
+        }
     var savedAudioFilter by rememberSaveable {
         mutableStateOf(defaultSavedAudioFilter(uiState))
     }
@@ -40,6 +46,12 @@ fun AudioAndroidApp() {
     LaunchedEffect(uiState.showPlayerDetailSheet, uiState.miniPlayerModel) {
         if (uiState.showPlayerDetailSheet && uiState.miniPlayerModel == null) {
             viewModel.onClosePlayerDetailSheet()
+        }
+    }
+
+    LaunchedEffect(uiState.pendingDocumentExportRequest?.id) {
+        uiState.pendingDocumentExportRequest?.let { request ->
+            exportAudioLauncher.launch(request.suggestedFileName)
         }
     }
 

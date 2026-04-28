@@ -8,6 +8,8 @@ import com.bag.audioandroid.domain.DecodedAudioPayloadResult
 import com.bag.audioandroid.domain.DecodedPayloadViewData
 import com.bag.audioandroid.domain.EncodeAudioResult
 import com.bag.audioandroid.domain.EncodeProgressUpdate
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
+import com.bag.audioandroid.domain.GeneratedAudioPcmCacheWriter
 import com.bag.audioandroid.domain.PayloadFollowBinaryGroupTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowByteTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
@@ -15,6 +17,7 @@ import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.TextFollowLineTokenRangeViewData
 import com.bag.audioandroid.domain.TextFollowLyricLineTimelineEntry
 import com.bag.audioandroid.domain.TextFollowTimelineEntry
+import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.model.UiText
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import com.bag.audioandroid.ui.state.PlaybackUiState
@@ -30,6 +33,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.text.Charsets.UTF_8
 
 private val DefaultFollowData =
@@ -207,8 +213,91 @@ class AudioSessionCodecActionsTest {
             assertEquals(R.string.status_mode_audio_generated_segmented, status.resId)
             assertTrue(session.generatedAudioMetadata?.isSegmented == true)
             assertTrue((session.generatedAudioMetadata?.segmentCount ?: 0) > 1)
-            assertEquals(session.generatedAudioMetadata?.segmentCount, session.generatedPcm.size)
-            assertEquals(session.generatedPcm.size, session.playback.totalSamples)
+            assertEquals(0, session.generatedPcm.size)
+            assertTrue(session.generatedWaveformPcm.isNotEmpty())
+            assertTrue(session.generatedPcmFilePath?.let { File(it).exists() } == true)
+            assertEquals(
+                session.generatedAudioMetadata?.segmentCount,
+                session.generatedAudioMetadata?.segmentSampleCounts?.size,
+            )
+            assertEquals(session.generatedAudioMetadata?.pcmSampleCount, session.playback.totalSamples)
+            assertTrue(fixture.uiState.value.miniPlayerModel != null)
+        }
+
+    @Test
+    fun `long valid payload segments before native result exceeds jvm audio limit`() =
+        runTest {
+            val longText = "A".repeat(1_025)
+            val encodedTexts = mutableListOf<String>()
+            val fixture =
+                createFixture(
+                    gateway =
+                        FakeAudioCodecGateway(
+                            encodeTextBlock = { text, _ ->
+                                encodedTexts += text
+                                EncodeAudioResult.Success(shortArrayOf(text.length.toShort()))
+                            },
+                        ),
+                    testScope = this,
+                )
+
+            fixture.uiState.value =
+                fixture.uiState.value.copy(
+                    sessions =
+                        fixture.uiState.value.sessions.mapValues { (_, session) ->
+                            session.copy(inputText = longText)
+                        },
+                )
+
+            fixture.actions.onEncode()
+            advanceUntilIdle()
+
+            val session = fixture.uiState.value.currentSession
+            assertTrue(encodedTexts.size > 1)
+            assertFalse(encodedTexts.contains(longText))
+            assertTrue(encodedTexts.all { it.toByteArray(UTF_8).size <= 512 })
+            assertEquals(longText, encodedTexts.joinToString(separator = ""))
+            assertEquals(0, session.generatedPcm.size)
+            assertTrue(session.generatedPcmFilePath?.let { File(it).exists() } == true)
+            assertEquals(encodedTexts.size, session.generatedAudioMetadata?.segmentCount)
+            assertEquals(session.generatedAudioMetadata?.pcmSampleCount, session.playback.totalSamples)
+            assertTrue(fixture.uiState.value.miniPlayerModel != null)
+        }
+
+    @Test
+    fun `segmented long duration still hydrates follow data`() =
+        runTest {
+            val longText = "A".repeat(513)
+            val longSegmentPcmSampleCount = 2_700_000
+            val fixture =
+                createFixture(
+                    gateway =
+                        FakeAudioCodecGateway(
+                            encodeTextBlock = { _, _ ->
+                                EncodeAudioResult.Success(ShortArray(longSegmentPcmSampleCount))
+                            },
+                            buildFollowDataBlock = {
+                                DefaultFollowData.copy(totalPcmSampleCount = longSegmentPcmSampleCount)
+                            },
+                        ),
+                    testScope = this,
+                )
+
+            fixture.uiState.value =
+                fixture.uiState.value.copy(
+                    sessions =
+                        fixture.uiState.value.sessions.mapValues { (_, session) ->
+                            session.copy(inputText = longText)
+                        },
+                )
+
+            fixture.actions.onEncode()
+            advanceUntilIdle()
+
+            val session = fixture.uiState.value.currentSession
+            assertTrue((session.generatedAudioMetadata?.pcmSampleCount ?: 0) > 44_100 * 120)
+            assertTrue(session.followData.followAvailable)
+            assertTrue(session.followData.textFollowAvailable)
         }
 
     @Test
@@ -240,6 +329,7 @@ class AudioSessionCodecActionsTest {
                 frameSamples = 2_205,
                 stopPlayback = {},
                 workerDispatcher = dispatcher,
+                generatedAudioCacheGateway = CodecFakeGeneratedAudioCacheGateway(),
             )
         return Fixture(uiState, actions)
     }
@@ -265,6 +355,7 @@ private class FakeAudioCodecGateway(
             followData = DefaultFollowData,
         ),
     private val encodeBlock: (suspend ((EncodeProgressUpdate) -> Unit) -> EncodeAudioResult)? = null,
+    private val encodeTextBlock: (suspend (String, (EncodeProgressUpdate) -> Unit) -> EncodeAudioResult)? = null,
     private val validateEncodeRequestBlock:
         ((
             text: String,
@@ -274,6 +365,7 @@ private class FakeAudioCodecGateway(
             flashSignalProfile: Int,
             flashVoicingFlavor: Int,
         ) -> Int)? = null,
+    private val buildFollowDataBlock: ((String) -> PayloadFollowViewData)? = null,
 ) : AudioCodecGateway {
     override fun validateEncodeRequest(
         text: String,
@@ -300,7 +392,7 @@ private class FakeAudioCodecGateway(
         flashSignalProfile: Int,
         flashVoicingFlavor: Int,
         onProgress: (EncodeProgressUpdate) -> Unit,
-    ): EncodeAudioResult = encodeBlock?.invoke(onProgress) ?: encodeResult
+    ): EncodeAudioResult = encodeTextBlock?.invoke(text, onProgress) ?: encodeBlock?.invoke(onProgress) ?: encodeResult
 
     override suspend fun buildEncodeFollowData(
         text: String,
@@ -309,7 +401,9 @@ private class FakeAudioCodecGateway(
         mode: Int,
         flashSignalProfile: Int,
         flashVoicingFlavor: Int,
-    ) = com.bag.audioandroid.domain.EncodedAudioPayloadResult(followData = DefaultFollowData)
+    ) = com.bag.audioandroid.domain.EncodedAudioPayloadResult(
+        followData = buildFollowDataBlock?.invoke(text) ?: DefaultFollowData,
+    )
 
     override fun validateDecodeConfig(
         sampleRateHz: Int,
@@ -382,4 +476,54 @@ private class FakePlaybackRuntimeGateway : PlaybackRuntimeGateway {
     override fun elapsedMs(state: PlaybackUiState): Long = 0L
 
     override fun totalMs(state: PlaybackUiState): Long = 0L
+}
+
+private class CodecFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {
+    override fun createPcmCacheWriter(modeWireName: String): GeneratedAudioPcmCacheWriter =
+        FakeGeneratedAudioPcmCacheWriter(
+            File.createTempFile("${modeWireName}_", ".pcm16").apply {
+                deleteOnExit()
+            },
+        )
+
+    override fun deleteCachedFile(path: String?) {
+        if (!path.isNullOrBlank()) {
+            File(path).delete()
+        }
+    }
+}
+
+private class FakeGeneratedAudioPcmCacheWriter(
+    private val file: File,
+) : GeneratedAudioPcmCacheWriter {
+    override val filePath: String = file.absolutePath
+
+    private var output: BufferedOutputStream? =
+        BufferedOutputStream(
+            FileOutputStream(file),
+        )
+
+    override fun appendPcm(pcm: ShortArray) {
+        val stream = output ?: return
+        val bytes = ByteArray(pcm.size * 2)
+        var byteIndex = 0
+        pcm.forEach { sample ->
+            val value = sample.toInt()
+            bytes[byteIndex] = (value and 0xFF).toByte()
+            bytes[byteIndex + 1] = ((value ushr 8) and 0xFF).toByte()
+            byteIndex += 2
+        }
+        stream.write(bytes)
+    }
+
+    override fun finish() {
+        output?.flush()
+        output?.close()
+        output = null
+    }
+
+    override fun abort() {
+        finish()
+        file.delete()
+    }
 }

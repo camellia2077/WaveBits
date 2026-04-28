@@ -25,9 +25,11 @@ import com.bag.audioandroid.ui.model.TransportModeOption
 internal fun PlayerDetailSheetContent(
     miniPlayerModel: MiniPlayerUiModel,
     displayedSamples: Int,
+    waveformDisplayedSamples: Int = displayedSamples,
     totalSamples: Int,
     isScrubbing: Boolean,
     waveformPcm: ShortArray,
+    isWaveformPreview: Boolean = false,
     sampleRateHz: Int,
     frameSamples: Int = 2205,
     displayedTime: String,
@@ -46,12 +48,14 @@ internal fun PlayerDetailSheetContent(
     onPlaybackSequenceModeSelected: (PlaybackSequenceMode) -> Unit,
     onPlaybackSpeedSelected: (Float) -> Unit,
     onExportGeneratedAudio: () -> Unit,
+    onExportGeneratedAudioToDocument: () -> Unit,
     onShareSavedAudio: (() -> Unit)?,
     onOpenSavedAudioSheet: () -> Unit,
     onScrubStarted: () -> Unit,
     onScrubChanged: (Int) -> Unit,
     onScrubFinished: () -> Unit,
     onLyricsRequested: () -> Unit = {},
+    initialDisplayMode: PlaybackDisplayMode = PlaybackDisplayMode.Visual,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
@@ -59,6 +63,7 @@ internal fun PlayerDetailSheetContent(
         rememberPlaybackDisplaySectionState(
             isFlashMode = miniPlayerModel.isFlashMode,
             onLyricsRequested = onLyricsRequested,
+            initialDisplayMode = initialDisplayMode,
         )
 
     Column(
@@ -74,7 +79,9 @@ internal fun PlayerDetailSheetContent(
                     .weight(1f)
                     .verticalScroll(scrollState),
             displayedSamples = displayedSamples,
+            waveformDisplayedSamples = waveformDisplayedSamples,
             waveformPcm = waveformPcm,
+            isWaveformPreview = isWaveformPreview,
             sampleRateHz = sampleRateHz,
             frameSamples = frameSamples,
             transportMode = miniPlayerModel.transportMode,
@@ -103,12 +110,14 @@ internal fun PlayerDetailSheetContent(
             sampleRateHz = sampleRateHz,
             frameSamples = frameSamples,
             flashVoicingStyle = miniPlayerModel.flashVoicingStyle,
+            savedAudioItem = savedAudioItem,
             onTogglePlayback = onTogglePlayback,
             onSkipToPreviousTrack = onSkipToPreviousTrack,
             onSkipToNextTrack = onSkipToNextTrack,
             onPlaybackSequenceModeSelected = onPlaybackSequenceModeSelected,
             onPlaybackSpeedSelected = onPlaybackSpeedSelected,
             onExportGeneratedAudio = onExportGeneratedAudio,
+            onExportGeneratedAudioToDocument = onExportGeneratedAudioToDocument,
             onOpenSavedAudioSheet = onOpenSavedAudioSheet,
             onScrubStarted = onScrubStarted,
             onScrubChanged = onScrubChanged,
@@ -120,7 +129,9 @@ internal fun PlayerDetailSheetContent(
 @Composable
 private fun PlayerDetailScrollContent(
     displayedSamples: Int,
+    waveformDisplayedSamples: Int,
     waveformPcm: ShortArray,
+    isWaveformPreview: Boolean,
     sampleRateHz: Int,
     frameSamples: Int,
     transportMode: TransportModeOption,
@@ -137,11 +148,11 @@ private fun PlayerDetailScrollContent(
             modifier.padding(horizontal = PlayerDetailHorizontalPadding, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        savedAudioItem?.let { PlayerDetailSavedInfoSection(item = it, currentSampleRateHz = sampleRateHz) }
-
         AudioPlaybackDisplayBlock(
             displayedSamples = displayedSamples,
+            visualDisplayedSamples = waveformDisplayedSamples,
             waveformPcm = waveformPcm,
+            isWaveformPreview = isWaveformPreview,
             sampleRateHz = sampleRateHz,
             transportMode = transportMode,
             frameSamples = frameSamples,
@@ -174,12 +185,14 @@ private fun PlayerDetailBottomDock(
     sampleRateHz: Int,
     frameSamples: Int,
     flashVoicingStyle: FlashVoicingStyleOption?,
+    savedAudioItem: SavedAudioItem?,
     onTogglePlayback: () -> Unit,
     onSkipToPreviousTrack: () -> Unit,
     onSkipToNextTrack: () -> Unit,
     onPlaybackSequenceModeSelected: (PlaybackSequenceMode) -> Unit,
     onPlaybackSpeedSelected: (Float) -> Unit,
     onExportGeneratedAudio: () -> Unit,
+    onExportGeneratedAudioToDocument: () -> Unit,
     onOpenSavedAudioSheet: () -> Unit,
     onScrubStarted: () -> Unit,
     onScrubChanged: (Int) -> Unit,
@@ -215,12 +228,14 @@ private fun PlayerDetailBottomDock(
             sampleRateHz = sampleRateHz,
             frameSamples = frameSamples,
             flashVoicingStyle = flashVoicingStyle,
+            savedAudioItem = savedAudioItem,
             onTogglePlayback = onTogglePlayback,
             onSkipToPreviousTrack = onSkipToPreviousTrack,
             onSkipToNextTrack = onSkipToNextTrack,
             onPlaybackSequenceModeSelected = onPlaybackSequenceModeSelected,
             onPlaybackSpeedSelected = onPlaybackSpeedSelected,
             onExportGeneratedAudio = onExportGeneratedAudio,
+            onExportGeneratedAudioToDocument = onExportGeneratedAudioToDocument,
             onOpenSavedAudioSheet = onOpenSavedAudioSheet,
         )
     }

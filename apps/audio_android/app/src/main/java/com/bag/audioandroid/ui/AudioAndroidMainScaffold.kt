@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -32,6 +33,8 @@ import com.bag.audioandroid.ui.screen.SavedAudioPickerSheet
 import com.bag.audioandroid.ui.screen.formatDurationMillis
 import com.bag.audioandroid.ui.screen.samplesToMillis
 import com.bag.audioandroid.ui.state.AudioAppUiState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +64,9 @@ internal fun AudioAndroidMainScaffold(
         formatDurationMillis(
             samplesToMillis(currentPlayback.totalSamples, currentPlayback.sampleRateHz),
         )
+    val playbackVisualData = uiState.currentPlaybackVisualData
+    val waveformPcm = playbackVisualData.samples
+    val waveformDisplayedSamples = playbackVisualData.displayedSamplesFor(currentPlayback.displayedSamples)
     val navigationBarColors = navigationBarItemColors(uiState)
 
     LaunchedEffect(snackbarMessage?.id) {
@@ -71,7 +77,22 @@ internal fun AudioAndroidMainScaffold(
             } else {
                 snackbarHostState
             }
-        hostState.showSnackbar(snackbarText)
+        val customDurationMillis = message.durationMillis
+        if (customDurationMillis != null) {
+            hostState.currentSnackbarData?.dismiss()
+            val dismissJob =
+                launch {
+                    delay(customDurationMillis)
+                    hostState.currentSnackbarData?.dismiss()
+                }
+            hostState.showSnackbar(
+                message = snackbarText,
+                duration = SnackbarDuration.Indefinite,
+            )
+            dismissJob.cancel()
+        } else {
+            hostState.showSnackbar(snackbarText)
+        }
         viewModel.onSnackbarMessageShown(message.id)
     }
 
@@ -113,9 +134,11 @@ internal fun AudioAndroidMainScaffold(
                 PlayerDetailSheetContent(
                     miniPlayerModel = miniPlayerModel,
                     displayedSamples = currentPlayback.displayedSamples,
+                    waveformDisplayedSamples = waveformDisplayedSamples,
                     totalSamples = currentPlayback.totalSamples,
                     isScrubbing = currentPlayback.isScrubbing,
-                    waveformPcm = uiState.currentPlaybackPcm,
+                    waveformPcm = waveformPcm,
+                    isWaveformPreview = playbackVisualData.isPreview,
                     sampleRateHz = currentPlayback.sampleRateHz,
                     frameSamples = uiState.currentPlaybackFrameSamples,
                     displayedTime = displayedTime,
@@ -136,6 +159,7 @@ internal fun AudioAndroidMainScaffold(
                     onPlaybackSequenceModeSelected = viewModel::onPlaybackSequenceModeSelected,
                     onPlaybackSpeedSelected = viewModel::onPlaybackSpeedSelected,
                     onExportGeneratedAudio = viewModel::onExportAudio,
+                    onExportGeneratedAudioToDocument = viewModel::onRequestExportGeneratedAudioToDocument,
                     onShareSavedAudio = uiState.currentSavedAudioItem?.let { viewModel::onShareCurrentSavedAudio },
                     onOpenSavedAudioSheet = viewModel::onOpenSavedAudioSheet,
                     onScrubStarted = viewModel::onScrubStarted,
@@ -259,6 +283,7 @@ internal fun AudioAndroidMainScaffold(
                     onDeleteSavedAudioFolder = viewModel::onDeleteSavedAudioFolder,
                     onMoveSavedAudioToFolder = viewModel::onMoveSavedAudioToFolder,
                     onShareSavedAudio = viewModel::onShareSavedAudio,
+                    onExportSavedAudioToDocument = viewModel::onRequestExportSavedAudioToDocument,
                     contentPadding = contentPadding,
                     modifier =
                         Modifier

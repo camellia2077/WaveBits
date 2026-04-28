@@ -26,6 +26,7 @@
     <string name="audio_action_clear_result">Очистити результат</string>
     <string name="audio_action_clear_result_busy">Очищення…</string>
     <string name="audio_action_export">Зберегти</string>
+    <string name="audio_action_export_to_file">Експортувати у файл</string>
     <string name="audio_action_playback_speed_short">Швидкість</string>
     <string name="audio_action_open_playback_speed_menu">Відкрити меню швидкості відтворення</string>
     <string name="audio_action_toggle_playback_speed_slider">Перемкнути точне налаштування швидкості</string>
@@ -47,9 +48,6 @@
     <string name="audio_input_editor_done">Готово</string>
     <string name="audio_input_editor_count">%1$d символів</string>
     <string name="audio_input_metrics">%1$d символів • %2$d байтів</string>
-    <string name="audio_input_payload_limit_ok">Орієнтир на сегмент: 512 байтів. Довший текст буде автоматично поділено.</string>
-    <string name="audio_input_payload_limit_warning">Текст наближається до 512 байтів. Довший текст буде автоматично поділено.</string>
-    <string name="audio_input_payload_limit_exceeded">Текст перевищує 512 байтів. Цей ввід буде автоматично поділено.</string>
     <string name="audio_action_expand_result">Розгорнути результат</string>
     <string name="audio_action_collapse_result">Згорнути результат</string>
     <string name="audio_action_expand_result_content">Розгорнути текст результату</string>
@@ -192,6 +190,8 @@
     <string name="status_audio_save_failed">Не вдалося зберегти</string>
     <string name="snackbar_audio_saved_to_library">Збережено</string>
     <string name="snackbar_audio_save_failed">Не вдалося зберегти</string>
+    <string name="snackbar_audio_exported_to_file">Експортовано у файл</string>
+    <string name="snackbar_audio_export_to_file_failed">Не вдалося експортувати файл</string>
     <string name="status_saved_audio_loaded">Завантажено: %1$s</string>
     <string name="status_saved_audio_load_failed">Не вдалося завантажити</string>
     <string name="status_playing_saved_audio">Відтворюється: %1$s</string>

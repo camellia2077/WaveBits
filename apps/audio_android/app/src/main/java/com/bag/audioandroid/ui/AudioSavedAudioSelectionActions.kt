@@ -3,6 +3,7 @@ package com.bag.audioandroid.ui
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.SavedAudioRepository
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.ui.model.AppTab
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
 import com.bag.audioandroid.ui.model.PlaybackSpeedOption
@@ -19,6 +20,7 @@ internal class AudioSavedAudioSelectionActions(
     private val savedAudioRepository: SavedAudioRepository,
     private val stopPlayback: () -> Unit,
     private val setCurrentStatusText: (UiText) -> Unit,
+    private val generatedAudioCacheGateway: GeneratedAudioCacheGateway,
 ) {
     fun onSavedAudioSelected(itemId: String) {
         stopPlayback()
@@ -47,7 +49,11 @@ internal class AudioSavedAudioSelectionActions(
         clearLibrarySelection: Boolean = false,
         closeSavedAudioSheet: Boolean = false,
     ): Boolean {
+        val previousSelection = uiState.value.selectedSavedAudio
         val savedAudio = savedAudioRepository.loadSavedAudio(itemId) ?: return false
+        if (previousSelection?.item?.itemId != savedAudio.item.itemId) {
+            generatedAudioCacheGateway.deleteCachedFile(previousSelection?.pcmFilePath)
+        }
         uiState.update { state ->
             state.copy(
                 selectedTab = if (switchToAudioTab) AppTab.Audio else state.selectedTab,
@@ -57,9 +63,15 @@ internal class AudioSavedAudioSelectionActions(
                     SavedAudioPlaybackSelection(
                         item = savedAudio.item,
                         pcm = savedAudio.pcm,
+                        waveformPcm = savedAudio.waveformPcm,
+                        pcmFilePath = savedAudio.pcmFilePath,
                         sampleRateHz = savedAudio.sampleRateHz,
                         metadata = savedAudio.metadata,
-                        playback = playbackRuntimeGateway.load(savedAudio.pcm.size, savedAudio.sampleRateHz),
+                        playback =
+                            playbackRuntimeGateway.load(
+                                savedAudio.metadata?.pcmSampleCount ?: savedAudio.pcm.size,
+                                savedAudio.sampleRateHz,
+                            ),
                         playbackSpeed =
                             state.selectedSavedAudio
                                 ?.takeIf { it.item.itemId == savedAudio.item.itemId }

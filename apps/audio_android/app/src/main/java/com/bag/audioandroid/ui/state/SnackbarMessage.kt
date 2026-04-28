@@ -5,4 +5,5 @@ import com.bag.audioandroid.ui.model.UiText
 data class SnackbarMessage(
     val id: Long,
     val text: UiText,
+    val durationMillis: Long? = null,
 )

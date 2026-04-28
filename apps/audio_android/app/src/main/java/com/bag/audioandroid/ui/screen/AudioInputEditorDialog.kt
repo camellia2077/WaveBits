@@ -28,6 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -54,12 +56,6 @@ internal fun AudioInputEditorDialog(
 ) {
     val accentTokens = appThemeAccentTokens()
     val inputMetrics = measureAudioInputText(inputText)
-    val payloadLimitColor =
-        when (inputMetrics.payloadLimitMessageResId) {
-            R.string.audio_input_payload_limit_exceeded -> MaterialTheme.colorScheme.error
-            R.string.audio_input_payload_limit_warning -> accentTokens.disclosureAccentTint
-            else -> MaterialTheme.colorScheme.onSurfaceVariant
-        }
     val topAppBarColors =
         TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
@@ -154,17 +150,16 @@ internal fun AudioInputEditorDialog(
                                             inputMetrics.byteCount,
                                         ),
                                 )
-                                inputMetrics.payloadLimitMessageResId?.let { messageResId ->
-                                    Text(
-                                        text = stringResource(messageResId),
-                                        color = payloadLimitColor,
-                                    )
-                                }
                             }
                         },
                         keyboardOptions =
                             KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Sentences,
+                            ),
+                        textStyle =
+                            MaterialTheme.typography.bodyLarge.copy(
+                                lineBreak = LineBreak.Paragraph,
+                                hyphens = Hyphens.Auto,
                             ),
                         colors = audioInputTextFieldColors(selectedThemeStyle),
                     )

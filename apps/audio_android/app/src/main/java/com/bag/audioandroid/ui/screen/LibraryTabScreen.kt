@@ -35,6 +35,7 @@ fun LibraryTabScreen(
     onDeleteSavedAudioFolder: (String) -> Unit,
     onMoveSavedAudioToFolder: (Collection<String>, String?) -> Unit,
     onShareSavedAudio: (SavedAudioItem) -> Unit,
+    onExportSavedAudioToDocument: (SavedAudioItem) -> Unit,
     contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
 ) {
@@ -132,6 +133,7 @@ fun LibraryTabScreen(
             onSelectAllLibraryItems = onSelectAllLibraryItems,
             onClearLibrarySelection = onClearLibrarySelection,
             onShareSavedAudio = onShareSavedAudio,
+            onExportSavedAudioToDocument = onExportSavedAudioToDocument,
         )
     }
 }

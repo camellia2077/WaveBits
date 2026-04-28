@@ -20,5 +20,6 @@
     <string name="error_not_ready">结果尚未就绪。</string>
     <string name="error_not_implemented">暂不可用。</string>
     <string name="error_cancelled">操作已取消。</string>
+    <string name="error_encoded_audio_too_large">生成的音频过长，当前设备无法安全载入。</string>
     <string name="error_internal">内部错误。</string>
 </resources>

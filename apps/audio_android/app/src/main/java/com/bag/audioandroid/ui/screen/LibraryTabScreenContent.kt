@@ -11,7 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CreateNewFolder
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.DriveFileRenameOutline
-import androidx.compose.material.icons.rounded.FileOpen
+import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +41,7 @@ internal fun LibraryTabScreenContent(
     onSelectAllLibraryItems: (Collection<String>) -> Unit,
     onClearLibrarySelection: () -> Unit,
     onShareSavedAudio: (SavedAudioItem) -> Unit,
+    onExportSavedAudioToDocument: (SavedAudioItem) -> Unit,
 ) {
     if (librarySelection.isSelectionMode) {
         LibrarySelectionActionsRow(
@@ -61,7 +62,7 @@ internal fun LibraryTabScreenContent(
                 colors = utilityActionIconButtonColors(),
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.FileOpen,
+                    imageVector = Icons.Rounded.UploadFile,
                     contentDescription = stringResource(R.string.library_action_import),
                 )
             }
@@ -162,6 +163,7 @@ internal fun LibraryTabScreenContent(
                         }
                     },
                     onLongClick = { onEnterLibrarySelection(item.itemId) },
+                    onExportToFile = { onExportSavedAudioToDocument(item) },
                     onShare = { onShareSavedAudio(item) },
                     onMove = { screenState.onMoveStarted(item) },
                     onRename = { screenState.onRenameStarted(item) },

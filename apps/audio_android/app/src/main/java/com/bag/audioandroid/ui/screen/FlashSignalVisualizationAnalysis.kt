@@ -1,5 +1,6 @@
 package com.bag.audioandroid.ui.screen
 
+import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import kotlin.math.PI
 import kotlin.math.abs
@@ -116,6 +117,112 @@ internal fun buildFskEnergyBuckets(
         )
     }
 }
+
+internal fun buildFskEnergyBucketsFromFollowData(
+    followData: PayloadFollowViewData,
+    currentSample: Float,
+    windowSampleCount: Int,
+    targetBucketCount: Int,
+): List<FskEnergyBucket> {
+    if (!followData.followAvailable || followData.binaryGroupTimeline.isEmpty()) {
+        return emptyList()
+    }
+
+    val safeBucketCount = targetBucketCount.coerceAtLeast(1)
+    val safeWindowSampleCount = windowSampleCount.coerceAtLeast(1)
+    val pastWindowSamples = safeWindowSampleCount * FlashSignalPlayheadAnchorRatio
+    val windowStart = currentSample - pastWindowSamples
+    val bucketSampleWidth = safeWindowSampleCount.toFloat() / safeBucketCount.toFloat()
+    val buckets = ArrayList<FskEnergyBucket>(safeBucketCount)
+    var entryCursor = 0
+    val entries = followData.binaryGroupTimeline
+
+    repeat(safeBucketCount) { bucketIndex ->
+        val bucketStart = windowStart + bucketSampleWidth * bucketIndex.toFloat()
+        val bucketEnd = bucketStart + bucketSampleWidth
+        while (
+            entryCursor < entries.size &&
+            entries[entryCursor].startSample + entries[entryCursor].sampleCount <= bucketStart
+        ) {
+            entryCursor += 1
+        }
+
+        var scanIndex = entryCursor
+        var lowWeight = 0f
+        var highWeight = 0f
+        while (scanIndex < entries.size) {
+            val entry = entries[scanIndex]
+            if (entry.startSample >= bucketEnd) {
+                break
+            }
+            val overlap =
+                overlapLength(
+                    firstStart = bucketStart,
+                    firstEnd = bucketEnd,
+                    secondStart = entry.startSample.toFloat(),
+                    secondEnd = (entry.startSample + entry.sampleCount).toFloat(),
+                )
+            if (overlap > 0f) {
+                val bitWeights = binaryTokenWeights(followData.binaryTokens.getOrNull(entry.groupIndex))
+                lowWeight += overlap * bitWeights.lowWeight
+                highWeight += overlap * bitWeights.highWeight
+            }
+            scanIndex += 1
+        }
+
+        val coveredWeight = lowWeight + highWeight
+        val amplitude = (coveredWeight / bucketSampleWidth).coerceIn(0f, 1f)
+        val lowStrength = (lowWeight / bucketSampleWidth).coerceIn(0f, 1f)
+        val highStrength = (highWeight / bucketSampleWidth).coerceIn(0f, 1f)
+        val confidence =
+            if (coveredWeight > 1e-6f) {
+                abs(highWeight - lowWeight) / coveredWeight
+            } else {
+                0f
+            }
+        val dominantTone =
+            when {
+                amplitude < FlashSignalSilenceThreshold -> FskDominantTone.Unknown
+                confidence < FlashSignalConfidenceThreshold -> FskDominantTone.Unknown
+                highWeight > lowWeight -> FskDominantTone.High
+                else -> FskDominantTone.Low
+            }
+        buckets +=
+            FskEnergyBucket(
+                lowStrength = if (dominantTone == FskDominantTone.High) lowStrength.coerceAtLeast(0.10f * amplitude) else lowStrength,
+                highStrength = if (dominantTone == FskDominantTone.Low) highStrength.coerceAtLeast(0.10f * amplitude) else highStrength,
+                amplitude = amplitude,
+                dominantTone = dominantTone,
+                confidence = confidence.coerceIn(0f, 1f),
+            )
+    }
+    return buckets
+}
+
+private data class BinaryTokenWeights(
+    val lowWeight: Float,
+    val highWeight: Float,
+)
+
+private fun binaryTokenWeights(binaryToken: String?): BinaryTokenWeights {
+    val bits = binaryToken.orEmpty().filter { it == '0' || it == '1' }
+    if (bits.isEmpty()) {
+        return BinaryTokenWeights(lowWeight = 0f, highWeight = 0f)
+    }
+    val highCount = bits.count { it == '1' }.toFloat()
+    val lowCount = bits.length.toFloat() - highCount
+    return BinaryTokenWeights(
+        lowWeight = lowCount / bits.length.toFloat(),
+        highWeight = highCount / bits.length.toFloat(),
+    )
+}
+
+private fun overlapLength(
+    firstStart: Float,
+    firstEnd: Float,
+    secondStart: Float,
+    secondEnd: Float,
+): Float = (minOf(firstEnd, secondEnd) - maxOf(firstStart, secondStart)).coerceAtLeast(0f)
 
 private data class RawFskEnergyBucket(
     val lowPower: Float,

@@ -1,891 +1,4 @@
-#include <jni.h>
-
-#include <array>
-#include <algorithm>
-#include <cstdint>
-#include <string>
-#include <vector>
-
-#include "bag_api.h"
-
-namespace {
-constexpr int kDefaultSampleRateHz = 44100;
-constexpr int kDefaultFrameSamples = 2205;
-
-std::string JStringToStdString(JNIEnv* env, jstring value) {
-    if (value == nullptr) {
-        return {};
-    }
-    const char* chars = env->GetStringUTFChars(value, nullptr);
-    if (chars == nullptr) {
-        return {};
-    }
-    const std::string out(chars);
-    env->ReleaseStringUTFChars(value, chars);
-    return out;
-}
-
-int NormalizeSampleRate(int sample_rate_hz) {
-    return sample_rate_hz > 0 ? sample_rate_hz : kDefaultSampleRateHz;
-}
-
-int NormalizeFrameSamples(int sample_rate_hz, int frame_samples) {
-    if (frame_samples > 0) {
-        return frame_samples;
-    }
-    const int normalized_sample_rate = NormalizeSampleRate(sample_rate_hz);
-    return normalized_sample_rate > 0 ? normalized_sample_rate / 20 : kDefaultFrameSamples;
-}
-
-bag_encoder_config MakeEncoderConfig(int sample_rate_hz,
-                                     int frame_samples,
-                                     int flash_signal_profile = BAG_FLASH_SIGNAL_PROFILE_CODED_BURST,
-                                     int flash_voicing_flavor = BAG_FLASH_VOICING_FLAVOR_CODED_BURST) {
-    bag_encoder_config config{};
-    config.sample_rate_hz = NormalizeSampleRate(sample_rate_hz);
-    config.frame_samples = NormalizeFrameSamples(sample_rate_hz, frame_samples);
-    config.enable_diagnostics = 0;
-    config.mode = BAG_TRANSPORT_FLASH;
-    config.flash_signal_profile = static_cast<bag_flash_signal_profile>(flash_signal_profile);
-    config.flash_voicing_flavor = static_cast<bag_flash_voicing_flavor>(flash_voicing_flavor);
-    config.reserved = 0;
-    return config;
-}
-
-bag_decoder_config MakeDecoderConfig(int sample_rate_hz,
-                                     int frame_samples,
-                                     int flash_signal_profile = BAG_FLASH_SIGNAL_PROFILE_CODED_BURST,
-                                     int flash_voicing_flavor = BAG_FLASH_VOICING_FLAVOR_CODED_BURST) {
-    bag_decoder_config config{};
-    config.sample_rate_hz = NormalizeSampleRate(sample_rate_hz);
-    config.frame_samples = NormalizeFrameSamples(sample_rate_hz, frame_samples);
-    config.enable_diagnostics = 0;
-    config.mode = BAG_TRANSPORT_FLASH;
-    config.flash_signal_profile = static_cast<bag_flash_signal_profile>(flash_signal_profile);
-    config.flash_voicing_flavor = static_cast<bag_flash_voicing_flavor>(flash_voicing_flavor);
-    config.reserved = 0;
-    return config;
-}
-
-bag_encode_job* HandleToEncodeJob(jlong handle) {
-    return reinterpret_cast<bag_encode_job*>(static_cast<intptr_t>(handle));
-}
-
-jfloatArray NewEncodeJobProgressArray(JNIEnv* env,
-                                      bag_encode_job_state state,
-                                      bag_encode_job_phase phase,
-                                      float progress_0_to_1,
-                                      bag_error_code terminal_code) {
-    jfloatArray out = env->NewFloatArray(4);
-    if (out == nullptr) {
-        return nullptr;
-    }
-
-    const jfloat values[4] = {
-        static_cast<jfloat>(state),
-        static_cast<jfloat>(phase),
-        progress_0_to_1,
-        static_cast<jfloat>(terminal_code),
-    };
-    env->SetFloatArrayRegion(out, 0, 4, values);
-    return out;
-}
-
-std::vector<std::string> SplitOnSpaces(const std::string& value) {
-    std::vector<std::string> tokens;
-    std::size_t token_begin = 0;
-    while (token_begin < value.size()) {
-        while (token_begin < value.size() && value[token_begin] == ' ') {
-            ++token_begin;
-        }
-        if (token_begin >= value.size()) {
-            break;
-        }
-        const std::size_t token_end = value.find(' ', token_begin);
-        if (token_end == std::string::npos) {
-            tokens.push_back(value.substr(token_begin));
-            break;
-        }
-        tokens.push_back(value.substr(token_begin, token_end - token_begin));
-        token_begin = token_end + 1;
-    }
-    return tokens;
-}
-
-std::vector<std::string> SplitOnLines(const std::string& value) {
-    std::vector<std::string> tokens;
-    std::size_t token_begin = 0;
-    while (token_begin <= value.size()) {
-        const std::size_t token_end = value.find('\n', token_begin);
-        if (token_end == std::string::npos) {
-            if (token_begin < value.size()) {
-                tokens.push_back(value.substr(token_begin));
-            }
-            break;
-        }
-        tokens.push_back(value.substr(token_begin, token_end - token_begin));
-        token_begin = token_end + 1;
-    }
-    return tokens;
-}
-
-std::string RemoveSpaces(const std::string& value) {
-    std::string compact;
-    compact.reserve(value.size());
-    for (const char ch : value) {
-        if (ch != ' ') {
-            compact.push_back(ch);
-        }
-    }
-    return compact;
-}
-
-jclass FindClassOrNull(JNIEnv* env, const char* name) {
-    return env->FindClass(name);
-}
-
-jobject NewArrayList(JNIEnv* env, jint initial_capacity) {
-    jclass list_class = FindClassOrNull(env, "java/util/ArrayList");
-    if (list_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor = env->GetMethodID(list_class, "<init>", "(I)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    return env->NewObject(list_class, ctor, initial_capacity);
-}
-
-bool AddToList(JNIEnv* env, jobject list, jobject item) {
-    if (list == nullptr || item == nullptr) {
-        return false;
-    }
-    jclass list_class = FindClassOrNull(env, "java/util/ArrayList");
-    if (list_class == nullptr) {
-        return false;
-    }
-    jmethodID add = env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z");
-    if (add == nullptr) {
-        return false;
-    }
-    return env->CallBooleanMethod(list, add, item) == JNI_TRUE;
-}
-
-jobject NewStringList(JNIEnv* env, const std::vector<std::string>& values) {
-    jobject list = NewArrayList(env, static_cast<jint>(values.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& value : values) {
-        jstring item = env->NewStringUTF(value.c_str());
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewPayloadFollowByteEntry(JNIEnv* env, const bag_payload_follow_byte_entry& entry) {
-    jclass entry_class =
-        FindClassOrNull(env, "com/bag/audioandroid/domain/PayloadFollowByteTimelineEntry");
-    if (entry_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor = env->GetMethodID(entry_class, "<init>", "(III)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    return env->NewObject(
-        entry_class,
-        ctor,
-        static_cast<jint>(entry.start_sample),
-        static_cast<jint>(entry.sample_count),
-        static_cast<jint>(entry.byte_index));
-}
-
-jobject NewPayloadFollowBinaryGroupEntry(
-    JNIEnv* env,
-    const bag_payload_follow_binary_group_entry& entry) {
-    jclass entry_class =
-        FindClassOrNull(env, "com/bag/audioandroid/domain/PayloadFollowBinaryGroupTimelineEntry");
-    if (entry_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor = env->GetMethodID(entry_class, "<init>", "(IIIII)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    return env->NewObject(
-        entry_class,
-        ctor,
-        static_cast<jint>(entry.start_sample),
-        static_cast<jint>(entry.sample_count),
-        static_cast<jint>(entry.group_index),
-        static_cast<jint>(entry.bit_offset),
-        static_cast<jint>(entry.bit_count));
-}
-
-jobject NewTextFollowTimelineEntry(JNIEnv* env, const bag_text_follow_token_entry& entry) {
-    jclass entry_class =
-        FindClassOrNull(env, "com/bag/audioandroid/domain/TextFollowTimelineEntry");
-    if (entry_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor = env->GetMethodID(entry_class, "<init>", "(III)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    return env->NewObject(
-        entry_class,
-        ctor,
-        static_cast<jint>(entry.start_sample),
-        static_cast<jint>(entry.sample_count),
-        static_cast<jint>(entry.token_index));
-}
-
-jobject NewTextFollowRawSegmentViewData(JNIEnv* env,
-                                        const bag_text_follow_raw_segment_entry& entry,
-                                        const std::vector<std::string>& hex_tokens,
-                                        const std::string& compact_bits) {
-    jclass entry_class =
-        FindClassOrNull(env, "com/bag/audioandroid/domain/TextFollowRawSegmentViewData");
-    if (entry_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor = env->GetMethodID(entry_class, "<init>", "(IIIIILjava/lang/String;Ljava/lang/String;)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-
-    std::string hex_text;
-    for (std::size_t index = 0; index < entry.byte_count; ++index) {
-        const std::size_t byte_index = entry.byte_offset + index;
-        if (byte_index >= hex_tokens.size()) {
-            break;
-        }
-        if (!hex_text.empty()) {
-            hex_text.push_back(' ');
-        }
-        hex_text.append(hex_tokens[byte_index]);
-    }
-
-    std::string binary_text;
-    const std::size_t bit_offset = entry.byte_offset * static_cast<std::size_t>(8);
-    const std::size_t bit_count = entry.byte_count * static_cast<std::size_t>(8);
-    if (bit_offset < compact_bits.size()) {
-        const std::size_t clamped_bit_count =
-            std::min(bit_count, compact_bits.size() - bit_offset);
-        for (std::size_t index = 0; index < clamped_bit_count; ++index) {
-            if (index > 0 && index % static_cast<std::size_t>(8) == 0) {
-                binary_text.push_back(' ');
-            }
-            binary_text.push_back(compact_bits[bit_offset + index]);
-        }
-    }
-
-    jstring hex_value = env->NewStringUTF(hex_text.c_str());
-    jstring binary_value = env->NewStringUTF(binary_text.c_str());
-    return env->NewObject(
-        entry_class,
-        ctor,
-        static_cast<jint>(entry.token_index),
-        static_cast<jint>(entry.start_sample),
-        static_cast<jint>(entry.sample_count),
-        static_cast<jint>(entry.byte_offset),
-        static_cast<jint>(entry.byte_count),
-        hex_value,
-        binary_value);
-}
-
-jobject NewTextFollowRawDisplayUnitViewData(
-    JNIEnv* env,
-    const bag_text_follow_raw_display_unit_entry& entry,
-    const std::vector<std::string>& hex_tokens,
-    const std::string& compact_bits) {
-    jclass entry_class =
-        FindClassOrNull(env, "com/bag/audioandroid/domain/TextFollowRawDisplayUnitViewData");
-    if (entry_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor =
-        env->GetMethodID(entry_class, "<init>", "(IIIIIILjava/lang/String;Ljava/lang/String;)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-
-    std::string hex_text;
-    for (std::size_t index = 0; index < entry.byte_count; ++index) {
-        const std::size_t byte_index = entry.byte_offset + index;
-        if (byte_index >= hex_tokens.size()) {
-            break;
-        }
-        if (!hex_text.empty()) {
-            hex_text.push_back(' ');
-        }
-        hex_text.append(hex_tokens[byte_index]);
-    }
-
-    std::string binary_text;
-    const std::size_t bit_offset = entry.byte_offset * static_cast<std::size_t>(8);
-    const std::size_t bit_count = entry.byte_count * static_cast<std::size_t>(8);
-    if (bit_offset < compact_bits.size()) {
-        const std::size_t clamped_bit_count =
-            std::min(bit_count, compact_bits.size() - bit_offset);
-        for (std::size_t index = 0; index < clamped_bit_count; ++index) {
-            if (index > 0 && index % static_cast<std::size_t>(8) == 0) {
-                binary_text.push_back(' ');
-            }
-            binary_text.push_back(compact_bits[bit_offset + index]);
-        }
-    }
-
-    jstring hex_value = env->NewStringUTF(hex_text.c_str());
-    jstring binary_value = env->NewStringUTF(binary_text.c_str());
-    return env->NewObject(
-        entry_class,
-        ctor,
-        static_cast<jint>(entry.token_index),
-        static_cast<jint>(entry.start_sample),
-        static_cast<jint>(entry.sample_count),
-        static_cast<jint>(entry.byte_index_within_token),
-        static_cast<jint>(entry.byte_offset),
-        static_cast<jint>(entry.byte_count),
-        hex_value,
-        binary_value);
-}
-
-jobject NewTextFollowLyricLineTimelineEntry(JNIEnv* env,
-                                            const bag_text_follow_lyric_line_entry& entry) {
-    jclass entry_class =
-        FindClassOrNull(env, "com/bag/audioandroid/domain/TextFollowLyricLineTimelineEntry");
-    if (entry_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor = env->GetMethodID(entry_class, "<init>", "(III)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    return env->NewObject(
-        entry_class,
-        ctor,
-        static_cast<jint>(entry.start_sample),
-        static_cast<jint>(entry.sample_count),
-        static_cast<jint>(entry.line_index));
-}
-
-jobject NewTextFollowLineTokenRangeViewData(
-    JNIEnv* env,
-    const bag_text_follow_line_token_range_entry& entry) {
-    jclass entry_class =
-        FindClassOrNull(env, "com/bag/audioandroid/domain/TextFollowLineTokenRangeViewData");
-    if (entry_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor = env->GetMethodID(entry_class, "<init>", "(III)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    return env->NewObject(
-        entry_class,
-        ctor,
-        static_cast<jint>(entry.line_index),
-        static_cast<jint>(entry.token_begin_index),
-        static_cast<jint>(entry.token_count));
-}
-
-jobject NewTextFollowLineRawSegmentViewData(JNIEnv* env,
-                                            const bag_text_follow_line_raw_segment_entry& entry,
-                                            const std::vector<std::string>& hex_tokens,
-                                            const std::string& compact_bits) {
-    jclass entry_class =
-        FindClassOrNull(env, "com/bag/audioandroid/domain/TextFollowLineRawSegmentViewData");
-    if (entry_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor =
-        env->GetMethodID(entry_class, "<init>", "(IIIIILjava/lang/String;Ljava/lang/String;)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-
-    std::string hex_text;
-    for (std::size_t index = 0; index < entry.byte_count; ++index) {
-        const std::size_t byte_index = entry.byte_offset + index;
-        if (byte_index >= hex_tokens.size()) {
-            break;
-        }
-        if (!hex_text.empty()) {
-            hex_text.push_back(' ');
-        }
-        hex_text.append(hex_tokens[byte_index]);
-    }
-
-    std::string binary_text;
-    const std::size_t bit_offset = entry.byte_offset * static_cast<std::size_t>(8);
-    const std::size_t bit_count = entry.byte_count * static_cast<std::size_t>(8);
-    if (bit_offset < compact_bits.size()) {
-        const std::size_t clamped_bit_count =
-            std::min(bit_count, compact_bits.size() - bit_offset);
-        for (std::size_t index = 0; index < clamped_bit_count; ++index) {
-            if (index > 0 && index % static_cast<std::size_t>(8) == 0) {
-                binary_text.push_back(' ');
-            }
-            binary_text.push_back(compact_bits[bit_offset + index]);
-        }
-    }
-
-    jstring hex_value = env->NewStringUTF(hex_text.c_str());
-    jstring binary_value = env->NewStringUTF(binary_text.c_str());
-    return env->NewObject(
-        entry_class,
-        ctor,
-        static_cast<jint>(entry.line_index),
-        static_cast<jint>(entry.start_sample),
-        static_cast<jint>(entry.sample_count),
-        static_cast<jint>(entry.byte_offset),
-        static_cast<jint>(entry.byte_count),
-        hex_value,
-        binary_value);
-}
-
-jobject NewByteTimelineList(JNIEnv* env,
-                            const std::vector<bag_payload_follow_byte_entry>& entries) {
-    jobject list = NewArrayList(env, static_cast<jint>(entries.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& entry : entries) {
-        jobject item = NewPayloadFollowByteEntry(env, entry);
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewBinaryTimelineList(
-    JNIEnv* env,
-    const std::vector<bag_payload_follow_binary_group_entry>& entries) {
-    jobject list = NewArrayList(env, static_cast<jint>(entries.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& entry : entries) {
-        jobject item = NewPayloadFollowBinaryGroupEntry(env, entry);
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewTextTimelineList(JNIEnv* env,
-                            const std::vector<bag_text_follow_token_entry>& entries) {
-    jobject list = NewArrayList(env, static_cast<jint>(entries.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& entry : entries) {
-        jobject item = NewTextFollowTimelineEntry(env, entry);
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewTextRawSegmentList(JNIEnv* env,
-                              const std::vector<bag_text_follow_raw_segment_entry>& entries,
-                              const std::vector<std::string>& hex_tokens,
-                              const std::string& compact_bits) {
-    jobject list = NewArrayList(env, static_cast<jint>(entries.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& entry : entries) {
-        jobject item = NewTextFollowRawSegmentViewData(env, entry, hex_tokens, compact_bits);
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewTextRawDisplayUnitList(
-    JNIEnv* env,
-    const std::vector<bag_text_follow_raw_display_unit_entry>& entries,
-    const std::vector<std::string>& hex_tokens,
-    const std::string& compact_bits) {
-    jobject list = NewArrayList(env, static_cast<jint>(entries.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& entry : entries) {
-        jobject item = NewTextFollowRawDisplayUnitViewData(env, entry, hex_tokens, compact_bits);
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewLyricLineTimelineList(JNIEnv* env,
-                                 const std::vector<bag_text_follow_lyric_line_entry>& entries) {
-    jobject list = NewArrayList(env, static_cast<jint>(entries.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& entry : entries) {
-        jobject item = NewTextFollowLyricLineTimelineEntry(env, entry);
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewLineTokenRangeList(
-    JNIEnv* env,
-    const std::vector<bag_text_follow_line_token_range_entry>& entries) {
-    jobject list = NewArrayList(env, static_cast<jint>(entries.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& entry : entries) {
-        jobject item = NewTextFollowLineTokenRangeViewData(env, entry);
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewLineRawSegmentList(JNIEnv* env,
-                              const std::vector<bag_text_follow_line_raw_segment_entry>& entries,
-                              const std::vector<std::string>& hex_tokens,
-                              const std::string& compact_bits) {
-    jobject list = NewArrayList(env, static_cast<jint>(entries.size()));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    for (const auto& entry : entries) {
-        jobject item = NewTextFollowLineRawSegmentViewData(env, entry, hex_tokens, compact_bits);
-        if (item == nullptr || !AddToList(env, list, item)) {
-            return nullptr;
-        }
-        env->DeleteLocalRef(item);
-    }
-    return list;
-}
-
-jobject NewPayloadFollowViewData(JNIEnv* env,
-                                 const std::string& text_tokens,
-                                 const std::string& lyric_lines,
-                                 const std::string& raw_bytes_hex,
-                                 const std::string& raw_bits_binary,
-                                 const std::vector<bag_text_follow_token_entry>& text_entries,
-                                 const std::vector<bag_text_follow_raw_segment_entry>& text_raw_segments,
-                                 const std::vector<bag_text_follow_raw_display_unit_entry>& text_raw_display_units,
-                                 const std::vector<bag_text_follow_lyric_line_entry>& line_entries,
-                                 const std::vector<bag_text_follow_line_token_range_entry>& line_token_ranges,
-                                 const std::vector<bag_text_follow_line_raw_segment_entry>& line_raw_segments,
-                                 const std::vector<bag_payload_follow_byte_entry>& byte_entries,
-                                 const std::vector<bag_payload_follow_binary_group_entry>& binary_entries,
-                                 jboolean text_follow_available,
-                                 jboolean lyric_line_follow_available,
-                                 jint payload_begin_sample,
-                                 jint payload_sample_count,
-                                 jint total_pcm_sample_count,
-                                 jboolean follow_available) {
-    jclass result_class = FindClassOrNull(env, "com/bag/audioandroid/domain/PayloadFollowViewData");
-    if (result_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor =
-        env->GetMethodID(
-            result_class,
-            "<init>",
-            "(Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;ZLjava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;ZLjava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;IIIZ)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-
-    std::vector<std::string> text_follow_tokens = SplitOnLines(text_tokens);
-    std::vector<std::string> lyric_line_tokens = SplitOnLines(lyric_lines);
-    std::vector<std::string> hex_tokens = SplitOnSpaces(raw_bytes_hex);
-    std::vector<std::string> binary_tokens;
-    const std::string compact_bits = RemoveSpaces(raw_bits_binary);
-    binary_tokens.reserve(binary_entries.size());
-    for (const auto& entry : binary_entries) {
-        const std::size_t bit_offset = entry.bit_offset;
-        const std::size_t bit_count = entry.bit_count;
-        if (bit_offset >= compact_bits.size()) {
-            binary_tokens.emplace_back();
-            continue;
-        }
-        const std::size_t token_size =
-            std::min(bit_count, compact_bits.size() - bit_offset);
-        binary_tokens.push_back(compact_bits.substr(bit_offset, token_size));
-    }
-
-    jobject text_list = NewStringList(env, text_follow_tokens);
-    jobject text_timeline_list = NewTextTimelineList(env, text_entries);
-    jobject text_raw_segment_list =
-        NewTextRawSegmentList(env, text_raw_segments, hex_tokens, compact_bits);
-    jobject text_raw_display_unit_list =
-        NewTextRawDisplayUnitList(env, text_raw_display_units, hex_tokens, compact_bits);
-    jobject lyric_line_list = NewStringList(env, lyric_line_tokens);
-    jobject lyric_line_timeline_list = NewLyricLineTimelineList(env, line_entries);
-    jobject line_token_range_list = NewLineTokenRangeList(env, line_token_ranges);
-    jobject line_raw_segment_list =
-        NewLineRawSegmentList(env, line_raw_segments, hex_tokens, compact_bits);
-    jobject hex_list = NewStringList(env, hex_tokens);
-    jobject binary_list = NewStringList(env, binary_tokens);
-    jobject byte_timeline_list = NewByteTimelineList(env, byte_entries);
-    jobject binary_timeline_list = NewBinaryTimelineList(env, binary_entries);
-    if (text_list == nullptr || text_timeline_list == nullptr ||
-        text_raw_segment_list == nullptr || text_raw_display_unit_list == nullptr ||
-        lyric_line_list == nullptr ||
-        lyric_line_timeline_list == nullptr || line_token_range_list == nullptr ||
-        line_raw_segment_list == nullptr ||
-        hex_list == nullptr || binary_list == nullptr ||
-        byte_timeline_list == nullptr || binary_timeline_list == nullptr) {
-        return nullptr;
-    }
-    return env->NewObject(
-        result_class,
-        ctor,
-        text_list,
-        text_timeline_list,
-        text_raw_segment_list,
-        text_raw_display_unit_list,
-        text_follow_available,
-        lyric_line_list,
-        lyric_line_timeline_list,
-        line_token_range_list,
-        line_raw_segment_list,
-        lyric_line_follow_available,
-        hex_list,
-        binary_list,
-        byte_timeline_list,
-        binary_timeline_list,
-        payload_begin_sample,
-        payload_sample_count,
-        total_pcm_sample_count,
-        follow_available);
-}
-
-jobject NewDecodedPayloadViewData(JNIEnv* env,
-                                  const std::string& text,
-                                  const std::string& raw_bytes_hex,
-                                  const std::string& raw_bits_binary,
-                                  jint text_decode_status_code,
-                                  jboolean raw_payload_available) {
-    jclass result_class = env->FindClass("com/bag/audioandroid/domain/DecodedPayloadViewData");
-    if (result_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor =
-        env->GetMethodID(result_class, "<init>", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IZ)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    jstring text_value = env->NewStringUTF(text.c_str());
-    jstring raw_bytes_hex_value = env->NewStringUTF(raw_bytes_hex.c_str());
-    jstring raw_bits_binary_value = env->NewStringUTF(raw_bits_binary.c_str());
-    return env->NewObject(
-        result_class,
-        ctor,
-        text_value,
-        raw_bytes_hex_value,
-        raw_bits_binary_value,
-        text_decode_status_code,
-        raw_payload_available);
-}
-
-jobject NewDecodedAudioPayloadResult(JNIEnv* env,
-                                     jobject decoded_payload,
-                                     jobject follow_data) {
-    jclass result_class = FindClassOrNull(env, "com/bag/audioandroid/domain/DecodedAudioPayloadResult");
-    if (result_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor =
-        env->GetMethodID(
-            result_class,
-            "<init>",
-            "(Lcom/bag/audioandroid/domain/DecodedPayloadViewData;Lcom/bag/audioandroid/domain/PayloadFollowViewData;)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    return env->NewObject(result_class, ctor, decoded_payload, follow_data);
-}
-
-jobject NewEncodedAudioPayloadResult(JNIEnv* env,
-                                     jshortArray pcm,
-                                     const std::string& raw_bytes_hex,
-                                     const std::string& raw_bits_binary,
-                                     jobject follow_data) {
-    jclass result_class = FindClassOrNull(env, "com/bag/audioandroid/domain/EncodedAudioPayloadResult");
-    if (result_class == nullptr) {
-        return nullptr;
-    }
-    jmethodID ctor =
-        env->GetMethodID(
-            result_class,
-            "<init>",
-            "([SLjava/lang/String;Ljava/lang/String;Lcom/bag/audioandroid/domain/PayloadFollowViewData;)V");
-    if (ctor == nullptr) {
-        return nullptr;
-    }
-    jstring raw_bytes_hex_value = env->NewStringUTF(raw_bytes_hex.c_str());
-    jstring raw_bits_binary_value = env->NewStringUTF(raw_bits_binary.c_str());
-    return env->NewObject(
-        result_class,
-        ctor,
-        pcm,
-        raw_bytes_hex_value,
-        raw_bits_binary_value,
-        follow_data);
-}
-
-jshortArray NewShortArrayFromPcmResult(JNIEnv* env, const bag_pcm16_result& result) {
-    jshortArray out = env->NewShortArray(static_cast<jsize>(result.sample_count));
-    if (out != nullptr && result.sample_count > 0) {
-        env->SetShortArrayRegion(
-            out, 0, static_cast<jsize>(result.sample_count),
-            reinterpret_cast<const jshort*>(result.samples));
-    }
-    return out;
-}
-
-jobject NewEmptyPayloadFollowViewData(JNIEnv* env) {
-    return NewPayloadFollowViewData(
-        env, "", "", "", "", {}, {}, {}, {}, {}, {}, {}, {}, JNI_FALSE, JNI_FALSE, 0, 0, 0, JNI_FALSE);
-}
-
-jobject NewEmptyDecodedAudioPayloadResult(JNIEnv* env,
-                                          jint text_decode_status_code,
-                                          jboolean raw_payload_available) {
-    jobject decoded_payload = NewDecodedPayloadViewData(
-        env, "", "", "", text_decode_status_code, raw_payload_available);
-    jobject follow_data = NewEmptyPayloadFollowViewData(env);
-    return NewDecodedAudioPayloadResult(env, decoded_payload, follow_data);
-}
-
-jobject NewEmptyEncodedAudioPayloadResult(JNIEnv* env) {
-    jshortArray empty_pcm = env->NewShortArray(0);
-    jobject follow_data = NewEmptyPayloadFollowViewData(env);
-    return NewEncodedAudioPayloadResult(env, empty_pcm, "", "", follow_data);
-}
-
-std::string CopyApiString(const char* buffer, std::size_t size) {
-    if (buffer == nullptr || size == 0) {
-        return {};
-    }
-    return std::string(buffer, size);
-}
-
-jobject NewEncodedAudioPayloadResultFromEncodeResult(JNIEnv* env,
-                                                     const bag_encode_result& result) {
-    const std::string text_tokens = CopyApiString(
-        result.text_follow_data.text_tokens_buffer,
-        result.text_follow_data.text_tokens_size);
-    const std::string lyric_lines = CopyApiString(
-        result.text_follow_data.lyric_lines_buffer,
-        result.text_follow_data.lyric_lines_size);
-    const std::string raw_bytes_hex =
-        CopyApiString(result.raw_bytes_hex_buffer, result.raw_bytes_hex_size);
-    const std::string raw_bits_binary = CopyApiString(
-        result.raw_bits_binary_buffer, result.raw_bits_binary_size);
-    std::vector<bag_text_follow_token_entry> text_entries(
-        result.text_follow_data.text_token_timeline_count);
-    std::vector<bag_text_follow_raw_segment_entry> text_raw_segments(
-        result.text_follow_data.token_raw_segments_count);
-    std::vector<bag_text_follow_raw_display_unit_entry> text_raw_display_units(
-        result.text_follow_data.token_raw_display_units_count);
-    std::vector<bag_text_follow_lyric_line_entry> line_entries(
-        result.text_follow_data.lyric_line_timeline_count);
-    std::vector<bag_text_follow_line_token_range_entry> line_token_ranges(
-        result.text_follow_data.line_token_ranges_count);
-    std::vector<bag_text_follow_line_raw_segment_entry> line_raw_segments(
-        result.text_follow_data.line_raw_segments_count);
-    std::vector<bag_payload_follow_byte_entry> byte_entries(
-        result.follow_data.byte_timeline_count);
-    std::vector<bag_payload_follow_binary_group_entry> binary_entries(
-        result.follow_data.binary_group_timeline_count);
-    if (!text_entries.empty()) {
-        std::copy_n(result.text_follow_data.text_token_timeline_buffer,
-                    text_entries.size(), text_entries.begin());
-    }
-    if (!text_raw_segments.empty()) {
-        std::copy_n(result.text_follow_data.token_raw_segments_buffer,
-                    text_raw_segments.size(), text_raw_segments.begin());
-    }
-    if (!text_raw_display_units.empty()) {
-        std::copy_n(result.text_follow_data.token_raw_display_units_buffer,
-                    text_raw_display_units.size(),
-                    text_raw_display_units.begin());
-    }
-    if (!line_entries.empty()) {
-        std::copy_n(result.text_follow_data.lyric_line_timeline_buffer,
-                    line_entries.size(), line_entries.begin());
-    }
-    if (!line_token_ranges.empty()) {
-        std::copy_n(result.text_follow_data.line_token_ranges_buffer,
-                    line_token_ranges.size(), line_token_ranges.begin());
-    }
-    if (!line_raw_segments.empty()) {
-        std::copy_n(result.text_follow_data.line_raw_segments_buffer,
-                    line_raw_segments.size(), line_raw_segments.begin());
-    }
-    if (!byte_entries.empty()) {
-        std::copy_n(result.follow_data.byte_timeline_buffer, byte_entries.size(),
-                    byte_entries.begin());
-    }
-    if (!binary_entries.empty()) {
-        std::copy_n(result.follow_data.binary_group_timeline_buffer,
-                    binary_entries.size(), binary_entries.begin());
-    }
-    bag_pcm16_result pcm_result{};
-    pcm_result.samples = result.samples;
-    pcm_result.sample_count = result.sample_count;
-    jshortArray pcm = NewShortArrayFromPcmResult(env, pcm_result);
-    jobject follow_data = NewPayloadFollowViewData(
-        env,
-        text_tokens,
-        lyric_lines,
-        raw_bytes_hex,
-        raw_bits_binary,
-        text_entries,
-        text_raw_segments,
-        text_raw_display_units,
-        line_entries,
-        line_token_ranges,
-        line_raw_segments,
-        byte_entries,
-        binary_entries,
-        result.text_follow_data.available != 0 ? JNI_TRUE : JNI_FALSE,
-        (result.text_follow_data.available != 0 &&
-         result.text_follow_data.lyric_line_timeline_count > 0 &&
-         result.text_follow_data.line_token_ranges_count > 0)
-            ? JNI_TRUE
-            : JNI_FALSE,
-        static_cast<jint>(result.follow_data.payload_begin_sample),
-        static_cast<jint>(result.follow_data.payload_sample_count),
-        static_cast<jint>(result.follow_data.total_pcm_sample_count),
-        result.follow_data.available != 0 ? JNI_TRUE : JNI_FALSE);
-    return NewEncodedAudioPayloadResult(env, pcm, raw_bytes_hex, raw_bits_binary, follow_data);
-}
-}  // namespace
+#include "jni_bridge_internal.h"
 
 extern "C" JNIEXPORT jshortArray JNICALL
 Java_com_bag_audioandroid_NativeBagBridge_nativeEncodeTextToPcm(
@@ -897,31 +10,14 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeEncodeTextToPcm(
     jint mode,
     jint flash_signal_profile,
     jint flash_voicing_flavor) {
-    const std::string input = JStringToStdString(env, text);
-    if (input.empty()) {
-        return env->NewShortArray(0);
-    }
-
-    bag_encoder_config config =
-        MakeEncoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
-    config.mode = static_cast<bag_transport_mode>(mode);
-    bag_pcm16_result pcm{};
-    // Android keeps reusing the stable bag_api encode path. Any formal flash
-    // voicing stays internal to core instead of widening JNI/Kotlin surfaces.
-    if (bag_encode_text(&config, input.c_str(), &pcm) != BAG_OK) {
-        return env->NewShortArray(0);
-    }
-
-    jshortArray out = env->NewShortArray(static_cast<jsize>(pcm.sample_count));
-    if (out != nullptr && pcm.sample_count > 0) {
-        env->SetShortArrayRegion(
-            out, 0, static_cast<jsize>(pcm.sample_count), reinterpret_cast<const jshort*>(pcm.samples));
-    }
-    bag_free_pcm16_result(&pcm);
-    if (out == nullptr) {
-        return out;
-    }
-    return out;
+    return jni_bridge::NativeEncodeTextToPcm(
+        env,
+        text,
+        sample_rate_hz,
+        frame_samples,
+        mode,
+        flash_signal_profile,
+        flash_voicing_flavor);
 }
 
 extern "C" JNIEXPORT jint JNICALL
@@ -934,12 +30,14 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeValidateEncodeRequest(
     jint mode,
     jint flash_signal_profile,
     jint flash_voicing_flavor) {
-    const std::string input = JStringToStdString(env, text);
-    bag_encoder_config config =
-        MakeEncoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
-    config.mode = static_cast<bag_transport_mode>(mode);
-    const bag_validation_issue issue = bag_validate_encode_request(&config, input.c_str());
-    return static_cast<jint>(issue);
+    return jni_bridge::NativeValidateEncodeRequest(
+        env,
+        text,
+        sample_rate_hz,
+        frame_samples,
+        mode,
+        flash_signal_profile,
+        flash_voicing_flavor);
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -952,17 +50,14 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeStartEncodeTextJob(
     jint mode,
     jint flash_signal_profile,
     jint flash_voicing_flavor) {
-    const std::string input = JStringToStdString(env, text);
-    bag_encoder_config config =
-        MakeEncoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
-    config.mode = static_cast<bag_transport_mode>(mode);
-
-    bag_encode_job* job = nullptr;
-    if (bag_start_encode_text_job(&config, input.c_str(), &job) != BAG_OK || job == nullptr) {
-        return 0L;
-    }
-
-    return static_cast<jlong>(reinterpret_cast<intptr_t>(job));
+    return jni_bridge::NativeStartEncodeTextJob(
+        env,
+        text,
+        sample_rate_hz,
+        frame_samples,
+        mode,
+        flash_signal_profile,
+        flash_voicing_flavor);
 }
 
 extern "C" JNIEXPORT jfloatArray JNICALL
@@ -970,32 +65,7 @@ Java_com_bag_audioandroid_NativeBagBridge_nativePollEncodeTextJob(
     JNIEnv* env,
     jobject /*thiz*/,
     jlong handle) {
-    bag_encode_job* job = HandleToEncodeJob(handle);
-    if (job == nullptr) {
-        return NewEncodeJobProgressArray(
-            env,
-            BAG_ENCODE_JOB_FAILED,
-            BAG_ENCODE_JOB_PHASE_PREPARING_INPUT,
-            0.0f,
-            BAG_INVALID_ARGUMENT);
-    }
-
-    bag_encode_job_progress progress{};
-    if (bag_poll_encode_text_job(job, &progress) != BAG_OK) {
-        return NewEncodeJobProgressArray(
-            env,
-            BAG_ENCODE_JOB_FAILED,
-            BAG_ENCODE_JOB_PHASE_PREPARING_INPUT,
-            0.0f,
-            BAG_INVALID_ARGUMENT);
-    }
-
-    return NewEncodeJobProgressArray(
-        env,
-        progress.state,
-        progress.phase,
-        progress.progress_0_to_1,
-        progress.terminal_code);
+    return jni_bridge::NativePollEncodeTextJob(env, handle);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -1003,19 +73,7 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeTakeEncodeTextJobResult(
     JNIEnv* env,
     jobject /*thiz*/,
     jlong handle) {
-    bag_encode_job* job = HandleToEncodeJob(handle);
-    if (job == nullptr) {
-        return NewEmptyEncodedAudioPayloadResult(env);
-    }
-
-    bag_pcm16_result result{};
-    if (bag_take_encode_text_job_result(job, &result) != BAG_OK) {
-        return NewEmptyEncodedAudioPayloadResult(env);
-    }
-    jshortArray pcm = NewShortArrayFromPcmResult(env, result);
-    bag_free_pcm16_result(&result);
-    jobject follow_data = NewEmptyPayloadFollowViewData(env);
-    return NewEncodedAudioPayloadResult(env, pcm, "", "", follow_data);
+    return jni_bridge::NativeTakeEncodeTextJobResult(env, handle);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -1028,58 +86,14 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeBuildEncodeFollowData(
     jint mode,
     jint flash_signal_profile,
     jint flash_voicing_flavor) {
-    const std::string input = JStringToStdString(env, text);
-    if (input.empty()) {
-        return NewEmptyEncodedAudioPayloadResult(env);
-    }
-
-    bag_encoder_config config =
-        MakeEncoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
-    config.mode = static_cast<bag_transport_mode>(mode);
-
-    bag_encode_result result{};
-    std::array<char, 4096> raw_bytes_hex_buffer{};
-    std::array<char, 32768> raw_bits_binary_buffer{};
-    std::vector<char> text_tokens_buffer(input.size() * 4 + 1, '\0');
-    std::vector<char> lyric_lines_buffer(input.size() * 4 + 1, '\0');
-    std::vector<bag_text_follow_token_entry> text_entries(input.size());
-    std::vector<bag_text_follow_raw_segment_entry> text_raw_segments(input.size());
-    std::vector<bag_text_follow_raw_display_unit_entry> text_raw_display_units(input.size() * 4);
-    std::vector<bag_text_follow_lyric_line_entry> line_entries(input.size());
-    std::vector<bag_text_follow_line_token_range_entry> line_token_ranges(input.size());
-    std::vector<bag_text_follow_line_raw_segment_entry> line_raw_segments(input.size());
-    std::vector<bag_payload_follow_byte_entry> byte_entries(input.size() * 4);
-    std::vector<bag_payload_follow_binary_group_entry> binary_entries(input.size() * 8);
-
-    result.raw_bytes_hex_buffer = raw_bytes_hex_buffer.data();
-    result.raw_bytes_hex_buffer_size = raw_bytes_hex_buffer.size();
-    result.raw_bits_binary_buffer = raw_bits_binary_buffer.data();
-    result.raw_bits_binary_buffer_size = raw_bits_binary_buffer.size();
-    result.text_follow_data.text_tokens_buffer = text_tokens_buffer.data();
-    result.text_follow_data.text_tokens_buffer_size = text_tokens_buffer.size();
-    result.text_follow_data.lyric_lines_buffer = lyric_lines_buffer.data();
-    result.text_follow_data.lyric_lines_buffer_size = lyric_lines_buffer.size();
-    result.text_follow_data.text_token_timeline_buffer = text_entries.data();
-    result.text_follow_data.text_token_timeline_buffer_count = text_entries.size();
-    result.text_follow_data.token_raw_segments_buffer = text_raw_segments.data();
-    result.text_follow_data.token_raw_segments_buffer_count = text_raw_segments.size();
-    result.text_follow_data.token_raw_display_units_buffer = text_raw_display_units.data();
-    result.text_follow_data.token_raw_display_units_buffer_count = text_raw_display_units.size();
-    result.text_follow_data.lyric_line_timeline_buffer = line_entries.data();
-    result.text_follow_data.lyric_line_timeline_buffer_count = line_entries.size();
-    result.text_follow_data.line_token_ranges_buffer = line_token_ranges.data();
-    result.text_follow_data.line_token_ranges_buffer_count = line_token_ranges.size();
-    result.text_follow_data.line_raw_segments_buffer = line_raw_segments.data();
-    result.text_follow_data.line_raw_segments_buffer_count = line_raw_segments.size();
-    result.follow_data.byte_timeline_buffer = byte_entries.data();
-    result.follow_data.byte_timeline_buffer_count = byte_entries.size();
-    result.follow_data.binary_group_timeline_buffer = binary_entries.data();
-    result.follow_data.binary_group_timeline_buffer_count = binary_entries.size();
-    if (bag_build_encode_follow_data(&config, input.c_str(), &result) != BAG_OK) {
-        return NewEmptyEncodedAudioPayloadResult(env);
-    }
-
-    return NewEncodedAudioPayloadResultFromEncodeResult(env, result);
+    return jni_bridge::NativeBuildEncodeFollowData(
+        env,
+        text,
+        sample_rate_hz,
+        frame_samples,
+        mode,
+        flash_signal_profile,
+        flash_voicing_flavor);
 }
 
 extern "C" JNIEXPORT jint JNICALL
@@ -1087,11 +101,7 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeCancelEncodeTextJob(
     JNIEnv* env,
     jobject /*thiz*/,
     jlong handle) {
-    bag_encode_job* job = HandleToEncodeJob(handle);
-    if (job == nullptr) {
-        return static_cast<jint>(BAG_INVALID_ARGUMENT);
-    }
-    return static_cast<jint>(bag_cancel_encode_text_job(job));
+    return jni_bridge::NativeCancelEncodeTextJob(handle);
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -1099,7 +109,7 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeDestroyEncodeTextJob(
     JNIEnv* env,
     jobject /*thiz*/,
     jlong handle) {
-    bag_destroy_encode_text_job(HandleToEncodeJob(handle));
+    jni_bridge::NativeDestroyEncodeTextJob(handle);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -1112,139 +122,14 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeDecodeGeneratedPcm(
     jint mode,
     jint flash_signal_profile,
     jint flash_voicing_flavor) {
-    if (pcm == nullptr) {
-        return NewEmptyDecodedAudioPayloadResult(
-            env, static_cast<jint>(BAG_DECODE_CONTENT_STATUS_UNAVAILABLE), JNI_FALSE);
-    }
-
-    const jsize len = env->GetArrayLength(pcm);
-    std::vector<int16_t> buffer(static_cast<size_t>(len), 0);
-    env->GetShortArrayRegion(pcm, 0, len, reinterpret_cast<jshort*>(buffer.data()));
-
-    bag_decoder_config config =
-        MakeDecoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
-    config.mode = static_cast<bag_transport_mode>(mode);
-    bag_decoder* decoder = nullptr;
-    if (bag_create_decoder(&config, &decoder) != BAG_OK || decoder == nullptr) {
-        return NewEmptyDecodedAudioPayloadResult(
-            env, static_cast<jint>(BAG_DECODE_CONTENT_STATUS_INTERNAL_ERROR), JNI_FALSE);
-    }
-
-    (void)bag_push_pcm(decoder, buffer.data(), buffer.size(), 0);
-    bag_decode_result probe{};
-    const bag_error_code probe_code = bag_poll_decode_result(decoder, &probe);
-    bag_destroy_decoder(decoder);
-    if (probe_code != BAG_OK) {
-        return NewEmptyDecodedAudioPayloadResult(
-            env, static_cast<jint>(BAG_DECODE_CONTENT_STATUS_INTERNAL_ERROR), JNI_FALSE);
-    }
-
-    decoder = nullptr;
-    if (bag_create_decoder(&config, &decoder) != BAG_OK || decoder == nullptr) {
-        return NewEmptyDecodedAudioPayloadResult(
-            env, static_cast<jint>(BAG_DECODE_CONTENT_STATUS_INTERNAL_ERROR), JNI_FALSE);
-    }
-    (void)bag_push_pcm(decoder, buffer.data(), buffer.size(), 0);
-
-    std::vector<char> text_buffer(probe.text_size + 1, '\0');
-    std::vector<char> raw_bytes_hex_buffer(probe.raw_bytes_hex_size + 1, '\0');
-    std::vector<char> raw_bits_binary_buffer(probe.raw_bits_binary_size + 1, '\0');
-    std::vector<char> text_tokens_buffer(probe.text_follow_data.text_tokens_size + 1, '\0');
-    std::vector<char> lyric_lines_buffer(probe.text_follow_data.lyric_lines_size + 1, '\0');
-    std::vector<bag_text_follow_token_entry> text_entries(
-        probe.text_follow_data.text_token_timeline_count);
-    std::vector<bag_text_follow_raw_segment_entry> text_raw_segments(
-        probe.text_follow_data.token_raw_segments_count);
-    std::vector<bag_text_follow_raw_display_unit_entry> text_raw_display_units(
-        probe.text_follow_data.token_raw_display_units_count);
-    std::vector<bag_text_follow_lyric_line_entry> line_entries(
-        probe.text_follow_data.lyric_line_timeline_count);
-    std::vector<bag_text_follow_line_token_range_entry> line_token_ranges(
-        probe.text_follow_data.line_token_ranges_count);
-    std::vector<bag_text_follow_line_raw_segment_entry> line_raw_segments(
-        probe.text_follow_data.line_raw_segments_count);
-    std::vector<bag_payload_follow_byte_entry> byte_entries(
-        probe.follow_data.byte_timeline_count);
-    std::vector<bag_payload_follow_binary_group_entry> binary_entries(
-        probe.follow_data.binary_group_timeline_count);
-    bag_decode_result result{};
-    result.text_buffer = text_buffer.data();
-    result.text_buffer_size = text_buffer.size();
-    result.raw_bytes_hex_buffer = raw_bytes_hex_buffer.data();
-    result.raw_bytes_hex_buffer_size = raw_bytes_hex_buffer.size();
-    result.raw_bits_binary_buffer = raw_bits_binary_buffer.data();
-    result.raw_bits_binary_buffer_size = raw_bits_binary_buffer.size();
-    result.text_follow_data.text_tokens_buffer = text_tokens_buffer.data();
-    result.text_follow_data.text_tokens_buffer_size = text_tokens_buffer.size();
-    result.text_follow_data.lyric_lines_buffer = lyric_lines_buffer.data();
-    result.text_follow_data.lyric_lines_buffer_size = lyric_lines_buffer.size();
-    result.text_follow_data.text_token_timeline_buffer = text_entries.data();
-    result.text_follow_data.text_token_timeline_buffer_count = text_entries.size();
-    result.text_follow_data.token_raw_segments_buffer = text_raw_segments.data();
-    result.text_follow_data.token_raw_segments_buffer_count = text_raw_segments.size();
-    result.text_follow_data.token_raw_display_units_buffer = text_raw_display_units.data();
-    result.text_follow_data.token_raw_display_units_buffer_count = text_raw_display_units.size();
-    result.text_follow_data.lyric_line_timeline_buffer = line_entries.data();
-    result.text_follow_data.lyric_line_timeline_buffer_count = line_entries.size();
-    result.text_follow_data.line_token_ranges_buffer = line_token_ranges.data();
-    result.text_follow_data.line_token_ranges_buffer_count = line_token_ranges.size();
-    result.text_follow_data.line_raw_segments_buffer = line_raw_segments.data();
-    result.text_follow_data.line_raw_segments_buffer_count = line_raw_segments.size();
-    result.follow_data.byte_timeline_buffer = byte_entries.data();
-    result.follow_data.byte_timeline_buffer_count = byte_entries.size();
-    result.follow_data.binary_group_timeline_buffer = binary_entries.data();
-    result.follow_data.binary_group_timeline_buffer_count = binary_entries.size();
-    if (bag_poll_decode_result(decoder, &result) != BAG_OK) {
-        bag_destroy_decoder(decoder);
-        return NewEmptyDecodedAudioPayloadResult(
-            env, static_cast<jint>(BAG_DECODE_CONTENT_STATUS_INTERNAL_ERROR), JNI_FALSE);
-    }
-    bag_destroy_decoder(decoder);
-    text_entries.resize(result.text_follow_data.text_token_timeline_count);
-    text_raw_segments.resize(result.text_follow_data.token_raw_segments_count);
-    text_raw_display_units.resize(result.text_follow_data.token_raw_display_units_count);
-    line_entries.resize(result.text_follow_data.lyric_line_timeline_count);
-    line_token_ranges.resize(result.text_follow_data.line_token_ranges_count);
-    line_raw_segments.resize(result.text_follow_data.line_raw_segments_count);
-    byte_entries.resize(result.follow_data.byte_timeline_count);
-    binary_entries.resize(result.follow_data.binary_group_timeline_count);
-    const std::string text(text_buffer.data(), result.text_size);
-    const std::string text_tokens(text_tokens_buffer.data(), result.text_follow_data.text_tokens_size);
-    const std::string lyric_lines(lyric_lines_buffer.data(), result.text_follow_data.lyric_lines_size);
-    const std::string raw_bytes_hex(raw_bytes_hex_buffer.data(), result.raw_bytes_hex_size);
-    const std::string raw_bits_binary(raw_bits_binary_buffer.data(), result.raw_bits_binary_size);
-    jobject decoded_payload = NewDecodedPayloadViewData(
+    return jni_bridge::NativeDecodeGeneratedPcm(
         env,
-        text,
-        raw_bytes_hex,
-        raw_bits_binary,
-        static_cast<jint>(result.text_decode_status),
-        result.raw_payload_available != 0 ? JNI_TRUE : JNI_FALSE);
-    jobject follow_data = NewPayloadFollowViewData(
-        env,
-        text_tokens,
-        lyric_lines,
-        raw_bytes_hex,
-        raw_bits_binary,
-        text_entries,
-        text_raw_segments,
-        text_raw_display_units,
-        line_entries,
-        line_token_ranges,
-        line_raw_segments,
-        byte_entries,
-        binary_entries,
-        result.text_follow_data.available != 0 ? JNI_TRUE : JNI_FALSE,
-        (result.text_follow_data.available != 0 &&
-         result.text_follow_data.lyric_line_timeline_count > 0 &&
-         result.text_follow_data.line_token_ranges_count > 0)
-            ? JNI_TRUE
-            : JNI_FALSE,
-        static_cast<jint>(result.follow_data.payload_begin_sample),
-        static_cast<jint>(result.follow_data.payload_sample_count),
-        static_cast<jint>(result.follow_data.total_pcm_sample_count),
-        result.follow_data.available != 0 ? JNI_TRUE : JNI_FALSE);
-    return NewDecodedAudioPayloadResult(env, decoded_payload, follow_data);
+        pcm,
+        sample_rate_hz,
+        frame_samples,
+        mode,
+        flash_signal_profile,
+        flash_voicing_flavor);
 }
 
 extern "C" JNIEXPORT jint JNICALL
@@ -1256,19 +141,18 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeValidateDecodeConfig(
     jint mode,
     jint flash_signal_profile,
     jint flash_voicing_flavor) {
-    bag_decoder_config config =
-        MakeDecoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
-    config.mode = static_cast<bag_transport_mode>(mode);
-    const bag_validation_issue issue = bag_validate_decoder_config(&config);
-    return static_cast<jint>(issue);
+    return jni_bridge::NativeValidateDecodeConfig(
+        env,
+        sample_rate_hz,
+        frame_samples,
+        mode,
+        flash_signal_profile,
+        flash_voicing_flavor);
 }
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_bag_audioandroid_NativeBagBridge_nativeGetCoreVersion(
-    JNIEnv* env, jobject /*thiz*/) {
-    const char* version = bag_core_version();
-    if (version == nullptr) {
-        return env->NewStringUTF("");
-    }
-    return env->NewStringUTF(version);
+    JNIEnv* env,
+    jobject /*thiz*/) {
+    return jni_bridge::NativeGetCoreVersion(env);
 }

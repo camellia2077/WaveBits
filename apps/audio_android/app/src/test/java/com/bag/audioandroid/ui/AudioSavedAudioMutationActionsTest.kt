@@ -2,6 +2,8 @@ package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.AudioExportResult
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
+import com.bag.audioandroid.domain.GeneratedAudioPcmCacheWriter
 import com.bag.audioandroid.domain.GeneratedAudioMetadata
 import com.bag.audioandroid.domain.SavedAudioFolder
 import com.bag.audioandroid.domain.SavedAudioFolderMutationResult
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class AudioSavedAudioMutationActionsTest {
     @Test
@@ -43,6 +46,7 @@ class AudioSavedAudioMutationActionsTest {
                 savedAudioRepository = repository,
                 stopPlayback = {},
                 setCurrentStatusText = {},
+                generatedAudioCacheGateway = MutationFakeGeneratedAudioCacheGateway(),
             )
 
         actions.onImportAudio("content://picked/audio")
@@ -63,6 +67,7 @@ class AudioSavedAudioMutationActionsTest {
                     ),
                 stopPlayback = {},
                 setCurrentStatusText = {},
+                generatedAudioCacheGateway = MutationFakeGeneratedAudioCacheGateway(),
             )
 
         actions.onImportAudio("content://picked/audio")
@@ -101,6 +106,7 @@ class AudioSavedAudioMutationActionsTest {
                 savedAudioRepository = repository,
                 stopPlayback = {},
                 setCurrentStatusText = {},
+                generatedAudioCacheGateway = MutationFakeGeneratedAudioCacheGateway(),
             )
 
         actions.onCreateSavedAudioFolder("Demo")
@@ -143,6 +149,7 @@ class AudioSavedAudioMutationActionsTest {
                 savedAudioRepository = repository,
                 stopPlayback = {},
                 setCurrentStatusText = {},
+                generatedAudioCacheGateway = MutationFakeGeneratedAudioCacheGateway(),
             )
 
         actions.onMoveSavedAudioToFolder(listOf(item.itemId), folder.folderId)
@@ -167,13 +174,29 @@ private class FakeSavedAudioRepository(
     private val folderCreateResult: SavedAudioFolderMutationResult = SavedAudioFolderMutationResult.Failed,
     private val assignToFolderResult: Boolean = false,
 ) : SavedAudioRepository {
+    override fun suggestGeneratedAudioDisplayName(
+        mode: TransportModeOption,
+        inputText: String,
+    ): String = "test.wav"
+
     override fun exportGeneratedAudio(
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
+        pcmFilePath: String?,
         sampleRateHz: Int,
         metadata: GeneratedAudioMetadata,
     ): AudioExportResult = AudioExportResult.Failed
+
+    override fun exportGeneratedAudioToDocument(
+        mode: TransportModeOption,
+        inputText: String,
+        pcm: ShortArray,
+        pcmFilePath: String?,
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata,
+        destinationUriString: String,
+    ): Boolean = false
 
     override fun listSavedAudio(): List<SavedAudioItem> = listedItems
 
@@ -188,6 +211,11 @@ private class FakeSavedAudioRepository(
 
     override fun importAudio(uriString: String): SavedAudioImportResult = importResult
 
+    override fun exportSavedAudioToDocument(
+        itemId: String,
+        destinationUriString: String,
+    ): Boolean = false
+
     override fun shareSavedAudio(item: SavedAudioItem): Boolean = false
 
     override fun readLibraryMetadata(): SavedAudioLibraryMetadata = libraryMetadata
@@ -198,4 +226,19 @@ private class FakeSavedAudioRepository(
         itemIds: Collection<String>,
         folderId: String?,
     ): Boolean = assignToFolderResult
+}
+
+private class MutationFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {
+    override fun createPcmCacheWriter(modeWireName: String): GeneratedAudioPcmCacheWriter =
+        object : GeneratedAudioPcmCacheWriter {
+            override val filePath: String = File.createTempFile("${modeWireName}_", ".pcm16").absolutePath
+
+            override fun appendPcm(pcm: ShortArray) = Unit
+
+            override fun finish() = Unit
+
+            override fun abort() = Unit
+        }
+
+    override fun deleteCachedFile(path: String?) = Unit
 }

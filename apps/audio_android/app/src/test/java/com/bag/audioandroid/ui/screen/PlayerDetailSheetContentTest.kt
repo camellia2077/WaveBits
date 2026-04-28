@@ -6,14 +6,15 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.bag.audioandroid.R
+import com.bag.audioandroid.domain.PayloadFollowBinaryGroupTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.TextFollowRawDisplayUnitViewData
 import com.bag.audioandroid.domain.TextFollowTimelineEntry
-import com.bag.audioandroid.R
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.MiniPlayerLeadingIcon
 import com.bag.audioandroid.ui.model.MiniPlayerSource
@@ -71,6 +72,7 @@ class PlayerDetailSheetContentTest {
                 onPlaybackSequenceModeSelected = {},
                 onPlaybackSpeedSelected = {},
                 onExportGeneratedAudio = {},
+                onExportGeneratedAudioToDocument = {},
                 onShareSavedAudio = null,
                 onOpenSavedAudioSheet = {},
                 onScrubStarted = {},
@@ -121,6 +123,7 @@ class PlayerDetailSheetContentTest {
                 onPlaybackSequenceModeSelected = {},
                 onPlaybackSpeedSelected = {},
                 onExportGeneratedAudio = {},
+                onExportGeneratedAudioToDocument = {},
                 onShareSavedAudio = null,
                 onOpenSavedAudioSheet = {},
                 onScrubStarted = {},
@@ -175,6 +178,7 @@ class PlayerDetailSheetContentTest {
                 onPlaybackSequenceModeSelected = {},
                 onPlaybackSpeedSelected = {},
                 onExportGeneratedAudio = {},
+                onExportGeneratedAudioToDocument = {},
                 onShareSavedAudio = null,
                 onOpenSavedAudioSheet = {},
                 onScrubStarted = {},
@@ -185,6 +189,68 @@ class PlayerDetailSheetContentTest {
 
         composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.audio_action_open_audio_info)).performClick()
         composeRule.onAllNodesWithTag("audio-info-row-flash-voicing-style", useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    @Test
+    fun `preview waveform keeps flash visualizer and real follow timeline`() {
+        setPreviewPlayerDetailContent()
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.audio_flash_visualizer_mode_tone_tracks)).assertIsDisplayed()
+    }
+
+    @Test
+    fun `preview waveform keeps lyrics on real follow timeline`() {
+        setPreviewPlayerDetailContent(initialDisplayMode = PlaybackDisplayMode.Lyrics)
+        composeRule.onAllNodesWithTag("follow-token-active", useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    private fun setPreviewPlayerDetailContent(
+        initialDisplayMode: PlaybackDisplayMode = PlaybackDisplayMode.Visual,
+    ) {
+        composeRule.setContent {
+            PlayerDetailSheetContent(
+                miniPlayerModel =
+                    MiniPlayerUiModel(
+                        title = UiText.Plain("Flash"),
+                        subtitle = UiText.Plain("generated"),
+                        leadingIcon = MiniPlayerLeadingIcon.Generated,
+                        durationMs = 100_000L,
+                        transportMode = TransportModeOption.Flash,
+                        isFlashMode = true,
+                        flashVoicingStyle = FlashVoicingStyleOption.RitualChant,
+                        source = MiniPlayerSource.Generated,
+                    ),
+                displayedSamples = 10_000,
+                waveformDisplayedSamples = 409,
+                totalSamples = 100_000,
+                isScrubbing = false,
+                waveformPcm = ShortArray(4096) { index -> (index % 64).toShort() },
+                isWaveformPreview = true,
+                sampleRateHz = 44_100,
+                displayedTime = "0:10",
+                totalTime = "1:40",
+                isPlaying = false,
+                playbackSequenceMode = PlaybackSequenceMode.Normal,
+                playbackSpeed = 1.0f,
+                canSkipPrevious = false,
+                canSkipNext = false,
+                canExportGeneratedAudio = true,
+                followData = longTimelineFollowData(),
+                savedAudioItem = null,
+                onTogglePlayback = {},
+                onSkipToPreviousTrack = {},
+                onSkipToNextTrack = {},
+                onPlaybackSequenceModeSelected = {},
+                onPlaybackSpeedSelected = {},
+                onExportGeneratedAudio = {},
+                onExportGeneratedAudioToDocument = {},
+                onShareSavedAudio = null,
+                onOpenSavedAudioSheet = {},
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+                initialDisplayMode = initialDisplayMode,
+            )
+        }
     }
 
     private fun sampleFollowData(): PayloadFollowViewData =
@@ -211,6 +277,37 @@ class PlayerDetailSheetContentTest {
                     TextFollowRawDisplayUnitViewData(2, 11, 1, 3, 10, 1, "45", "01000101"),
                 ),
             textFollowAvailable = true,
+            followAvailable = true,
+        )
+
+    private fun longTimelineFollowData(): PayloadFollowViewData =
+        PayloadFollowViewData(
+            textTokens = listOf("ASH", "BELL", "RITE"),
+            textTokenTimeline =
+                listOf(
+                    TextFollowTimelineEntry(0, 5_000, 0),
+                    TextFollowTimelineEntry(9_000, 5_000, 1),
+                    TextFollowTimelineEntry(20_000, 5_000, 2),
+                ),
+            textRawDisplayUnits =
+                listOf(
+                    TextFollowRawDisplayUnitViewData(0, 0, 1, 0, 0, 1, "41", "01000001"),
+                    TextFollowRawDisplayUnitViewData(1, 9_000, 1, 0, 1, 1, "42", "01000010"),
+                    TextFollowRawDisplayUnitViewData(1, 9_001, 1, 1, 2, 1, "45", "01000101"),
+                    TextFollowRawDisplayUnitViewData(1, 9_002, 1, 2, 3, 1, "4C", "01001100"),
+                    TextFollowRawDisplayUnitViewData(1, 9_003, 1, 3, 4, 1, "4C", "01001100"),
+                    TextFollowRawDisplayUnitViewData(2, 20_000, 1, 0, 5, 1, "52", "01010010"),
+                ),
+            binaryTokens = listOf("0", "1", "0", "1"),
+            binaryGroupTimeline =
+                listOf(
+                    PayloadFollowBinaryGroupTimelineEntry(0, 5_000, 0, 0, 1),
+                    PayloadFollowBinaryGroupTimelineEntry(5_000, 5_000, 1, 1, 1),
+                    PayloadFollowBinaryGroupTimelineEntry(10_000, 5_000, 2, 2, 1),
+                    PayloadFollowBinaryGroupTimelineEntry(15_000, 5_000, 3, 3, 1),
+                ),
+            textFollowAvailable = true,
+            totalPcmSampleCount = 100_000,
             followAvailable = true,
         )
 }

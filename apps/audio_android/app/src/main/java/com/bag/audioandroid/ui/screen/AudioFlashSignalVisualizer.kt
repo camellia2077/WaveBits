@@ -28,14 +28,14 @@ import kotlin.math.ceil
 
 @Composable
 internal fun AudioFlashSignalVisualizer(
-    pcm: ShortArray,
-    sampleRateHz: Int,
-    displayedSamples: Int,
+    input: FlashSignalVisualizationInput,
     isPlaying: Boolean,
     mode: FlashSignalVisualizationMode,
     flashVoicingStyle: FlashVoicingStyleOption?,
     modifier: Modifier = Modifier,
 ) {
+    val pcm = input.pcm
+    val sampleRateHz = input.sampleRateHz
     if (pcm.isEmpty() || sampleRateHz <= 0) {
         return
     }
@@ -64,11 +64,29 @@ internal fun AudioFlashSignalVisualizer(
         label = "flashSignalSweep",
     )
     val totalSamples = pcm.size.coerceAtLeast(1)
-    val clampedDisplayedSamples = displayedSamples.coerceIn(0, totalSamples)
+    val clampedDisplayedSamples = input.pcmDisplayedSamples.coerceIn(0, totalSamples)
+    val followTimelineSource = input.bucketSource as? FlashSignalBucketSource.FollowTimeline
+    val followTimelineTotalSamples =
+        followTimelineSource
+            ?.followData
+            ?.totalPcmSampleCount
+            ?.coerceAtLeast(followTimelineSource.displayedSamples)
+            ?.coerceAtLeast(1)
+            ?: 1
+    val clampedFollowDisplayedSamples =
+        followTimelineSource
+            ?.displayedSamples
+            ?.coerceIn(0, followTimelineTotalSamples)
+            ?: clampedDisplayedSamples
     val animatedDisplayedSamples by animateFloatAsState(
         targetValue = clampedDisplayedSamples.toFloat(),
         animationSpec = tween(durationMillis = if (isPlaying) 120 else 0, easing = FastOutSlowInEasing),
         label = "flashSignalDisplayedSamples",
+    )
+    val animatedFollowDisplayedSamples by animateFloatAsState(
+        targetValue = clampedFollowDisplayedSamples.toFloat(),
+        animationSpec = tween(durationMillis = if (isPlaying) 120 else 0, easing = FastOutSlowInEasing),
+        label = "flashSignalFollowDisplayedSamples",
     )
     val glowPulse = if (isPlaying) glowPulseAnimated else 0.82f
     val sweepPhase = if (isPlaying) sweepAnimated else 0.24f
@@ -96,14 +114,41 @@ internal fun AudioFlashSignalVisualizer(
                 flashSignalActiveWindowBucketCount(flashVoicingStyle)
             }
         val buckets =
-            remember(pcm, sampleRateHz, targetBucketCount, windowSampleCount, animatedDisplayedSamples) {
-                buildFskEnergyBuckets(
-                    pcm = pcm,
-                    sampleRateHz = sampleRateHz,
-                    currentSample = animatedDisplayedSamples,
-                    windowSampleCount = windowSampleCount,
-                    targetBucketCount = targetBucketCount,
-                )
+            remember(
+                pcm,
+                sampleRateHz,
+                input.bucketSource,
+                targetBucketCount,
+                windowSampleCount,
+                animatedDisplayedSamples,
+                animatedFollowDisplayedSamples,
+            ) {
+                when (val bucketSource = input.bucketSource) {
+                    is FlashSignalBucketSource.FollowTimeline ->
+                        buildFskEnergyBucketsFromFollowData(
+                            followData = bucketSource.followData,
+                            currentSample = animatedFollowDisplayedSamples,
+                            windowSampleCount = windowSampleCount,
+                            targetBucketCount = targetBucketCount,
+                        ).ifEmpty {
+                            buildFskEnergyBuckets(
+                                pcm = pcm,
+                                sampleRateHz = sampleRateHz,
+                                currentSample = animatedDisplayedSamples,
+                                windowSampleCount = windowSampleCount,
+                                targetBucketCount = targetBucketCount,
+                            )
+                        }
+
+                    is FlashSignalBucketSource.Pcm ->
+                        buildFskEnergyBuckets(
+                            pcm = pcm,
+                            sampleRateHz = sampleRateHz,
+                            currentSample = animatedDisplayedSamples,
+                            windowSampleCount = windowSampleCount,
+                            targetBucketCount = targetBucketCount,
+                        )
+                }
             }
 
         val activeToneColor = MaterialTheme.colorScheme.primary

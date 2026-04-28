@@ -3,6 +3,7 @@ package com.bag.audioandroid.ui
 import com.bag.audioandroid.R
 import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.domain.AudioCodecGateway
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.SavedAudioRepository
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
@@ -11,7 +12,9 @@ import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.model.UiText
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import com.bag.audioandroid.domain.DecodedPayloadViewData
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -28,6 +31,8 @@ internal class AudioAndroidSessionActions(
     frameSamples: Int,
     stopPlayback: () -> Unit,
     refreshSavedAudioItems: () -> Unit,
+    workerDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    generatedAudioCacheGateway: GeneratedAudioCacheGateway,
 ) {
     private val editingActions =
         AudioSessionEditingActions(
@@ -48,14 +53,18 @@ internal class AudioAndroidSessionActions(
             sampleRateHz = sampleRateHz,
             frameSamples = frameSamples,
             stopPlayback = stopPlayback,
+            workerDispatcher = workerDispatcher,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
         )
     private val exportActions =
         AudioSessionExportActions(
             uiState = uiState,
+            scope = scope,
             sessionStateStore = sessionStateStore,
             savedAudioRepository = savedAudioRepository,
             sampleRateHz = sampleRateHz,
             refreshSavedAudioItems = refreshSavedAudioItems,
+            workerDispatcher = workerDispatcher,
         )
 
     fun onInputTextChange(value: String) {

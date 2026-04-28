@@ -5,6 +5,7 @@
     <string name="library_empty">Sectores memoriae vacui sunt.</string>
     <string name="library_action_import">Infer Datum</string>
     <string name="library_action_share">Transmite per Aethera</string>
+    <string name="library_action_export_to_file">Edicere in Archivum Electum</string>
     <string name="library_action_rename">Muta Titulum</string>
     <string name="library_action_delete">Purga</string>
     <string name="library_action_select_all">Omnes Sectores Selige</string>

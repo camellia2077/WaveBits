@@ -7,6 +7,7 @@ import com.bag.audioandroid.domain.SavedAudioImportResult
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRenameResult
 import com.bag.audioandroid.domain.SavedAudioRepository
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
 import com.bag.audioandroid.ui.model.UiText
 import com.bag.audioandroid.ui.state.AudioAppUiState
@@ -19,6 +20,7 @@ internal class AudioSavedAudioMutationActions(
     private val savedAudioRepository: SavedAudioRepository,
     private val stopPlayback: () -> Unit,
     private val setCurrentStatusText: (UiText) -> Unit,
+    private val generatedAudioCacheGateway: GeneratedAudioCacheGateway,
 ) {
     fun onCreateSavedAudioFolder(name: String) {
         when (val result = savedAudioRepository.createSavedAudioFolder(name)) {
@@ -278,6 +280,10 @@ internal class AudioSavedAudioMutationActions(
         val savedAudioItems = savedAudioRepository.listSavedAudio()
         val libraryMetadata = savedAudioRepository.readLibraryMetadata()
         val savedAudioItemIds = savedAudioItems.map { it.itemId }.toSet()
+        val currentSelection = uiState.value.selectedSavedAudio
+        if (currentSelection != null && currentSelection.item.itemId !in savedAudioItemIds) {
+            generatedAudioCacheGateway.deleteCachedFile(currentSelection.pcmFilePath)
+        }
         uiState.update { state ->
             val selectedItemIds = state.librarySelection.selectedItemIds.intersect(savedAudioItemIds)
             val currentPlaybackSource = state.currentPlaybackSource
@@ -311,6 +317,7 @@ internal class AudioSavedAudioMutationActions(
     private fun stopPlaybackIfCurrentSavedAudio(itemIds: Set<String>) {
         val currentSource = uiState.value.currentPlaybackSource
         if (currentSource is AudioPlaybackSource.Saved && currentSource.itemId in itemIds) {
+            generatedAudioCacheGateway.deleteCachedFile(uiState.value.selectedSavedAudio?.pcmFilePath)
             stopPlayback()
         }
     }

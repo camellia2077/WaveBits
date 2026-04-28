@@ -5,6 +5,7 @@
     <string name="library_empty">目前還沒有已儲存內容。</string>
     <string name="library_action_import">匯入</string>
     <string name="library_action_share">分享</string>
+    <string name="library_action_export_to_file">匯出到檔案</string>
     <string name="library_action_rename">重新命名</string>
     <string name="library_action_delete">刪除</string>
     <string name="library_action_select_all">全選</string>

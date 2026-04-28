@@ -14,5 +14,6 @@
     <string name="error_not_ready">結果尚未就緒。</string>
     <string name="error_not_implemented">尚未提供。</string>
     <string name="error_cancelled">操作已取消。</string>
+    <string name="error_encoded_audio_too_large">產生的音訊過長，這台裝置無法安全載入。</string>
     <string name="error_internal">內部錯誤。</string>
 </resources>

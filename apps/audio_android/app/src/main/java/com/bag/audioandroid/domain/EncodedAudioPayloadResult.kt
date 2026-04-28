@@ -8,4 +8,5 @@ data class EncodedAudioPayloadResult(
     val rawBytesHex: String = "",
     val rawBitsBinary: String = "",
     val followData: PayloadFollowViewData = PayloadFollowViewData.Empty,
+    val terminalCode: Int = BagApiCodes.ERROR_OK,
 )

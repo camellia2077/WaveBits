@@ -14,6 +14,8 @@ import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.model.UiText
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import com.bag.audioandroid.ui.state.ModeAudioSessionState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -35,6 +37,7 @@ class AudioSessionExportActionsTest {
         val actions =
             AudioSessionExportActions(
                 uiState = state,
+                scope = CoroutineScope(Dispatchers.Unconfined),
                 sessionStateStore = AudioSessionStateStore(state),
                 savedAudioRepository =
                     FakeExportRepository(
@@ -43,9 +46,10 @@ class AudioSessionExportActionsTest {
                                 displayName = "test.wav",
                                 uriString = "content://saved/test",
                             ),
-                    ),
+                ),
                 sampleRateHz = 44100,
                 refreshSavedAudioItems = {},
+                workerDispatcher = Dispatchers.Unconfined,
             )
 
         actions.onExportAudio()
@@ -72,10 +76,12 @@ class AudioSessionExportActionsTest {
         val actions =
             AudioSessionExportActions(
                 uiState = state,
+                scope = CoroutineScope(Dispatchers.Unconfined),
                 sessionStateStore = AudioSessionStateStore(state),
                 savedAudioRepository = FakeExportRepository(exportResult = AudioExportResult.Failed),
                 sampleRateHz = 44100,
                 refreshSavedAudioItems = {},
+                workerDispatcher = Dispatchers.Unconfined,
             )
 
         actions.onExportAudio()
@@ -120,13 +126,29 @@ class AudioSessionExportActionsTest {
 private class FakeExportRepository(
     private val exportResult: AudioExportResult,
 ) : SavedAudioRepository {
+    override fun suggestGeneratedAudioDisplayName(
+        mode: TransportModeOption,
+        inputText: String,
+    ): String = "test.wav"
+
     override fun exportGeneratedAudio(
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
+        pcmFilePath: String?,
         sampleRateHz: Int,
         metadata: GeneratedAudioMetadata,
     ): AudioExportResult = exportResult
+
+    override fun exportGeneratedAudioToDocument(
+        mode: TransportModeOption,
+        inputText: String,
+        pcm: ShortArray,
+        pcmFilePath: String?,
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata,
+        destinationUriString: String,
+    ): Boolean = false
 
     override fun listSavedAudio(): List<SavedAudioItem> = emptyList()
 
@@ -140,6 +162,11 @@ private class FakeExportRepository(
     ): SavedAudioRenameResult = SavedAudioRenameResult.Failed
 
     override fun importAudio(uriString: String): SavedAudioImportResult = SavedAudioImportResult.Failed
+
+    override fun exportSavedAudioToDocument(
+        itemId: String,
+        destinationUriString: String,
+    ): Boolean = false
 
     override fun shareSavedAudio(item: SavedAudioItem): Boolean = false
 }

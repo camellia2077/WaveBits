@@ -74,6 +74,7 @@ commit message 的语义来源优先级固定如下：
 - `git-fallback` 只能作为临时兜底，不应覆盖已经明确的 history 口径
 - `[Verification]` 必须由 agent 根据本次真实执行过的命令补齐，不能保留占位符
 - `Release-Version` 必须由 agent 最终确认；如果工具给出 `TODO(agent)`，必须在提交前解决
+- 如果 staged changes 包含 `libs/...`，但 history、用户指令或已落盘版本文件没有明确 `libs` 版本状态，必须先停止并询问用户确认 `libs` 应写具体版本、`changed` 还是 `unchanged`，不得自行推断
 - 纯文档改动才允许 `docs`；只要包含代码改动，就回到 `feat / fix / refactor / chore / perf`
 
 ## Agent Judgment Rules
@@ -101,6 +102,7 @@ Get-Content temp/message.txt
 - `[Summary]` 是否已去掉占位符
 - `[Verification]` 是否只写本次真实执行过的验证
 - `Release-Version` 是否唯一且正确
+- staged changes 若包含 `libs/...`，`[Component Versions]` 是否已明确写出 `libs` 版本状态，或已向用户确认
 - 是否错误混入了未提交部分的语义
 
 ## Usage Note

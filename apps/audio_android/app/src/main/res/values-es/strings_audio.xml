@@ -26,6 +26,7 @@
     <string name="audio_action_clear_result">Borrar resultado</string>
     <string name="audio_action_clear_result_busy">Borrando…</string>
     <string name="audio_action_export">Guardar</string>
+    <string name="audio_action_export_to_file">Exportar a un archivo</string>
     <string name="audio_action_playback_speed_short">Velocidad</string>
     <string name="audio_action_open_playback_speed_menu">Abrir menú de velocidad de reproducción</string>
     <string name="audio_action_toggle_playback_speed_slider">Alternar ajuste fino de velocidad</string>
@@ -47,9 +48,6 @@
     <string name="audio_input_editor_done">Listo</string>
     <string name="audio_input_editor_count">%1$d caracteres</string>
     <string name="audio_input_metrics">%1$d caracteres • %2$d bytes</string>
-    <string name="audio_input_payload_limit_ok">Referencia por segmento: 512 bytes. Un texto más largo se segmentará automáticamente.</string>
-    <string name="audio_input_payload_limit_warning">Cerca de 512 bytes. Un texto más largo se segmentará automáticamente.</string>
-    <string name="audio_input_payload_limit_exceeded">Más de 512 bytes. Este texto se segmentará automáticamente.</string>
     <string name="audio_action_expand_result">Expandir resultado</string>
     <string name="audio_action_collapse_result">Ocultar resultado</string>
     <string name="audio_action_expand_result_content">Expandir texto del resultado</string>
@@ -192,6 +190,8 @@
     <string name="status_audio_save_failed">No se pudo guardar</string>
     <string name="snackbar_audio_saved_to_library">Guardado</string>
     <string name="snackbar_audio_save_failed">No se pudo guardar</string>
+    <string name="snackbar_audio_exported_to_file">Exportado a un archivo</string>
+    <string name="snackbar_audio_export_to_file_failed">Error al exportar el archivo</string>
     <string name="status_saved_audio_loaded">Cargado: %1$s</string>
     <string name="status_saved_audio_load_failed">No se pudo cargar</string>
     <string name="status_playing_saved_audio">Reproduciendo: %1$s</string>

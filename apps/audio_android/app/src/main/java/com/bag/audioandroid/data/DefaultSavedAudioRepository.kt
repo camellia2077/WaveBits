@@ -20,13 +20,39 @@ class DefaultSavedAudioRepository(
     private val audioShareGateway: AudioShareGateway,
     private val libraryMetadataStore: SavedAudioLibraryMetadataStore,
 ) : SavedAudioRepository {
+    override fun suggestGeneratedAudioDisplayName(
+        mode: TransportModeOption,
+        inputText: String,
+    ): String = audioExportGateway.suggestGeneratedAudioDisplayName(mode, inputText)
+
     override fun exportGeneratedAudio(
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
+        pcmFilePath: String?,
         sampleRateHz: Int,
         metadata: GeneratedAudioMetadata,
-    ): AudioExportResult = audioExportGateway.exportGeneratedAudio(mode, inputText, pcm, sampleRateHz, metadata)
+    ): AudioExportResult =
+        audioExportGateway.exportGeneratedAudio(mode, inputText, pcm, pcmFilePath, sampleRateHz, metadata)
+
+    override fun exportGeneratedAudioToDocument(
+        mode: TransportModeOption,
+        inputText: String,
+        pcm: ShortArray,
+        pcmFilePath: String?,
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata,
+        destinationUriString: String,
+    ): Boolean =
+        audioExportGateway.exportGeneratedAudioToDocument(
+            mode = mode,
+            inputText = inputText,
+            pcm = pcm,
+            pcmFilePath = pcmFilePath,
+            sampleRateHz = sampleRateHz,
+            metadata = metadata,
+            destinationUriString = destinationUriString,
+        )
 
     override fun listSavedAudio(): List<SavedAudioItem> =
         savedAudioLibraryGateway.listSavedAudio().also { items ->
@@ -43,6 +69,11 @@ class DefaultSavedAudioRepository(
     ): SavedAudioRenameResult = savedAudioLibraryGateway.renameSavedAudio(itemId, newBaseName)
 
     override fun importAudio(uriString: String): SavedAudioImportResult = savedAudioLibraryGateway.importAudio(uriString)
+
+    override fun exportSavedAudioToDocument(
+        itemId: String,
+        destinationUriString: String,
+    ): Boolean = savedAudioLibraryGateway.exportSavedAudioToDocument(itemId, destinationUriString)
 
     override fun shareSavedAudio(item: SavedAudioItem): Boolean = audioShareGateway.shareSavedAudio(item)
 

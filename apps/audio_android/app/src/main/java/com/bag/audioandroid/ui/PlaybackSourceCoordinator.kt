@@ -12,12 +12,17 @@ class PlaybackSourceCoordinator(
         when (val source = state.currentPlaybackSource) {
             is AudioPlaybackSource.Generated -> {
                 val session = state.sessions.getValue(source.mode)
-                if (session.generatedPcm.isEmpty()) {
+                val totalSamples =
+                    session.generatedAudioMetadata?.pcmSampleCount?.takeIf { it > 0 }
+                        ?: session.generatedPcm.size
+                if (totalSamples <= 0 || (session.generatedPcm.isEmpty() && session.generatedPcmFilePath == null)) {
                     null
                 } else {
                     PlaybackTarget(
                         source = source,
                         pcm = session.generatedPcm,
+                        pcmFilePath = session.generatedPcmFilePath,
+                        totalSamples = totalSamples,
                         sampleRateHz = generatedSampleRateHz,
                         playback = session.playback,
                         playbackSpeed = session.playbackSpeed,
@@ -33,6 +38,8 @@ class PlaybackSourceCoordinator(
                 PlaybackTarget(
                     source = source,
                     pcm = selectedSavedAudio.pcm,
+                    pcmFilePath = selectedSavedAudio.pcmFilePath,
+                    totalSamples = selectedSavedAudio.metadata?.pcmSampleCount ?: selectedSavedAudio.pcm.size,
                     sampleRateHz = selectedSavedAudio.sampleRateHz,
                     playback = selectedSavedAudio.playback,
                     playbackSpeed = selectedSavedAudio.playbackSpeed,
@@ -73,6 +80,8 @@ class PlaybackSourceCoordinator(
     data class PlaybackTarget(
         val source: AudioPlaybackSource,
         val pcm: ShortArray,
+        val pcmFilePath: String? = null,
+        val totalSamples: Int,
         val sampleRateHz: Int,
         val playback: PlaybackUiState,
         val playbackSpeed: Float,

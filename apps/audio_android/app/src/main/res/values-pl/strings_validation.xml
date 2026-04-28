@@ -14,5 +14,6 @@
     <string name="error_not_ready">Wynik nie jest gotowy.</string>
     <string name="error_not_implemented">Jeszcze niedostępne.</string>
     <string name="error_cancelled">Operacja anulowana.</string>
+    <string name="error_encoded_audio_too_large">Wygenerowane audio jest zbyt długie, aby można je było bezpiecznie wczytać na tym urządzeniu.</string>
     <string name="error_internal">Błąd wewnętrzny.</string>
 </resources>

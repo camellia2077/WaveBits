@@ -9,6 +9,7 @@
     <string name="library_empty">まだ保存された項目はありません。</string>
     <string name="library_action_import">インポート</string>
     <string name="library_action_share">共有</string>
+    <string name="library_action_export_to_file">ファイルへ書き出し</string>
     <string name="library_action_rename">名前を変更</string>
     <string name="library_action_delete">削除</string>
     <string name="library_action_select_all">すべて選択</string>

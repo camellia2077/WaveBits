@@ -56,6 +56,7 @@ data class AudioAppUiState(
     val showPlayerDetailSheet: Boolean = false,
     val libraryStatusText: UiText = UiText.Empty,
     val snackbarMessage: SnackbarMessage? = null,
+    val pendingDocumentExportRequest: PendingAudioDocumentExportRequest? = null,
 ) {
     val customBrandThemes: List<BrandThemeOption>
         get() = customBrandThemePresets.map(::customBrandTheme)
@@ -96,25 +97,76 @@ data class AudioAppUiState(
     val currentPlaybackSampleCount: Int
         get() =
             when (val source = currentPlaybackSource) {
-                is AudioPlaybackSource.Generated -> sessions.getValue(source.mode).generatedPcm.size
+                is AudioPlaybackSource.Generated -> {
+                    val session = sessions.getValue(source.mode)
+                    session.generatedAudioMetadata?.pcmSampleCount?.takeIf { it > 0 }
+                        ?: session.generatedPcm.size
+                }
                 is AudioPlaybackSource.Saved ->
                     selectedSavedAudio
                         ?.takeIf { it.item.itemId == source.itemId }
-                        ?.pcm
-                        ?.size
+                        ?.let { saved ->
+                            saved.metadata?.pcmSampleCount?.takeIf { it > 0 } ?: saved.pcm.size
+                        }
                         ?: 0
             }
 
-    val currentPlaybackPcm: ShortArray
+    val currentPlaybackVisualData: PlaybackPcmVisualData
         get() =
             when (val source = currentPlaybackSource) {
-                is AudioPlaybackSource.Generated -> sessions.getValue(source.mode).generatedPcm
+                is AudioPlaybackSource.Generated -> {
+                    val session = sessions.getValue(source.mode)
+                    val totalSamples =
+                        session.generatedAudioMetadata?.pcmSampleCount?.takeIf { it > 0 }
+                            ?: session.generatedPcm.size
+                    if (session.generatedPcm.isNotEmpty()) {
+                        PlaybackPcmVisualData(
+                            samples = session.generatedPcm,
+                            kind = PlaybackPcmVisualKind.FullPcm,
+                            totalSamples = totalSamples,
+                        )
+                    } else {
+                        PlaybackPcmVisualData(
+                            samples = session.generatedWaveformPcm,
+                            kind =
+                                if (session.generatedWaveformPcm.isNotEmpty()) {
+                                    PlaybackPcmVisualKind.WaveformPreview
+                                } else {
+                                    PlaybackPcmVisualKind.Empty
+                                },
+                            totalSamples = totalSamples,
+                        )
+                    }
+                }
                 is AudioPlaybackSource.Saved ->
                     selectedSavedAudio
                         ?.takeIf { it.item.itemId == source.itemId }
-                        ?.pcm
-                        ?: shortArrayOf()
+                        ?.let { saved ->
+                            val totalSamples = saved.metadata?.pcmSampleCount?.takeIf { it > 0 } ?: saved.pcm.size
+                            if (saved.pcm.isNotEmpty()) {
+                                PlaybackPcmVisualData(
+                                    samples = saved.pcm,
+                                    kind = PlaybackPcmVisualKind.FullPcm,
+                                    totalSamples = totalSamples,
+                                )
+                            } else {
+                                PlaybackPcmVisualData(
+                                    samples = saved.waveformPcm,
+                                    kind =
+                                        if (saved.waveformPcm.isNotEmpty()) {
+                                            PlaybackPcmVisualKind.WaveformPreview
+                                        } else {
+                                            PlaybackPcmVisualKind.Empty
+                                        },
+                                    totalSamples = totalSamples,
+                                )
+                            }
+                        }
+                        ?: PlaybackPcmVisualData()
             }
+
+    val currentPlaybackPcm: ShortArray
+        get() = currentPlaybackVisualData.samples
 
     val currentPlaybackTransportMode: TransportModeOption?
         get() =
@@ -211,12 +263,15 @@ data class AudioAppUiState(
             when (val source = currentPlaybackSource) {
                 is AudioPlaybackSource.Generated -> {
                     val session = sessions.getValue(source.mode)
-                    if (session.generatedPcm.isEmpty()) {
+                    val pcmSampleCount =
+                        session.generatedAudioMetadata?.pcmSampleCount?.takeIf { it > 0 }
+                            ?: session.generatedPcm.size
+                    if (pcmSampleCount <= 0 || (session.generatedPcm.isEmpty() && session.generatedPcmFilePath == null)) {
                         null
                     } else {
                         val durationMs =
                             samplesToDurationMillis(
-                                sampleCount = currentPlayback.totalSamples.takeIf { it > 0 } ?: session.generatedPcm.size,
+                                sampleCount = currentPlayback.totalSamples.takeIf { it > 0 } ?: pcmSampleCount,
                                 sampleRateHz = currentPlayback.sampleRateHz,
                             )
                         MiniPlayerUiModel(

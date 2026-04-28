@@ -1,6 +1,8 @@
 package com.bag.audioandroid.ui
 
+import android.util.Log
 import com.bag.audioandroid.R
+import com.bag.audioandroid.data.readPcmSegmentsFromFile
 import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.domain.BagApiCodes
 import com.bag.audioandroid.domain.BagDecodeContentCodes
@@ -77,15 +79,20 @@ internal class AudioSessionDecodeActions(
         mode: TransportModeOption,
     ) {
         val session = current.sessions.getValue(mode)
-        if (session.generatedPcm.isEmpty()) {
+        if (session.generatedPcm.isEmpty() && session.generatedPcmFilePath.isNullOrBlank()) {
             stateReducer.applyNoGeneratedAudio(mode)
             return
         }
+        safeLogE(
+            LONG_AUDIO_LOG_TAG,
+            "decodeGenerated:request mode=${mode.wireName} inMemorySamples=${session.generatedPcm.size} waveformSamples=${session.generatedWaveformPcm.size} fileBacked=${!session.generatedPcmFilePath.isNullOrBlank()} metadataSamples=${session.generatedAudioMetadata?.pcmSampleCount ?: 0}",
+        )
         val request =
             requestFactory.buildGenerated(
                 current = current,
                 mode = mode,
                 generatedPcm = session.generatedPcm,
+                generatedPcmFilePath = session.generatedPcmFilePath,
                 metadata = session.generatedAudioMetadata,
             )
         launchGeneratedDecode(request)
@@ -133,6 +140,19 @@ internal class AudioSessionDecodeActions(
     }
 }
 
+private const val LONG_AUDIO_LOG_TAG = "WaveBitsLongAudio"
+
+private fun safeLogE(
+    tag: String,
+    message: String,
+) {
+    try {
+        Log.e(tag, message)
+    } catch (_: RuntimeException) {
+        // Plain JVM unit tests use the Android stub jar, where Log.e is not implemented.
+    }
+}
+
 private class DecodeRequestFactory(
     private val sampleRateHz: Int,
     private val frameSamples: Int,
@@ -141,43 +161,81 @@ private class DecodeRequestFactory(
         current: AudioAppUiState,
         mode: TransportModeOption,
         generatedPcm: ShortArray,
+        generatedPcmFilePath: String?,
         metadata: com.bag.audioandroid.domain.GeneratedAudioMetadata?,
-    ): DecodeRequest =
-        DecodeRequest(
+    ): DecodeRequest {
+        val segmentedPcm =
+            when {
+                generatedPcm.isNotEmpty() ->
+                    metadata?.segmentSampleCounts?.let { splitPcmIntoSegments(generatedPcm, it) }
+                !generatedPcmFilePath.isNullOrBlank() ->
+                    metadata?.let {
+                        readPcmSegmentsFromFile(
+                            generatedPcmFilePath,
+                            it.segmentSampleCounts.takeIf { counts -> counts.isNotEmpty() } ?: listOf(it.pcmSampleCount),
+                        )
+                    }
+                else -> null
+            }
+        safeLogE(
+            LONG_AUDIO_LOG_TAG,
+            "decodeRequest:generated mode=${mode.wireName} inMemorySamples=${generatedPcm.size} fileBacked=${!generatedPcmFilePath.isNullOrBlank()} metadataSamples=${metadata?.pcmSampleCount ?: 0} segmentedCount=${segmentedPcm?.size ?: 0}",
+        )
+        return DecodeRequest(
             mode = mode,
             generatedPcm = generatedPcm,
+            generatedPcmFilePath = generatedPcmFilePath,
             sampleRateHz = sampleRateHz,
             frameSamples = frameSamples,
+            segmentedPcm = segmentedPcm,
             flashPreset =
                 if (mode == TransportModeOption.Flash) {
                     current.sessions.getValue(mode).generatedFlashVoicingStyle ?: current.selectedFlashVoicingStyle
                 } else {
                     FlashVoicingStyleOption.CodedBurst
                 },
-            segmentedPcm = metadata?.segmentSampleCounts?.let { splitPcmIntoSegments(generatedPcm, it) },
         )
+    }
 
     fun buildSaved(
         current: AudioAppUiState,
         mode: TransportModeOption,
         savedAudio: SavedAudioPlaybackSelection,
-    ): DecodeRequest =
-        DecodeRequest(
+    ): DecodeRequest {
+        val segmentedPcm =
+            when {
+                savedAudio.pcm.isNotEmpty() ->
+                    savedAudio.metadata?.segmentSampleCounts?.let {
+                        splitPcmIntoSegments(savedAudio.pcm, it)
+                    }
+                !savedAudio.pcmFilePath.isNullOrBlank() ->
+                    savedAudio.metadata?.let {
+                        readPcmSegmentsFromFile(
+                            savedAudio.pcmFilePath,
+                            it.segmentSampleCounts.takeIf { counts -> counts.isNotEmpty() } ?: listOf(it.pcmSampleCount),
+                        )
+                    }
+                else -> null
+            }
+        safeLogE(
+            LONG_AUDIO_LOG_TAG,
+            "decodeRequest:saved mode=${mode.wireName} itemId=${savedAudio.item.itemId} inMemorySamples=${savedAudio.pcm.size} fileBacked=${!savedAudio.pcmFilePath.isNullOrBlank()} metadataSamples=${savedAudio.metadata?.pcmSampleCount ?: 0} segmentedCount=${segmentedPcm?.size ?: 0}",
+        )
+        return DecodeRequest(
             mode = mode,
             generatedPcm = savedAudio.pcm,
+            generatedPcmFilePath = savedAudio.pcmFilePath,
             sampleRateHz = savedAudio.sampleRateHz,
             frameSamples = savedAudio.metadata?.frameSamples ?: frameSamples,
+            segmentedPcm = segmentedPcm,
             flashPreset =
                 if (savedAudio.item.modeWireName == TransportModeOption.Flash.wireName) {
                     savedAudio.item.flashVoicingStyle ?: current.selectedFlashVoicingStyle
                 } else {
                     FlashVoicingStyleOption.CodedBurst
                 },
-            segmentedPcm =
-                savedAudio.metadata?.segmentSampleCounts?.let {
-                    splitPcmIntoSegments(savedAudio.pcm, it)
-                },
         )
+    }
 }
 
 private class DecodeRunner(
@@ -186,6 +244,10 @@ private class DecodeRunner(
 ) {
     suspend fun execute(request: DecodeRequest): DecodeResult =
         kotlinx.coroutines.withContext(workerDispatcher) {
+            safeLogE(
+                LONG_AUDIO_LOG_TAG,
+                "decodeRunner:start mode=${request.mode.wireName} inMemorySamples=${request.generatedPcm.size} fileBacked=${!request.generatedPcmFilePath.isNullOrBlank()} segmentedCount=${request.segmentedPcm?.size ?: 0} sampleRate=${request.sampleRateHz} frameSamples=${request.frameSamples}",
+            )
             val validationIssue =
                 audioCodecGateway.validateDecodeConfig(
                     request.sampleRateHz,
@@ -200,6 +262,10 @@ private class DecodeRunner(
 
             val decoded =
                 request.segmentedPcm?.let { segmentedPcm ->
+                    safeLogE(
+                        LONG_AUDIO_LOG_TAG,
+                        "decodeRunner:segmented mode=${request.mode.wireName} segments=${segmentedPcm.size}",
+                    )
                     // Decode each stored segment independently, then merge the
                     // user-facing payload/follow views back into one long-text result.
                     mergeSegmentedDecodedPayloadResults(
@@ -223,6 +289,10 @@ private class DecodeRunner(
                         request.flashPreset.signalProfileValue,
                         request.flashPreset.voicingFlavorValue,
                     )
+            safeLogE(
+                LONG_AUDIO_LOG_TAG,
+                "decodeRunner:done mode=${request.mode.wireName} decodedStatus=${decoded.decodedPayload.textDecodeStatusCode} followAvailable=${decoded.followData.followAvailable}",
+            )
 
             DecodeResult.Success(decoded)
         }
@@ -358,6 +428,7 @@ private class DecodeStateReducer(
 private data class DecodeRequest(
     val mode: TransportModeOption,
     val generatedPcm: ShortArray,
+    val generatedPcmFilePath: String? = null,
     val sampleRateHz: Int,
     val frameSamples: Int,
     val flashPreset: FlashVoicingStyleOption,

@@ -8,6 +8,7 @@ import com.bag.audioandroid.audio.AudioPlaybackCoordinator
 import com.bag.audioandroid.data.AppSettingsRepository
 import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.domain.AudioCodecGateway
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRepository
@@ -18,11 +19,13 @@ import com.bag.audioandroid.ui.model.BrandThemeOption
 import com.bag.audioandroid.ui.model.CustomBrandThemeSettings
 import com.bag.audioandroid.ui.model.PaletteOption
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
+import com.bag.audioandroid.ui.model.PlaybackSpeedOption
 import com.bag.audioandroid.ui.model.SampleInputLengthOption
 import com.bag.audioandroid.ui.model.ThemeModeOption
 import com.bag.audioandroid.ui.model.ThemeStyleOption
 import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.state.AudioAppUiState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -33,6 +36,7 @@ class AudioAndroidViewModel(
     appSettingsRepository: AppSettingsRepository,
     playbackRuntimeGateway: PlaybackRuntimeGateway,
     savedAudioRepository: SavedAudioRepository,
+    private val generatedAudioCacheGateway: GeneratedAudioCacheGateway,
 ) : ViewModel() {
     private val uiStateFlow = MutableStateFlow(AudioAppUiState())
     val uiState: StateFlow<AudioAppUiState> = uiStateFlow
@@ -63,6 +67,16 @@ class AudioAndroidViewModel(
             playbackRuntimeGateway = playbackRuntimeGateway,
             savedAudioRepository = savedAudioRepository,
             stopPlayback = playbackActions::stopPlayback,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
+        )
+    private val documentExportActions =
+        AudioDocumentExportActions(
+            uiState = uiStateFlow,
+            scope = viewModelScope,
+            sessionStateStore = sessionStateStore,
+            savedAudioRepository = savedAudioRepository,
+            sampleRateHz = SAMPLE_RATE_HZ,
+            workerDispatcher = Dispatchers.IO,
         )
     private val sessionActions =
         AudioAndroidSessionActions(
@@ -78,6 +92,8 @@ class AudioAndroidViewModel(
             frameSamples = FRAME_SAMPLES,
             stopPlayback = playbackActions::stopPlayback,
             refreshSavedAudioItems = libraryActions::refreshSavedAudioItems,
+            workerDispatcher = Dispatchers.IO,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
         )
     private val navigationActions =
         AudioAndroidNavigationActions(
@@ -185,6 +201,7 @@ class AudioAndroidViewModel(
     }
 
     fun onOpenPlayerDetailSheet() {
+        playbackActions.onPlaybackSpeedSelected(PlaybackSpeedOption.default.speed)
         navigationActions.onOpenPlayerDetailSheet()
     }
 
@@ -206,6 +223,10 @@ class AudioAndroidViewModel(
 
     fun currentPlaceholderText(mode: TransportModeOption): String {
         val state = uiStateFlow.value
+        val currentSession = state.sessions.getValue(mode)
+        if (currentSession.sampleInputId == null) {
+            return ""
+        }
         return sampleInputTextProvider
             .defaultSample(
                 mode = mode,
@@ -292,6 +313,23 @@ class AudioAndroidViewModel(
         sessionActions.onExportAudio()
     }
 
+    fun onRequestExportGeneratedAudioToDocument() {
+        documentExportActions.onRequestGeneratedAudioExportToDocument()
+    }
+
+    fun onDocumentExportPicked(uriString: String?) {
+        documentExportActions.onDocumentExportPicked(uriString)
+    }
+
+    override fun onCleared() {
+        playbackActions.release()
+        uiStateFlow.value.sessions.values.forEach { session ->
+            generatedAudioCacheGateway.deleteCachedFile(session.generatedPcmFilePath)
+        }
+        generatedAudioCacheGateway.deleteCachedFile(uiStateFlow.value.selectedSavedAudio?.pcmFilePath)
+        super.onCleared()
+    }
+
     fun onOpenSavedAudioSheet() {
         sessionActions.onOpenSavedAudioSheet()
     }
@@ -351,6 +389,10 @@ class AudioAndroidViewModel(
         libraryActions.onShareSavedAudio(item)
     }
 
+    fun onRequestExportSavedAudioToDocument(item: SavedAudioItem) {
+        documentExportActions.onRequestSavedAudioExportToDocument(item)
+    }
+
     fun onCreateSavedAudioFolder(name: String) {
         libraryActions.onCreateSavedAudioFolder(name)
     }
@@ -371,11 +413,6 @@ class AudioAndroidViewModel(
         folderId: String?,
     ) {
         libraryActions.onMoveSavedAudioToFolder(itemIds, folderId)
-    }
-
-    override fun onCleared() {
-        playbackActions.release()
-        super.onCleared()
     }
 
     private fun handlePlaybackCompleted(source: AudioPlaybackSource): Boolean {

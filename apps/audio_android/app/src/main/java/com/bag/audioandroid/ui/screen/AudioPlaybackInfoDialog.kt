@@ -16,17 +16,15 @@ internal data class AudioInfoDialogModel(
     val title: String,
     val userSectionTitle: String,
     val technicalSectionTitle: String,
-    val encodingTypeLabel: String,
-    val encodingTypeValue: String,
-    val durationLabel: String,
-    val durationValue: String,
-    val sampleRateLabel: String,
-    val sampleRateValue: String,
-    val frameSamplesLabel: String,
-    val frameSamplesValue: String,
-    val flashVoicingStyleLabel: String,
-    val flashVoicingStyleValue: String?,
+    val userRows: List<AudioInfoRowModel>,
+    val technicalRows: List<AudioInfoRowModel>,
     val dismissLabel: String,
+)
+
+internal data class AudioInfoRowModel(
+    val label: String,
+    val value: String,
+    val testTag: String,
 )
 
 @Composable
@@ -43,37 +41,24 @@ internal fun AudioPlaybackInfoDialog(
                     title = model.userSectionTitle,
                     modifier = Modifier.testTag("audio-info-user-section"),
                 ) {
-                    AudioInfoRow(
-                        label = model.encodingTypeLabel,
-                        value = model.encodingTypeValue,
-                        modifier = Modifier.testTag("audio-info-row-encoding-type"),
-                    )
-                    AudioInfoRow(
-                        label = model.durationLabel,
-                        value = model.durationValue,
-                        modifier = Modifier.testTag("audio-info-row-duration"),
-                    )
+                    model.userRows.forEach { row ->
+                        AudioInfoRow(
+                            label = row.label,
+                            value = row.value,
+                            modifier = Modifier.testTag(row.testTag),
+                        )
+                    }
                 }
                 HorizontalDivider()
                 AudioInfoSection(
                     title = model.technicalSectionTitle,
                     modifier = Modifier.testTag("audio-info-technical-section"),
                 ) {
-                    AudioInfoRow(
-                        label = model.sampleRateLabel,
-                        value = model.sampleRateValue,
-                        modifier = Modifier.testTag("audio-info-row-sample-rate"),
-                    )
-                    AudioInfoRow(
-                        label = model.frameSamplesLabel,
-                        value = model.frameSamplesValue,
-                        modifier = Modifier.testTag("audio-info-row-frame-samples"),
-                    )
-                    model.flashVoicingStyleValue?.let { flashVoicingStyleValue ->
+                    model.technicalRows.forEach { row ->
                         AudioInfoRow(
-                            label = model.flashVoicingStyleLabel,
-                            value = flashVoicingStyleValue,
-                            modifier = Modifier.testTag("audio-info-row-flash-voicing-style"),
+                            label = row.label,
+                            value = row.value,
+                            modifier = Modifier.testTag(row.testTag),
                         )
                     }
                 }

@@ -91,7 +91,7 @@ internal class AudioPlaybackCommandActions(
         val sourceKey = playbackSourceCoordinator.sourceKey(target.source)
         val basePlayback =
             if (restartFromBeginning) {
-                playbackRuntimeGateway.load(target.pcm.size, target.sampleRateHz)
+                playbackRuntimeGateway.load(target.totalSamples, target.sampleRateHz)
             } else {
                 target.playback
             }
@@ -100,6 +100,8 @@ internal class AudioPlaybackCommandActions(
             scope = scope,
             sourceKey = sourceKey,
             pcm = target.pcm,
+            pcmFilePath = target.pcmFilePath,
+            totalSamples = target.totalSamples,
             sampleRateHz = target.sampleRateHz,
             playbackSpeed = target.playbackSpeed,
             startSampleIndex = startedPlayback.playedSamples,

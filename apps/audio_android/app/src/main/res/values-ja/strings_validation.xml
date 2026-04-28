@@ -20,5 +20,6 @@
     <string name="error_not_ready">結果の準備ができていません。</string>
     <string name="error_not_implemented">まだ利用できません。</string>
     <string name="error_cancelled">操作がキャンセルされました。</string>
+    <string name="error_encoded_audio_too_large">生成された音声が長すぎるため、この端末では安全に読み込めません。</string>
     <string name="error_internal">内部エラーが発生しました。</string>
 </resources>

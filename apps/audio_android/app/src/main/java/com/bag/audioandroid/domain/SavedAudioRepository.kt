@@ -3,13 +3,29 @@ package com.bag.audioandroid.domain
 import com.bag.audioandroid.ui.model.TransportModeOption
 
 interface SavedAudioRepository {
+    fun suggestGeneratedAudioDisplayName(
+        mode: TransportModeOption,
+        inputText: String,
+    ): String
+
     fun exportGeneratedAudio(
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
+        pcmFilePath: String?,
         sampleRateHz: Int,
         metadata: GeneratedAudioMetadata,
     ): AudioExportResult
+
+    fun exportGeneratedAudioToDocument(
+        mode: TransportModeOption,
+        inputText: String,
+        pcm: ShortArray,
+        pcmFilePath: String?,
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata,
+        destinationUriString: String,
+    ): Boolean
 
     fun listSavedAudio(): List<SavedAudioItem>
 
@@ -23,6 +39,11 @@ interface SavedAudioRepository {
     ): SavedAudioRenameResult
 
     fun importAudio(uriString: String): SavedAudioImportResult
+
+    fun exportSavedAudioToDocument(
+        itemId: String,
+        destinationUriString: String,
+    ): Boolean
 
     fun shareSavedAudio(item: SavedAudioItem): Boolean
 

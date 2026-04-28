@@ -33,4 +33,9 @@ interface SavedAudioLibraryGateway {
     ): SavedAudioRenameResult
 
     fun importAudio(uriString: String): SavedAudioImportResult
+
+    fun exportSavedAudioToDocument(
+        itemId: String,
+        destinationUriString: String,
+    ): Boolean
 }

@@ -5,6 +5,7 @@
     <string name="library_empty">Пока ничего не сохранено.</string>
     <string name="library_action_import">Импорт</string>
     <string name="library_action_share">Поделиться</string>
+    <string name="library_action_export_to_file">Экспортировать в файл</string>
     <string name="library_action_rename">Переименовать</string>
     <string name="library_action_delete">Удалить</string>
     <string name="library_action_select_all">Выбрать всё</string>

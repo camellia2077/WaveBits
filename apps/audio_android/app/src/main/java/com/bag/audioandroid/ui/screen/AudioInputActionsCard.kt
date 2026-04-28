@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Casino
@@ -27,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.AudioEncodePhase
@@ -71,12 +72,6 @@ internal fun AudioInputActionsCard(
     val encodePercent = ((encodeProgress ?: 0f).coerceIn(0f, 1f) * 100f).roundToInt()
     val inputMetrics = measureAudioInputText(inputText)
     val accentTokens = appThemeAccentTokens()
-    val payloadLimitColor =
-        when (inputMetrics.payloadLimitMessageResId) {
-            R.string.audio_input_payload_limit_exceeded -> MaterialTheme.colorScheme.error
-            R.string.audio_input_payload_limit_warning -> accentTokens.disclosureAccentTint
-            else -> MaterialTheme.colorScheme.onSurfaceVariant
-        }
 
     Surface(
         shape = MaterialTheme.shapes.medium,
@@ -131,21 +126,17 @@ internal fun AudioInputActionsCard(
                                         inputMetrics.byteCount,
                                     ),
                             )
-                            inputMetrics.payloadLimitMessageResId?.let { messageResId ->
-                                Text(
-                                    text = stringResource(messageResId),
-                                    color = payloadLimitColor,
-                                )
-                            }
                         }
                     },
                     minLines = 2,
-                    maxLines = 2,
+                    maxLines = 8,
+                    textStyle =
+                        MaterialTheme.typography.bodyLarge.copy(
+                            lineBreak = LineBreak.Paragraph,
+                            hyphens = Hyphens.Auto,
+                        ),
                     colors = audioInputTextFieldColors(selectedThemeStyle),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 156.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
                     text = stringResource(R.string.audio_input_editor_inline_hint),

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.SaveAlt
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Tune
@@ -134,6 +135,7 @@ internal fun AudioPlaybackSecondaryActionsRow(
     onToggleSpeedAdjustment: () -> Unit,
     onPlaybackSpeedSelected: (Float) -> Unit,
     onExportGeneratedAudio: () -> Unit,
+    onExportGeneratedAudioToDocument: () -> Unit,
     canExportGeneratedAudio: Boolean,
     contentColor: androidx.compose.ui.graphics.Color,
 ) {
@@ -167,6 +169,17 @@ internal fun AudioPlaybackSecondaryActionsRow(
                 contentColor = contentColor,
             )
             if (canExportGeneratedAudio) {
+                UtilityIconButton(
+                    onClick = onExportGeneratedAudioToDocument,
+                    contentDescription = stringResource(R.string.audio_action_export_to_file),
+                    contentColor = contentColor,
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SaveAlt,
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp),
+                    )
+                }
                 UtilityIconButton(
                     onClick = onExportGeneratedAudio,
                     contentDescription = stringResource(R.string.audio_action_export),

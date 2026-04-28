@@ -5,6 +5,7 @@
     <string name="library_empty">Nada salvo ainda.</string>
     <string name="library_action_import">Importar</string>
     <string name="library_action_share">Compartilhar</string>
+    <string name="library_action_export_to_file">Exportar para arquivo</string>
     <string name="library_action_rename">Renomear</string>
     <string name="library_action_delete">Excluir</string>
     <string name="library_action_select_all">Selecionar tudo</string>

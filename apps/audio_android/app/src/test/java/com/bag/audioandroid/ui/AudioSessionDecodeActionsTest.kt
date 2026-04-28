@@ -9,7 +9,9 @@ import com.bag.audioandroid.domain.BagApiCodes
 import com.bag.audioandroid.domain.BagDecodeContentCodes
 import com.bag.audioandroid.domain.DecodedAudioPayloadResult
 import com.bag.audioandroid.domain.DecodedPayloadViewData
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.GeneratedAudioMetadata
+import com.bag.audioandroid.domain.GeneratedAudioPcmCacheWriter
 import com.bag.audioandroid.domain.GeneratedAudioInputSourceKind
 import com.bag.audioandroid.domain.PayloadFollowBinaryGroupTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowByteTimelineEntry
@@ -40,6 +42,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AudioSessionDecodeActionsTest {
@@ -468,6 +471,8 @@ class AudioSessionDecodeActionsTest {
                     frameSamples = 2_205,
                     stopPlayback = {},
                     refreshSavedAudioItems = {},
+                    workerDispatcher = dispatcher,
+                    generatedAudioCacheGateway = LocalFakeGeneratedAudioCacheGateway(),
                 ),
         )
     }
@@ -571,13 +576,29 @@ private class LocalFakeSampleInputTextProvider : SampleInputTextProvider {
 }
 
 private class LocalFakeSavedAudioRepository : SavedAudioRepository {
+    override fun suggestGeneratedAudioDisplayName(
+        mode: TransportModeOption,
+        inputText: String,
+    ): String = "test.wav"
+
     override fun exportGeneratedAudio(
         mode: TransportModeOption,
         inputText: String,
         pcm: ShortArray,
+        pcmFilePath: String?,
         sampleRateHz: Int,
         metadata: GeneratedAudioMetadata,
     ): AudioExportResult = AudioExportResult.Failed
+
+    override fun exportGeneratedAudioToDocument(
+        mode: TransportModeOption,
+        inputText: String,
+        pcm: ShortArray,
+        pcmFilePath: String?,
+        sampleRateHz: Int,
+        metadata: GeneratedAudioMetadata,
+        destinationUriString: String,
+    ): Boolean = false
 
     override fun listSavedAudio(): List<SavedAudioItem> = emptyList()
 
@@ -592,7 +613,27 @@ private class LocalFakeSavedAudioRepository : SavedAudioRepository {
 
     override fun importAudio(uriString: String): SavedAudioImportResult = SavedAudioImportResult.Failed
 
+    override fun exportSavedAudioToDocument(
+        itemId: String,
+        destinationUriString: String,
+    ): Boolean = false
+
     override fun shareSavedAudio(item: SavedAudioItem): Boolean = false
+}
+
+private class LocalFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {
+    override fun createPcmCacheWriter(modeWireName: String): GeneratedAudioPcmCacheWriter =
+        object : GeneratedAudioPcmCacheWriter {
+            override val filePath: String = File.createTempFile("${modeWireName}_", ".pcm16").absolutePath
+
+            override fun appendPcm(pcm: ShortArray) = Unit
+
+            override fun finish() = Unit
+
+            override fun abort() = Unit
+        }
+
+    override fun deleteCachedFile(path: String?) = Unit
 }
 
 private class LocalFakePlaybackRuntimeGateway : PlaybackRuntimeGateway {

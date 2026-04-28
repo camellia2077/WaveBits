@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.SaveAlt
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -36,6 +37,7 @@ internal fun LibrarySavedAudioRow(
     folderName: String?,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onExportToFile: () -> Unit,
     onShare: () -> Unit,
     onMove: () -> Unit,
     onRename: () -> Unit,
@@ -90,6 +92,15 @@ internal fun LibrarySavedAudioRow(
                 }
             }
             if (!isSelectionMode) {
+                IconButton(
+                    onClick = onExportToFile,
+                    colors = utilityActionIconButtonColors(),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SaveAlt,
+                        contentDescription = stringResource(R.string.library_action_export_to_file),
+                    )
+                }
                 IconButton(
                     onClick = onShare,
                     colors = utilityActionIconButtonColors(),

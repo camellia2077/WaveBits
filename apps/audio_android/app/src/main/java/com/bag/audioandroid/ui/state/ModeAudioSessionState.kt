@@ -16,6 +16,8 @@ data class ModeAudioSessionState(
     val sampleInputId: String? = null,
     val sampleShuffleState: SampleInputShuffleState? = null,
     val generatedPcm: ShortArray = shortArrayOf(),
+    val generatedWaveformPcm: ShortArray = shortArrayOf(),
+    val generatedPcmFilePath: String? = null,
     val generatedAudioMetadata: GeneratedAudioMetadata? = null,
     val generatedFlashVoicingStyle: FlashVoicingStyleOption? = null,
     val generatedContentRevision: Long = 0L,

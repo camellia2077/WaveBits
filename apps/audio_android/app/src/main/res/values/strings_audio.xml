@@ -52,6 +52,8 @@
     <string name="audio_action_clear_result_busy">Clearing…</string>
     <!-- CONTEXT: Action button/icon that saves the current generated audio into the Saved library. -->
     <string name="audio_action_export">Save</string>
+    <!-- CONTEXT: Action/icon that exports the current audio through Android's file picker so the user can choose an exact destination file. -->
+    <string name="audio_action_export_to_file">Export to file</string>
     <string name="audio_action_playback_speed_short">Speed</string>
     <string name="audio_action_open_playback_speed_menu">Open playback speed menu</string>
     <string name="audio_action_toggle_playback_speed_slider">Toggle playback speed adjustment</string>
@@ -91,12 +93,6 @@
     <string name="audio_input_editor_count">%1$d characters</string>
     <!-- CONTEXT: Input counter shown for all transports. %1$d is the visible character count and %2$d is the UTF-8 byte count. -->
     <string name="audio_input_metrics">%1$d chars • %2$d bytes</string>
-    <!-- CONTEXT: Baseline helper under the input field explaining that 512 bytes is the single-segment reference point and longer input will auto-segment. -->
-    <string name="audio_input_payload_limit_ok">Single-segment target: 512 bytes. Longer input will auto-segment.</string>
-    <!-- CONTEXT: Warning helper under the input field shown when the current text is getting close to the 512-byte single-segment reference point. -->
-    <string name="audio_input_payload_limit_warning">Near 512 bytes. Longer input will auto-segment.</string>
-    <!-- CONTEXT: Helper under the input field shown when the current text is already beyond the 512-byte single-segment reference point. -->
-    <string name="audio_input_payload_limit_exceeded">Over 512 bytes. This input will auto-segment.</string>
     <!-- CONTEXT: Accessibility/action label for expanding the decoded result panel. -->
     <string name="audio_action_expand_result">Expand result</string>
     <!-- CONTEXT: Accessibility/action label for collapsing the decoded result panel. -->
@@ -380,6 +376,10 @@
     <string name="snackbar_audio_saved_to_library">Saved</string>
     <!-- CONTEXT: Short snackbar text shown after saving audio fails. -->
     <string name="snackbar_audio_save_failed">Save failed</string>
+    <!-- CONTEXT: Short snackbar text shown after exporting audio to a user-chosen document/file location succeeds. -->
+    <string name="snackbar_audio_exported_to_file">Exported to file</string>
+    <!-- CONTEXT: Short snackbar text shown after exporting audio to a user-chosen document/file location fails. -->
+    <string name="snackbar_audio_export_to_file_failed">File export failed</string>
     <!-- CONTEXT: Status shown after a saved audio item is loaded back into the player. %1$s is the saved display name. -->
     <string name="status_saved_audio_loaded">Loaded: %1$s</string>
     <!-- CONTEXT: Status shown when loading a saved audio item fails. -->

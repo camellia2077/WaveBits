@@ -36,6 +36,7 @@
     <string name="audio_action_clear_result">清除结果</string>
     <string name="audio_action_clear_result_busy">正在清除…</string>
     <string name="audio_action_export">保存</string>
+    <string name="audio_action_export_to_file">导出到文件</string>
     <string name="audio_action_playback_speed_short">速度</string>
     <string name="audio_action_open_playback_speed_menu">打开播放速度菜单</string>
     <string name="audio_action_toggle_playback_speed_slider">切换播放速度微调</string>
@@ -59,9 +60,6 @@
     <string name="audio_input_editor_done">完成</string>
     <string name="audio_input_editor_count">%1$d 个字符</string>
     <string name="audio_input_metrics">%1$d 个字符 • %2$d 字节</string>
-    <string name="audio_input_payload_limit_ok">单段参考线：512 字节。更长输入会自动分段。</string>
-    <string name="audio_input_payload_limit_warning">已接近 512 字节。更长输入会自动分段。</string>
-    <string name="audio_input_payload_limit_exceeded">已超过 512 字节。当前输入会自动分段。</string>
     <string name="audio_action_expand_result">展开结果</string>
     <string name="audio_action_collapse_result">折叠结果</string>
     <string name="audio_action_expand_result_content">展开结果文本</string>
@@ -213,6 +211,8 @@
     <string name="status_audio_save_failed">保存失败</string>
     <string name="snackbar_audio_saved_to_library">已保存</string>
     <string name="snackbar_audio_save_failed">保存失败</string>
+    <string name="snackbar_audio_exported_to_file">已导出到文件</string>
+    <string name="snackbar_audio_export_to_file_failed">导出到文件失败</string>
     <string name="status_saved_audio_loaded">已加载：%1$s</string>
     <string name="status_saved_audio_load_failed">加载失败</string>
     <string name="status_playing_saved_audio">正在播放：%1$s</string>

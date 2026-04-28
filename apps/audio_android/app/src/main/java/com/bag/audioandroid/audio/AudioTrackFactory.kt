@@ -8,13 +8,21 @@ internal fun createStaticAudioTrack(
     sampleRateHz: Int,
     sampleCount: Int,
 ): AudioTrack {
-    val minBuffer =
-        AudioTrack.getMinBufferSize(
-            sampleRateHz,
-            AudioFormat.CHANNEL_OUT_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-        )
-    return AudioTrack
+    val minBuffer = minBufferSizeBytes(sampleRateHz)
+    return baseTrackBuilder(sampleRateHz)
+        .setBufferSizeInBytes(maxOf(minBuffer, sampleCount * 2))
+        .setTransferMode(AudioTrack.MODE_STATIC)
+        .build()
+}
+
+internal fun createStreamingAudioTrack(sampleRateHz: Int): AudioTrack =
+    baseTrackBuilder(sampleRateHz)
+        .setBufferSizeInBytes(minBufferSizeBytes(sampleRateHz))
+        .setTransferMode(AudioTrack.MODE_STREAM)
+        .build()
+
+private fun baseTrackBuilder(sampleRateHz: Int): AudioTrack.Builder =
+    AudioTrack
         .Builder()
         .setAudioAttributes(
             AudioAttributes
@@ -29,7 +37,11 @@ internal fun createStaticAudioTrack(
                 .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                 .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                 .build(),
-        ).setBufferSizeInBytes(maxOf(minBuffer, sampleCount * 2))
-        .setTransferMode(AudioTrack.MODE_STATIC)
-        .build()
-}
+        )
+
+private fun minBufferSizeBytes(sampleRateHz: Int): Int =
+    AudioTrack.getMinBufferSize(
+        sampleRateHz,
+        AudioFormat.CHANNEL_OUT_MONO,
+        AudioFormat.ENCODING_PCM_16BIT,
+    )

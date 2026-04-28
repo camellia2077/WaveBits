@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import com.bag.audioandroid.data.AndroidIntentAudioShareGateway
 import com.bag.audioandroid.data.AndroidSampleInputTextProvider
 import com.bag.audioandroid.data.AppSettingsRepository
+import com.bag.audioandroid.data.AppGeneratedAudioCacheGateway
 import com.bag.audioandroid.data.DefaultSavedAudioRepository
 import com.bag.audioandroid.data.MediaStoreAudioExportGateway
 import com.bag.audioandroid.data.MediaStoreSavedAudioLibraryGateway
@@ -23,13 +24,17 @@ internal fun rememberAudioAndroidViewModelFactory(appContext: Context): AudioAnd
             AndroidSampleInputTextProvider(appContext)
         }
     val playbackRuntimeGateway = remember { NativePlaybackRuntimeGateway() }
+    val generatedAudioCacheGateway =
+        remember(appContext) {
+            AppGeneratedAudioCacheGateway(appContext)
+        }
     val audioExportGateway =
         remember(appContext, audioIoGateway) {
             MediaStoreAudioExportGateway(appContext, audioIoGateway)
         }
     val savedAudioLibraryGateway =
         remember(appContext, audioIoGateway) {
-            MediaStoreSavedAudioLibraryGateway(appContext, audioIoGateway)
+            MediaStoreSavedAudioLibraryGateway(appContext, audioIoGateway, generatedAudioCacheGateway)
         }
     val audioShareGateway =
         remember(appContext) {
@@ -59,6 +64,7 @@ internal fun rememberAudioAndroidViewModelFactory(appContext: Context): AudioAnd
         appSettingsRepository,
         playbackRuntimeGateway,
         savedAudioRepository,
+        generatedAudioCacheGateway,
     ) {
         AudioAndroidViewModelFactory(
             audioCodecGateway = audioCodecGateway,
@@ -66,6 +72,7 @@ internal fun rememberAudioAndroidViewModelFactory(appContext: Context): AudioAnd
             appSettingsRepository = appSettingsRepository,
             playbackRuntimeGateway = playbackRuntimeGateway,
             savedAudioRepository = savedAudioRepository,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
         )
     }
 }

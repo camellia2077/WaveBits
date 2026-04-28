@@ -33,6 +33,7 @@ class BagUiTextMapper {
             BagApiCodes.ERROR_NOT_READY -> UiText.Resource(R.string.error_not_ready)
             BagApiCodes.ERROR_NOT_IMPLEMENTED -> UiText.Resource(R.string.error_not_implemented)
             BagApiCodes.ERROR_CANCELLED -> UiText.Resource(R.string.error_cancelled)
+            BagApiCodes.ERROR_ENCODED_AUDIO_TOO_LARGE -> UiText.Resource(R.string.error_encoded_audio_too_large)
             BagApiCodes.ERROR_INTERNAL -> UiText.Resource(R.string.error_internal)
             else -> UiText.Resource(R.string.error_internal)
         }

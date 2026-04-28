@@ -14,5 +14,6 @@
     <string name="error_not_ready">Результат ещё не готов.</string>
     <string name="error_not_implemented">Пока недоступно.</string>
     <string name="error_cancelled">Операция отменена.</string>
+    <string name="error_encoded_audio_too_large">Сгенерированное аудио слишком длинное для безопасной загрузки на этом устройстве.</string>
     <string name="error_internal">Внутренняя ошибка.</string>
 </resources>

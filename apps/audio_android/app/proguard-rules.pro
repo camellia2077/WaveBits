@@ -7,6 +7,7 @@
 # Native metadata/dto bridges are also annotated with @Keep in source. Keep the
 # rules here as a release-safety backstop for JNI descriptors and constructors.
 -keep class com.bag.audioandroid.domain.GeneratedAudioMetadata { *; }
+-keep class com.bag.audioandroid.domain.GeneratedAudioInputSourceKind { *; }
 -keep class com.bag.audioandroid.domain.DecodedAudioData { *; }
 
 # bag_api JNI builds payload/follow result objects with FindClass/NewObject,

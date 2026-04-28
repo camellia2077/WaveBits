@@ -9,7 +9,9 @@ import com.bag.audioandroid.ui.model.TransportModeOption
 @Composable
 internal fun AudioPlaybackDisplayBlock(
     displayedSamples: Int,
+    visualDisplayedSamples: Int = displayedSamples,
     waveformPcm: ShortArray,
+    isWaveformPreview: Boolean = false,
     sampleRateHz: Int,
     transportMode: TransportModeOption?,
     frameSamples: Int,
@@ -23,7 +25,9 @@ internal fun AudioPlaybackDisplayBlock(
     PlaybackDisplaySection(
         followData = followData,
         displayedSamples = displayedSamples,
+        visualDisplayedSamples = visualDisplayedSamples,
         waveformPcm = waveformPcm,
+        isWaveformPreview = isWaveformPreview,
         sampleRateHz = sampleRateHz,
         transportMode = transportMode,
         frameSamples = frameSamples,

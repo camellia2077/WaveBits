@@ -28,6 +28,8 @@
     <string name="error_not_implemented">Not available yet.</string>
     <!-- CONTEXT: Generic short user-facing error shown when an operation was cancelled before completion. -->
     <string name="error_cancelled">Operation cancelled.</string>
+    <!-- CONTEXT: User-facing error shown when generated audio would exceed the app's safe in-memory playback/export budget. -->
+    <string name="error_encoded_audio_too_large">Generated audio is too long to load safely on this device.</string>
     <!-- CONTEXT: Generic fallback user-facing error for unexpected internal failures. -->
     <string name="error_internal">Internal error.</string>
 </resources>

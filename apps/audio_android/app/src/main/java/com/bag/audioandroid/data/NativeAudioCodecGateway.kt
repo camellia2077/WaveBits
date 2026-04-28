@@ -193,7 +193,9 @@ internal fun Long.toStartFailureResultOrNull(): EncodeAudioResult? =
     }
 
 internal fun EncodedAudioPayloadResult.toEncodeSuccessOrFailureResult(): EncodeAudioResult =
-    if (pcm.isEmpty()) {
+    if (terminalCode != BagApiCodes.ERROR_OK) {
+        EncodeAudioResult.Failed(terminalCode)
+    } else if (pcm.isEmpty()) {
         EncodeAudioResult.Failed(BagApiCodes.ERROR_INTERNAL)
     } else {
         EncodeAudioResult.Success(
