@@ -15,15 +15,18 @@ type BagValidationIssue = c_int;
 const BAG_OK: BagErrorCode = 0;
 const BAG_NOT_READY: BagErrorCode = 2;
 const BAG_INTERNAL: BagErrorCode = 4;
-const BAG_TRANSPORT_FLASH: BagTransportMode = 0;
-const BAG_TRANSPORT_PRO: BagTransportMode = 1;
-const BAG_TRANSPORT_ULTRA: BagTransportMode = 2;
-const BAG_FLASH_SIGNAL_PROFILE_CODED_BURST: BagFlashSignalProfile = 0;
-const BAG_FLASH_SIGNAL_PROFILE_RITUAL_CHANT: BagFlashSignalProfile = 1;
-const BAG_FLASH_SIGNAL_PROFILE_DEEP_RITUAL: BagFlashSignalProfile = 2;
-const BAG_FLASH_VOICING_FLAVOR_CODED_BURST: BagFlashVoicingFlavor = 0;
-const BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT: BagFlashVoicingFlavor = 1;
-const BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL: BagFlashVoicingFlavor = 2;
+const BAG_TRANSPORT_MINI: BagTransportMode = 0;
+const BAG_TRANSPORT_FLASH: BagTransportMode = 1;
+const BAG_TRANSPORT_PRO: BagTransportMode = 2;
+const BAG_TRANSPORT_ULTRA: BagTransportMode = 3;
+const BAG_FLASH_SIGNAL_PROFILE_STEADY: BagFlashSignalProfile = 0;
+const BAG_FLASH_SIGNAL_PROFILE_LITANY: BagFlashSignalProfile = 1;
+const BAG_FLASH_SIGNAL_PROFILE_HOSTILE: BagFlashSignalProfile = 3;
+const BAG_FLASH_SIGNAL_PROFILE_COLLAPSE: BagFlashSignalProfile = 4;
+const BAG_FLASH_VOICING_FLAVOR_STEADY: BagFlashVoicingFlavor = 0;
+const BAG_FLASH_VOICING_FLAVOR_LITANY: BagFlashVoicingFlavor = 1;
+const BAG_FLASH_VOICING_FLAVOR_HOSTILE: BagFlashVoicingFlavor = 3;
+const BAG_FLASH_VOICING_FLAVOR_COLLAPSE: BagFlashVoicingFlavor = 4;
 const BAG_VALIDATION_OK: BagValidationIssue = 0;
 const BAG_ENCODE_JOB_QUEUED: c_int = 0;
 const BAG_ENCODE_JOB_RUNNING: c_int = 1;
@@ -166,7 +169,7 @@ impl CodecConfig {
             sample_rate_hz: DEFAULT_SAMPLE_RATE_HZ,
             frame_samples: default_frame_samples(DEFAULT_SAMPLE_RATE_HZ),
             mode,
-            flash_style: FlashStyle::CodedBurst,
+            flash_style: FlashStyle::Steady,
         }
     }
 }
@@ -330,17 +333,21 @@ fn flash_style_pair(
     style: FlashStyle,
 ) -> (BagFlashSignalProfile, BagFlashVoicingFlavor) {
     match style {
-        FlashStyle::CodedBurst => (
-            BAG_FLASH_SIGNAL_PROFILE_CODED_BURST,
-            BAG_FLASH_VOICING_FLAVOR_CODED_BURST,
+        FlashStyle::Steady => (
+            BAG_FLASH_SIGNAL_PROFILE_STEADY,
+            BAG_FLASH_VOICING_FLAVOR_STEADY,
         ),
-        FlashStyle::RitualChant => (
-            BAG_FLASH_SIGNAL_PROFILE_RITUAL_CHANT,
-            BAG_FLASH_VOICING_FLAVOR_RITUAL_CHANT,
+        FlashStyle::Hostile => (
+            BAG_FLASH_SIGNAL_PROFILE_HOSTILE,
+            BAG_FLASH_VOICING_FLAVOR_HOSTILE,
         ),
-        FlashStyle::DeepRitual => (
-            BAG_FLASH_SIGNAL_PROFILE_DEEP_RITUAL,
-            BAG_FLASH_VOICING_FLAVOR_DEEP_RITUAL,
+        FlashStyle::Litany => (
+            BAG_FLASH_SIGNAL_PROFILE_LITANY,
+            BAG_FLASH_VOICING_FLAVOR_LITANY,
+        ),
+        FlashStyle::Collapse => (
+            BAG_FLASH_SIGNAL_PROFILE_COLLAPSE,
+            BAG_FLASH_VOICING_FLAVOR_COLLAPSE,
         ),
     }
 }
@@ -350,6 +357,7 @@ fn to_bag_mode(mode: TransportMode) -> BagTransportMode {
         TransportMode::Flash => BAG_TRANSPORT_FLASH,
         TransportMode::Pro => BAG_TRANSPORT_PRO,
         TransportMode::Ultra => BAG_TRANSPORT_ULTRA,
+        TransportMode::Mini => BAG_TRANSPORT_MINI,
     }
 }
 

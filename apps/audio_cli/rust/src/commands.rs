@@ -80,7 +80,7 @@ fn decode_command(args: DecodeArgs) -> Result<RunOutput, CliError> {
         sample_rate_hz: decoded.sample_rate_hz,
         frame_samples: metadata.frame_samples,
         mode: metadata.mode,
-        flash_style: metadata.flash_voicing_style.unwrap_or(FlashStyle::CodedBurst),
+        flash_style: metadata.flash_voicing_style.unwrap_or(FlashStyle::Steady),
     };
     let text = bag_api::decode_pcm(&config, &decoded.pcm_samples).map_err(|error| {
         CliError::Api(format!(
@@ -102,7 +102,7 @@ fn build_cli_metadata(
     let duration_ms = ((pcm_sample_count as u64).saturating_mul(1000)
         / config.sample_rate_hz.max(1) as u64) as u32;
     audio_io_api::FlipBitsMetadata {
-        version: 5,
+        version: 6,
         mode,
         flash_voicing_style: if mode == TransportMode::Flash {
             Some(config.flash_style)
@@ -111,8 +111,10 @@ fn build_cli_metadata(
         },
         created_at_iso_utc: CLI_METADATA_CREATED_AT.to_string(),
         duration_ms,
+        sample_rate_hz: config.sample_rate_hz,
         frame_samples: config.frame_samples,
         pcm_sample_count,
+        payload_byte_count: 0,
         app_version: format!("FlipBits/{CLI_PRESENTATION_VERSION}"),
         core_version: bag_api::core_version().unwrap_or_else(|| "unknown".to_string()),
     }
@@ -122,6 +124,6 @@ fn flash_style_for_mode(mode: TransportMode, requested_style: FlashStyle) -> Fla
     if mode == TransportMode::Flash {
         requested_style
     } else {
-        FlashStyle::CodedBurst
+        FlashStyle::Steady
     }
 }

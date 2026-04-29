@@ -27,7 +27,7 @@ pub enum Command {
     #[command(
         about = "Encode text into a FlipBits WAV file",
         long_about = "Encode text into a mono PCM16 WAV file with embedded FlipBits metadata.",
-        after_help = "Mode guide:\n  flash  Flexible byte-oriented mode with FSK-like signaling. At the protocol level it is not restricted to ASCII.\n  pro    Telephone-tone-style high/low audio mode. ASCII-only input.\n  ultra  UTF-8 text mode for broader character coverage.\n\nCLI input boundary:\n  The current CLI accepts UTF-8 text only:\n  - --text is parsed as a Rust UTF-8 string.\n  - --text-file is read as a UTF-8 text file.\n  This means flash may be more permissive at the protocol level, but this CLI still accepts text through UTF-8 input only.\n\nFlash style guide:\n  coded_burst   Baseline flash style.\n  ritual_chant  Mid-weight flash style.\n  deep_ritual   Heavier flash style.\n\nExamples:\n  FlipBits encode --text \"hello\" --out out.wav\n  FlipBits encode --text \"hello\" --mode flash --flash-style ritual_chant --out out.wav\n  FlipBits encode --text \"ASCII ONLY\" --mode pro --out out.wav\n  FlipBits encode --text-file input.txt --mode ultra --out out.wav"
+        after_help = "Mode guide:\n  mini   Morse-code audio mode. Morse-compatible ASCII input.\n  flash  Flexible byte-oriented mode with FSK-like signaling. At the protocol level it is not restricted to ASCII.\n  pro    Telephone-tone-style high/low audio mode. ASCII-only input.\n  ultra  UTF-8 text mode for broader character coverage.\n\nCLI input boundary:\n  The current CLI accepts UTF-8 text only:\n  - --text is parsed as a Rust UTF-8 string.\n  - --text-file is read as a UTF-8 text file.\n  This means flash may be more permissive at the protocol level, but this CLI still accepts text through UTF-8 input only.\n\nFlash style guide:\n  steady    Restrained everyday machine speech.\n  hostile   Aggressive command tone.\n  litany    Slow ceremonial chant.\n  collapse  Fearful broken delivery.\n\nExamples:\n  FlipBits encode --text \"PRAISE THE OMNISSIAH\" --mode mini --out out.wav\n  FlipBits encode --text \"hello\" --out out.wav\n  FlipBits encode --text \"hello\" --mode flash --flash-style litany --out out.wav\n  FlipBits encode --text \"ASCII ONLY\" --mode pro --out out.wav\n  FlipBits encode --text-file input.txt --mode ultra --out out.wav"
     )]
     Encode(EncodeArgs),
     #[command(
@@ -40,6 +40,7 @@ pub enum Command {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
 pub enum TransportMode {
+    Mini,
     Flash,
     Pro,
     Ultra,
@@ -51,6 +52,7 @@ impl TransportMode {
             Self::Flash => "flash",
             Self::Pro => "pro",
             Self::Ultra => "ultra",
+            Self::Mini => "mini",
         }
     }
 }
@@ -64,17 +66,19 @@ impl Display for TransportMode {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
 #[value(rename_all = "snake_case")]
 pub enum FlashStyle {
-    CodedBurst,
-    RitualChant,
-    DeepRitual,
+    Steady,
+    Hostile,
+    Litany,
+    Collapse,
 }
 
 impl FlashStyle {
     pub fn as_str(self) -> &'static str {
         match self {
-            Self::CodedBurst => "coded_burst",
-            Self::RitualChant => "ritual_chant",
-            Self::DeepRitual => "deep_ritual",
+            Self::Steady => "steady",
+            Self::Hostile => "hostile",
+            Self::Litany => "litany",
+            Self::Collapse => "collapse",
         }
     }
 }
@@ -106,8 +110,8 @@ pub struct EncodeArgs {
     #[arg(
         long,
         value_enum,
-        default_value_t = FlashStyle::CodedBurst,
-        help = "Flash style for flash mode: coded_burst, ritual_chant, or deep_ritual"
+        default_value_t = FlashStyle::Steady,
+        help = "Flash style for flash mode: steady, hostile, litany, or collapse"
     )]
     pub flash_style: FlashStyle,
     #[arg(long, help = "Output WAV artifact path")]

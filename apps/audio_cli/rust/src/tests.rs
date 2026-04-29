@@ -31,7 +31,7 @@ fn parses_encode_command_with_text() {
         "--mode",
         "ultra",
         "--flash-style",
-        "deep_ritual",
+        "litany",
         "--out",
         "out.wav",
     ])
@@ -42,7 +42,7 @@ fn parses_encode_command_with_text() {
     };
     assert_eq!(args.text.as_deref(), Some("hello"));
     assert_eq!(args.mode, TransportMode::Ultra);
-    assert_eq!(args.flash_style, FlashStyle::DeepRitual);
+    assert_eq!(args.flash_style, FlashStyle::Litany);
     assert_eq!(args.out, PathBuf::from("out.wav"));
 }
 
@@ -85,16 +85,18 @@ fn licenses_output_mentions_notice_scope() {
 #[test]
 fn wav_bytes_start_with_riff_header() {
     let mut config = bag_api::CodecConfig::for_mode(TransportMode::Ultra);
-    config.flash_style = FlashStyle::DeepRitual;
+    config.flash_style = FlashStyle::Litany;
     let pcm_samples = bag_api::encode_text_with_progress(&config, "FlipBits WAV", |_| {}).unwrap();
     let metadata = audio_io_api::FlipBitsMetadata {
-        version: 5,
+        version: 6,
         mode: TransportMode::Ultra,
         flash_voicing_style: None,
         created_at_iso_utc: "1970-01-01T00:00:00Z".to_string(),
         duration_ms: 0,
+        sample_rate_hz: config.sample_rate_hz,
         frame_samples: config.frame_samples,
         pcm_sample_count: pcm_samples.len(),
+        payload_byte_count: 0,
         app_version: "FlipBits/test".to_string(),
         core_version: "test-core".to_string(),
     };
@@ -144,11 +146,13 @@ fn encode_help_mentions_flash_style() {
     assert!(help.contains("flash  Flexible byte-oriented mode with FSK-like signaling. At the protocol level it is not restricted to ASCII."));
     assert!(help.contains("pro    Telephone-tone-style high/low audio mode. ASCII-only input."));
     assert!(help.contains("ultra  UTF-8 text mode for broader character coverage."));
+    assert!(help.contains("mini   Morse-code audio mode. Morse-compatible ASCII input."));
     assert!(help.contains("CLI input boundary:"));
     assert!(help.contains("The current CLI accepts UTF-8 text only:"));
     assert!(help.contains("--text is parsed as a Rust UTF-8 string."));
     assert!(help.contains("--text-file is read as a UTF-8 text file."));
-    assert!(help.contains("coded_burst"));
-    assert!(help.contains("ritual_chant"));
-    assert!(help.contains("deep_ritual"));
+    assert!(help.contains("steady"));
+    assert!(help.contains("hostile"));
+    assert!(help.contains("litany"));
+    assert!(help.contains("collapse"));
 }

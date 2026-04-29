@@ -50,7 +50,7 @@ fn encode_writes_wav_file() {
             "--mode",
             "flash",
             "--flash-style",
-            "deep_ritual",
+            "litany",
             "--out",
             output_path.to_str().unwrap(),
         ])
@@ -232,7 +232,8 @@ fn encode_help_mentions_android_aligned_flash_styles() {
         .assert()
         .success()
         .stdout(predicate::str::contains("--flash-style"))
-        .stdout(predicate::str::contains("coded_burst"))
-        .stdout(predicate::str::contains("ritual_chant"))
-        .stdout(predicate::str::contains("deep_ritual"));
+        .stdout(predicate::str::contains("steady"))
+        .stdout(predicate::str::contains("hostile"))
+        .stdout(predicate::str::contains("litany"))
+        .stdout(predicate::str::contains("collapse"));
 }
