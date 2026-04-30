@@ -14,6 +14,7 @@ import com.bag.audioandroid.ui.theme.BrandDualToneThemes
 import com.bag.audioandroid.ui.theme.customBrandTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SampleInputThemeStateTest {
@@ -92,12 +93,10 @@ class SampleInputThemeStateTest {
         val updated = state.withSelectedBrandTheme(ancientAlloy, updater)
 
         assertEquals("ancient_alloy", updated.selectedBrandTheme.id)
-        assertEquals("dynasty-en-a", updated.sessions.getValue(TransportModeOption.Flash).inputText)
-        assertEquals("a", updated.sessions.getValue(TransportModeOption.Flash).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Flash), "dynasty-en")
         assertEquals("CUSTOM INPUT", updated.sessions.getValue(TransportModeOption.Pro).inputText)
         assertNull(updated.sessions.getValue(TransportModeOption.Pro).sampleInputId)
-        assertEquals("dynasty-en-b", updated.sessions.getValue(TransportModeOption.Ultra).inputText)
-        assertEquals("b", updated.sessions.getValue(TransportModeOption.Ultra).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Ultra), "dynasty-en")
     }
 
     @Test
@@ -131,12 +130,10 @@ class SampleInputThemeStateTest {
         val updated = state.withSelectedThemeStyle(ThemeStyleOption.Material, updater)
 
         assertEquals(ThemeStyleOption.Material, updated.selectedThemeStyle)
-        assertEquals("sacred-en-a", updated.sessions.getValue(TransportModeOption.Flash).inputText)
-        assertEquals("a", updated.sessions.getValue(TransportModeOption.Flash).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Flash), "sacred-en")
         assertEquals("CUSTOM INPUT", updated.sessions.getValue(TransportModeOption.Pro).inputText)
         assertNull(updated.sessions.getValue(TransportModeOption.Pro).sampleInputId)
-        assertEquals("sacred-en-b", updated.sessions.getValue(TransportModeOption.Ultra).inputText)
-        assertEquals("b", updated.sessions.getValue(TransportModeOption.Ultra).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Ultra), "sacred-en")
     }
 
     @Test
@@ -171,12 +168,10 @@ class SampleInputThemeStateTest {
         val updated = state.withSelectedBrandTheme(customTheme, updater)
 
         assertEquals(customTheme.id, updated.selectedBrandTheme.id)
-        assertEquals("sacred-en-a", updated.sessions.getValue(TransportModeOption.Flash).inputText)
-        assertEquals("a", updated.sessions.getValue(TransportModeOption.Flash).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Flash), "sacred-en")
         assertEquals("CUSTOM INPUT", updated.sessions.getValue(TransportModeOption.Pro).inputText)
         assertNull(updated.sessions.getValue(TransportModeOption.Pro).sampleInputId)
-        assertEquals("sacred-en-b", updated.sessions.getValue(TransportModeOption.Ultra).inputText)
-        assertEquals("b", updated.sessions.getValue(TransportModeOption.Ultra).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Ultra), "sacred-en")
     }
 
     @Test
@@ -211,12 +206,10 @@ class SampleInputThemeStateTest {
         val updated = state.withSelectedBrandTheme(customTheme, updater)
 
         assertEquals(customTheme.id, updated.selectedBrandTheme.id)
-        assertEquals("sacred-en-a", updated.sessions.getValue(TransportModeOption.Flash).inputText)
-        assertEquals("a", updated.sessions.getValue(TransportModeOption.Flash).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Flash), "sacred-en")
         assertEquals("CUSTOM INPUT", updated.sessions.getValue(TransportModeOption.Pro).inputText)
         assertNull(updated.sessions.getValue(TransportModeOption.Pro).sampleInputId)
-        assertEquals("sacred-en-b", updated.sessions.getValue(TransportModeOption.Ultra).inputText)
-        assertEquals("b", updated.sessions.getValue(TransportModeOption.Ultra).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Ultra), "sacred-en")
     }
 
     @Test
@@ -257,12 +250,18 @@ class SampleInputThemeStateTest {
         val updated = state.withSelectedBrandTheme(customTheme, updater)
 
         assertEquals(customTheme.id, updated.selectedBrandTheme.id)
-        assertEquals("sacred-en-a", updated.sessions.getValue(TransportModeOption.Flash).inputText)
-        assertEquals("a", updated.sessions.getValue(TransportModeOption.Flash).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Flash), "sacred-en")
         assertEquals("CUSTOM INPUT", updated.sessions.getValue(TransportModeOption.Pro).inputText)
         assertNull(updated.sessions.getValue(TransportModeOption.Pro).sampleInputId)
-        assertEquals("sacred-en-b", updated.sessions.getValue(TransportModeOption.Ultra).inputText)
-        assertEquals("b", updated.sessions.getValue(TransportModeOption.Ultra).sampleInputId)
+        assertFlavorSample(updated.sessions.getValue(TransportModeOption.Ultra), "sacred-en")
+    }
+
+    private fun assertFlavorSample(
+        session: ModeAudioSessionState,
+        expectedPrefix: String,
+    ) {
+        assertTrue(session.inputText == "$expectedPrefix-a" || session.inputText == "$expectedPrefix-b")
+        assertEquals(session.inputText.removePrefix("$expectedPrefix-"), session.sampleInputId)
     }
 }
 

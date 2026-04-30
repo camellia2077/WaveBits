@@ -135,6 +135,7 @@
     <string name="audio_player_detail_saved_generated_time">Generato il</string>
     <string name="audio_player_detail_saved_input_source">Origine input</string>
     <string name="audio_player_detail_saved_sample_rate">Frequenza di campionamento</string>
+    <string name="audio_player_detail_saved_file_size">Dimensione file</string>
     <string name="audio_player_detail_saved_payload_bytes">Dimensione payload</string>
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d byte</string>
     <string name="audio_generated_input_source_manual">Manuale</string>

@@ -135,6 +135,7 @@
     <string name="audio_player_detail_saved_generated_time">Tempus generationis</string>
     <string name="audio_player_detail_saved_input_source">Origo initus</string>
     <string name="audio_player_detail_saved_sample_rate">Ratus exemplorum</string>
+    <string name="audio_player_detail_saved_file_size">Magnitudo fasciculi</string>
     <string name="audio_player_detail_saved_payload_bytes">Magnitudo oneris</string>
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d octeti</string>
     <string name="audio_generated_input_source_manual">Manualis</string>

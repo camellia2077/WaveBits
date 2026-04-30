@@ -133,4 +133,19 @@ class FlashSignalVisualizationAnalysisTest {
         assertEquals(FskDominantTone.Low, interiorBucket.dominantTone)
         assertTrue(boundaryBucket.lowStrength < interiorBucket.lowStrength * 0.5f)
     }
+
+    @Test
+    fun `flash visualization analysis samples quantize to twenty four fps`() {
+        assertEquals(1837, visualizationAnalysisSampleStep(sampleRateHz = 44_100, totalSamples = 44_100))
+        assertEquals(1, visualizationAnalysisSampleStep(sampleRateHz = 10, totalSamples = 44_100))
+        assertEquals(120, visualizationAnalysisSampleStep(sampleRateHz = 44_100, totalSamples = 120))
+        assertEquals(
+            1837f,
+            quantizeVisualizationDisplayedSamples(
+                displayedSamples = 1900f,
+                sampleStep = 1837,
+                totalSamples = 44_100,
+            ),
+        )
+    }
 }

@@ -266,6 +266,8 @@
     <string name="audio_player_detail_saved_input_source">Input source</string>
     <!-- CONTEXT: Label in saved-audio surfaces for the render sample rate recorded with the generated file metadata. -->
     <string name="audio_player_detail_saved_sample_rate">Sample rate</string>
+    <!-- CONTEXT: Label in saved-audio surfaces for the actual saved audio file size on disk. -->
+    <string name="audio_player_detail_saved_file_size">File size</string>
     <!-- CONTEXT: Label in saved-audio surfaces for the UTF-8 payload size that was encoded into the generated audio. -->
     <string name="audio_player_detail_saved_payload_bytes">Payload size</string>
     <!-- CONTEXT: Value formatter in saved-audio surfaces for the UTF-8 payload size. %1$d is the byte count. -->

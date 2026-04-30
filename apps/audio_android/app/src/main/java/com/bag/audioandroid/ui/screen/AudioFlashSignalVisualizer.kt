@@ -81,6 +81,31 @@ internal fun AudioFlashSignalVisualizer(
     val followDisplayedSamplePosition = clampedFollowDisplayedSamples.toFloat()
     val glowPulse = if (isPlaying) glowPulseAnimated else 0.82f
     val sweepPhase = if (isPlaying) sweepAnimated else 0.24f
+    val analysisCache = remember(pcm, sampleRateHz, input.bucketSource) { FlashSignalAnalysisCache() }
+    val analysisSampleStep =
+        remember(sampleRateHz, totalSamples) {
+            visualizationAnalysisSampleStep(sampleRateHz = sampleRateHz, totalSamples = totalSamples)
+        }
+    val analysisDisplayedSamplePosition =
+        remember(displayedSamplePosition, analysisSampleStep, totalSamples) {
+            quantizeVisualizationDisplayedSamples(
+                displayedSamples = displayedSamplePosition,
+                sampleStep = analysisSampleStep,
+                totalSamples = totalSamples,
+            )
+        }
+    val followAnalysisSampleStep =
+        remember(sampleRateHz, followTimelineTotalSamples) {
+            visualizationAnalysisSampleStep(sampleRateHz = sampleRateHz, totalSamples = followTimelineTotalSamples)
+        }
+    val followAnalysisDisplayedSamplePosition =
+        remember(followDisplayedSamplePosition, followAnalysisSampleStep, followTimelineTotalSamples) {
+            quantizeVisualizationDisplayedSamples(
+                displayedSamples = followDisplayedSamplePosition,
+                sampleStep = followAnalysisSampleStep,
+                totalSamples = followTimelineTotalSamples,
+            )
+        }
 
     BoxWithConstraints(
         modifier =
@@ -111,34 +136,53 @@ internal fun AudioFlashSignalVisualizer(
                 input.bucketSource,
                 targetBucketCount,
                 windowSampleCount,
-                displayedSamplePosition,
-                followDisplayedSamplePosition,
+                analysisDisplayedSamplePosition,
+                followAnalysisDisplayedSamplePosition,
             ) {
                 when (val bucketSource = input.bucketSource) {
                     is FlashSignalBucketSource.FollowTimeline ->
-                        buildFskEnergyBucketsFromFollowData(
-                            followData = bucketSource.followData,
-                            currentSample = followDisplayedSamplePosition,
+                        analysisCache
+                            .followBuckets(
+                                currentSample = followAnalysisDisplayedSamplePosition,
+                                windowSampleCount = windowSampleCount,
+                                targetBucketCount = targetBucketCount,
+                            ) {
+                                buildFskEnergyBucketsFromFollowData(
+                                    followData = bucketSource.followData,
+                                    currentSample = followAnalysisDisplayedSamplePosition,
+                                    windowSampleCount = windowSampleCount,
+                                    targetBucketCount = targetBucketCount,
+                                )
+                            }.ifEmpty {
+                                analysisCache.pcmBuckets(
+                                    currentSample = analysisDisplayedSamplePosition,
+                                    windowSampleCount = windowSampleCount,
+                                    targetBucketCount = targetBucketCount,
+                                ) {
+                                    buildFskEnergyBuckets(
+                                        pcm = pcm,
+                                        sampleRateHz = sampleRateHz,
+                                        currentSample = analysisDisplayedSamplePosition,
+                                        windowSampleCount = windowSampleCount,
+                                        targetBucketCount = targetBucketCount,
+                                    )
+                                }
+                            }
+
+                    is FlashSignalBucketSource.Pcm ->
+                        analysisCache.pcmBuckets(
+                            currentSample = analysisDisplayedSamplePosition,
                             windowSampleCount = windowSampleCount,
                             targetBucketCount = targetBucketCount,
-                        ).ifEmpty {
+                        ) {
                             buildFskEnergyBuckets(
                                 pcm = pcm,
                                 sampleRateHz = sampleRateHz,
-                                currentSample = displayedSamplePosition,
+                                currentSample = analysisDisplayedSamplePosition,
                                 windowSampleCount = windowSampleCount,
                                 targetBucketCount = targetBucketCount,
                             )
                         }
-
-                    is FlashSignalBucketSource.Pcm ->
-                        buildFskEnergyBuckets(
-                            pcm = pcm,
-                            sampleRateHz = sampleRateHz,
-                            currentSample = displayedSamplePosition,
-                            windowSampleCount = windowSampleCount,
-                            targetBucketCount = targetBucketCount,
-                        )
                 }
             }
 
@@ -249,3 +293,62 @@ internal fun AudioFlashSignalVisualizer(
 
 private const val FlashSignalMinBucketCount = 56
 private const val FlashSignalMaxBucketCount = 124
+
+private class FlashSignalAnalysisCache {
+    private val bucketsByKey = LinkedHashMap<FlashSignalAnalysisCacheKey, List<FskEnergyBucket>>()
+
+    fun pcmBuckets(
+        currentSample: Float,
+        windowSampleCount: Int,
+        targetBucketCount: Int,
+        build: () -> List<FskEnergyBucket>,
+    ): List<FskEnergyBucket> =
+        bucketsFor(
+            FlashSignalAnalysisCacheKey(
+                source = "pcm",
+                currentSample = currentSample.toInt(),
+                windowSampleCount = windowSampleCount,
+                targetBucketCount = targetBucketCount,
+            ),
+            build,
+        )
+
+    fun followBuckets(
+        currentSample: Float,
+        windowSampleCount: Int,
+        targetBucketCount: Int,
+        build: () -> List<FskEnergyBucket>,
+    ): List<FskEnergyBucket> =
+        bucketsFor(
+            FlashSignalAnalysisCacheKey(
+                source = "follow",
+                currentSample = currentSample.toInt(),
+                windowSampleCount = windowSampleCount,
+                targetBucketCount = targetBucketCount,
+            ),
+            build,
+        )
+
+    private fun bucketsFor(
+        key: FlashSignalAnalysisCacheKey,
+        build: () -> List<FskEnergyBucket>,
+    ): List<FskEnergyBucket> {
+        bucketsByKey[key]?.let { return it }
+        val buckets = build()
+        bucketsByKey[key] = buckets
+        if (bucketsByKey.size > FlashSignalAnalysisCacheMaxEntries) {
+            val eldestKey = bucketsByKey.keys.first()
+            bucketsByKey.remove(eldestKey)
+        }
+        return buckets
+    }
+}
+
+private data class FlashSignalAnalysisCacheKey(
+    val source: String,
+    val currentSample: Int,
+    val windowSampleCount: Int,
+    val targetBucketCount: Int,
+)
+
+private const val FlashSignalAnalysisCacheMaxEntries = 12

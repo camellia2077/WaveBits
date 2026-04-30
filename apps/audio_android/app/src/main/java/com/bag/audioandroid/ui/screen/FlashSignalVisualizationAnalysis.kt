@@ -8,6 +8,7 @@ import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 internal enum class FskDominantTone {
@@ -320,3 +321,28 @@ private const val FlashSignalTimelineSymbolEdgeFloor = 0.12f
 
 internal fun flashSignalActiveWindowBucketCount(flashVoicingStyle: FlashVoicingStyleOption?): Int =
     flashVoicingStyle?.flashVisualActiveWindowBucketCount ?: 3
+
+internal fun visualizationAnalysisSampleStep(
+    sampleRateHz: Int,
+    totalSamples: Int,
+): Int =
+    (sampleRateHz.coerceAtLeast(1) / VisualizationAnalysisFramesPerSecond)
+        .coerceAtLeast(1)
+        .coerceAtMost(totalSamples.coerceAtLeast(1))
+
+internal fun quantizeVisualizationDisplayedSamples(
+    displayedSamples: Float,
+    sampleStep: Int,
+    totalSamples: Int,
+): Float {
+    val safeStep = sampleStep.coerceAtLeast(1)
+    val safeTotalSamples = totalSamples.coerceAtLeast(1)
+    val clampedDisplayedSamples = displayedSamples.coerceIn(0f, safeTotalSamples.toFloat())
+    return (clampedDisplayedSamples / safeStep.toFloat())
+        .roundToInt()
+        .times(safeStep)
+        .coerceIn(0, safeTotalSamples)
+        .toFloat()
+}
+
+private const val VisualizationAnalysisFramesPerSecond = 24

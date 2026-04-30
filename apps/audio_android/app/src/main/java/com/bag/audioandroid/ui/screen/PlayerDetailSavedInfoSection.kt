@@ -72,6 +72,12 @@ internal fun PlayerDetailSavedInfoSection(
                     value = stringResource(R.string.audio_info_sample_rate_value, savedSampleRateHz),
                 )
             }
+            item.fileSizeBytes?.let { fileSizeBytes ->
+                PlayerDetailInfoRow(
+                    label = stringResource(R.string.audio_player_detail_saved_file_size),
+                    value = stringResource(R.string.audio_player_detail_saved_payload_bytes_value, fileSizeBytes),
+                )
+            }
             item.payloadByteCount?.let { payloadByteCount ->
                 PlayerDetailInfoRow(
                     label = stringResource(R.string.audio_player_detail_saved_payload_bytes),

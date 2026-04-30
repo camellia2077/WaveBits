@@ -24,12 +24,13 @@ class MediaStoreSavedAudioLibraryGateway(
     private val namingPolicy = SavedAudioFileNamingPolicy()
     private val metadataReader = SavedAudioMetadataReader(audioIoGateway)
     private val audioIoGateway = audioIoGateway
+    private val metadataCache = mutableMapOf<String, CachedSavedAudioMetadata?>()
 
     override fun listSavedAudio(): List<SavedAudioItem> =
         queries.listRows().map { row ->
             metadataReader.toSavedAudioItem(
                 row = row,
-                metadata = metadataReader.readAudioMetadataHeader(contentResolver, row.uri),
+                metadata = cachedMetadataForRow(row),
                 unknownModeWireName = UNKNOWN_MODE,
             )
         }
@@ -37,7 +38,13 @@ class MediaStoreSavedAudioLibraryGateway(
     override fun loadSavedAudio(itemId: String): SavedAudioContent? {
         val savedAudioItem = findSavedAudioItem(itemId) ?: return null
         val uri = queries.uriForItemId(itemId) ?: return null
-        val metadata = metadataReader.readAudioMetadataHeader(contentResolver, uri)
+        val row = queries.findRow(itemId)
+        val metadata =
+            if (row != null) {
+                cachedMetadataForRow(row)
+            } else {
+                metadataReader.readAudioMetadataHeader(contentResolver, uri)
+            }
         if (shouldUseFileBackedLoad(savedAudioItem, metadata)) {
             return loadSavedAudioFileBacked(savedAudioItem, uri, metadata)
         }
@@ -60,7 +67,12 @@ class MediaStoreSavedAudioLibraryGateway(
         )
     }
 
-    override fun deleteSavedAudio(itemId: String): Boolean = queries.delete(itemId)
+    override fun deleteSavedAudio(itemId: String): Boolean =
+        queries.delete(itemId).also { deleted ->
+            if (deleted) {
+                metadataCache.remove(itemId)
+            }
+        }
 
     override fun renameSavedAudio(
         itemId: String,
@@ -77,6 +89,7 @@ class MediaStoreSavedAudioLibraryGateway(
         if (!queries.rename(itemId, finalDisplayName)) {
             return SavedAudioRenameResult.Failed
         }
+        metadataCache.remove(itemId)
         return findSavedAudioItem(itemId)
             ?.let { SavedAudioRenameResult.Success(it) }
             ?: SavedAudioRenameResult.Failed
@@ -121,6 +134,7 @@ class MediaStoreSavedAudioLibraryGateway(
                         metadata = decoded.metadata,
                         pcmSize = decoded.pcm.size,
                         sampleRateHz = decoded.sampleRateHz,
+                        fileSizeBytes = sourceBytes.size.toLong(),
                         unknownModeWireName = UNKNOWN_MODE,
                     )
             }.getOrElse {
@@ -152,10 +166,33 @@ class MediaStoreSavedAudioLibraryGateway(
         queries.findRow(itemId)?.let { row ->
             metadataReader.toSavedAudioItem(
                 row = row,
-                metadata = metadataReader.readAudioMetadataHeader(contentResolver, row.uri),
+                metadata = cachedMetadataForRow(row),
                 unknownModeWireName = UNKNOWN_MODE,
             )
         }
+
+    private fun cachedMetadataForRow(row: MediaStoreSavedAudioRow): com.bag.audioandroid.domain.GeneratedAudioMetadata? {
+        val itemId = row.id.toString()
+        val cached = metadataCache[itemId]
+        if (cached != null &&
+            cached.displayName == row.displayName &&
+            cached.durationMs == row.durationMs &&
+            cached.dateAddedEpochSeconds == row.dateAddedEpochSeconds
+        ) {
+            return cached.metadata
+        }
+        // Listing saved audio is a hot UI path. Cache both readable and missing metadata
+        // so repeated Saved tab visits do not reopen every WAV just to read the header.
+        val metadata = metadataReader.readAudioMetadataHeader(contentResolver, row.uri)
+        metadataCache[itemId] =
+            CachedSavedAudioMetadata(
+                displayName = row.displayName,
+                durationMs = row.durationMs,
+                dateAddedEpochSeconds = row.dateAddedEpochSeconds,
+                metadata = metadata,
+            )
+        return metadata
+    }
 
     private fun loadSavedAudioFileBacked(
         savedAudioItem: SavedAudioItem,
@@ -206,3 +243,10 @@ class MediaStoreSavedAudioLibraryGateway(
         const val LONG_AUDIO_WAVEFORM_PREVIEW_POINTS = 4096
     }
 }
+
+private data class CachedSavedAudioMetadata(
+    val displayName: String,
+    val durationMs: Long,
+    val dateAddedEpochSeconds: Long,
+    val metadata: com.bag.audioandroid.domain.GeneratedAudioMetadata?,
+)

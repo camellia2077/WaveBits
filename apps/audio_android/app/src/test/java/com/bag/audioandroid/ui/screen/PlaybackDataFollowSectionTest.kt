@@ -58,7 +58,7 @@ class PlaybackDataFollowSectionTest {
         composeRule.onNodeWithTag("follow-token-strip").assertIsDisplayed()
         composeRule.onNodeWithText("BELL").assertIsDisplayed()
         composeRule.onNodeWithText("42").assertIsDisplayed()
-        composeRule.onAllNodesWithText("4C").assertCountEquals(2)
+        composeRule.onAllNodesWithText("4C").assertCountEquals(1)
     }
 
     @Test

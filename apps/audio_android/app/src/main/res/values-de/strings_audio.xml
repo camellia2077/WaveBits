@@ -135,6 +135,7 @@
     <string name="audio_player_detail_saved_generated_time">Erstellt am</string>
     <string name="audio_player_detail_saved_input_source">Eingabequelle</string>
     <string name="audio_player_detail_saved_sample_rate">Abtastrate</string>
+    <string name="audio_player_detail_saved_file_size">Dateigröße</string>
     <string name="audio_player_detail_saved_payload_bytes">Payload-Größe</string>
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d Byte</string>
     <string name="audio_generated_input_source_manual">Manuell</string>

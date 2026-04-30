@@ -8,6 +8,7 @@ import com.bag.audioandroid.ui.state.AudioAppUiState
 import com.bag.audioandroid.ui.state.PlaybackUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import java.util.concurrent.ConcurrentHashMap
 
 internal class AudioPlaybackUiStateSync(
     private val uiState: MutableStateFlow<AudioAppUiState>,
@@ -17,6 +18,8 @@ internal class AudioPlaybackUiStateSync(
     private val playbackSessionReducer: PlaybackSessionReducer,
     private val sampleRateHz: Int,
 ) {
+    private val lastProgressUiUpdateNanosBySource = ConcurrentHashMap<String, Long>()
+
     fun updatePlaybackState(
         source: AudioPlaybackSource,
         transform: (PlaybackUiState) -> PlaybackUiState,
@@ -64,6 +67,9 @@ internal class AudioPlaybackUiStateSync(
         playedSamples: Int,
         totalSamples: Int,
     ) {
+        if (!shouldPublishProgressToUi(source, playedSamples, totalSamples)) {
+            return
+        }
         updatePlaybackState(source) { currentPlayback ->
             val playbackBase =
                 if (currentPlayback.totalSamples == 0 && totalSamples > 0) {
@@ -81,18 +87,56 @@ internal class AudioPlaybackUiStateSync(
     }
 
     fun applyPlaybackCompleted(source: AudioPlaybackSource) {
+        resetProgressThrottle(source)
         updatePlaybackState(source) { playbackRuntimeGateway.completed(it) }
         setCurrentStatusText(UiText.Resource(R.string.status_playback_completed))
     }
 
     fun applyPlaybackFailed(sourceKey: String) {
         val source = playbackSourceCoordinator.sourceForKey(uiState.value, sourceKey) ?: return
+        resetProgressThrottle(source)
         updatePlaybackState(source) { playbackRuntimeGateway.failed(it) }
         setCurrentStatusText(UiText.Resource(R.string.status_playback_failed))
     }
 
     fun applyPlaybackStopped(source: AudioPlaybackSource) {
+        resetProgressThrottle(source)
         updatePlaybackState(source) { playbackRuntimeGateway.stopped(it) }
         setCurrentStatusText(UiText.Resource(R.string.status_playback_stopped))
+    }
+
+    private fun shouldPublishProgressToUi(
+        source: AudioPlaybackSource,
+        playedSamples: Int,
+        totalSamples: Int,
+    ): Boolean {
+        val sourceKey = progressThrottleKey(source)
+        val nowNanos = System.nanoTime()
+        val lastUpdateNanos = lastProgressUiUpdateNanosBySource[sourceKey]
+        val isBoundaryProgress = playedSamples <= 0 || (totalSamples > 0 && playedSamples >= totalSamples)
+        val shouldPublish =
+            isBoundaryProgress ||
+                lastUpdateNanos == null ||
+                nowNanos - lastUpdateNanos >= PlaybackProgressUiUpdateIntervalNanos
+        if (shouldPublish) {
+            // Playback polling can stay precise; only global Compose state is throttled
+            // so visual playback does not force the entire app tree through 60Hz updates.
+            lastProgressUiUpdateNanosBySource[sourceKey] = nowNanos
+        }
+        return shouldPublish
+    }
+
+    private fun resetProgressThrottle(source: AudioPlaybackSource) {
+        lastProgressUiUpdateNanosBySource.remove(progressThrottleKey(source))
+    }
+
+    private fun progressThrottleKey(source: AudioPlaybackSource): String =
+        when (source) {
+            is AudioPlaybackSource.Generated -> "generated:${source.mode.wireName}"
+            is AudioPlaybackSource.Saved -> "saved:${source.itemId}"
+        }
+
+    private companion object {
+        const val PlaybackProgressUiUpdateIntervalNanos = 33_000_000L
     }
 }

@@ -28,10 +28,10 @@ class AppLocaleResourcesTest {
     fun `extended locales resolve their own translated resources`() {
         val cases =
             listOf(
-                AppLanguageOption.German to "Wähle die App-Sprache",
+                AppLanguageOption.German to "App-Sprache wählen",
                 AppLanguageOption.Russian to "Выберите язык приложения",
-                AppLanguageOption.Spanish to "Elige el idioma de la aplicación",
-                AppLanguageOption.Portuguese to "Escolha o idioma do aplicativo",
+                AppLanguageOption.Spanish to "Elegir idioma de la app",
+                AppLanguageOption.Portuguese to "Escolha o idioma do app",
             )
 
         cases.forEach { (language, expectedSubtitle) ->

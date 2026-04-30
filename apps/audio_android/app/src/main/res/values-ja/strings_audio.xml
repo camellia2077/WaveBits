@@ -153,6 +153,7 @@
     <string name="audio_player_detail_saved_generated_time">生成日時</string>
     <string name="audio_player_detail_saved_input_source">入力元</string>
     <string name="audio_player_detail_saved_sample_rate">サンプルレート</string>
+    <string name="audio_player_detail_saved_file_size">ファイルサイズ</string>
     <string name="audio_player_detail_saved_payload_bytes">ペイロードサイズ</string>
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d バイト</string>
     <string name="audio_generated_input_source_manual">手動</string>

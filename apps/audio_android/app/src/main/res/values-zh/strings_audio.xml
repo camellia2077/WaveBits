@@ -153,6 +153,7 @@
     <string name="audio_player_detail_saved_generated_time">生成时间</string>
     <string name="audio_player_detail_saved_input_source">输入来源</string>
     <string name="audio_player_detail_saved_sample_rate">采样率</string>
+    <string name="audio_player_detail_saved_file_size">文件大小</string>
     <string name="audio_player_detail_saved_payload_bytes">载荷大小</string>
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d 字节</string>
     <string name="audio_generated_input_source_manual">手动输入</string>

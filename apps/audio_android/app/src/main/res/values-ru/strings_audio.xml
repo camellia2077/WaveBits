@@ -135,6 +135,7 @@
     <string name="audio_player_detail_saved_generated_time">Время генерации</string>
     <string name="audio_player_detail_saved_input_source">Источник ввода</string>
     <string name="audio_player_detail_saved_sample_rate">Частота дискретизации</string>
+    <string name="audio_player_detail_saved_file_size">Размер файла</string>
     <string name="audio_player_detail_saved_payload_bytes">Размер полезной нагрузки</string>
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d байт</string>
     <string name="audio_generated_input_source_manual">Вручную</string>

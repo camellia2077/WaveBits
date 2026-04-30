@@ -17,6 +17,8 @@ data class SavedAudioItem(
     val sampleRateHz: Int? = null,
     // Distinguishes hand-entered text from built-in sample text so saved audio provenance stays visible.
     val inputSourceKind: GeneratedAudioInputSourceKind? = null,
+    // Actual saved audio file size from MediaStore, distinct from the encoded payload size.
+    val fileSizeBytes: Long? = null,
     // Helps explain payload scale without showing the original text content again in library surfaces.
     val payloadByteCount: Int? = null,
 )

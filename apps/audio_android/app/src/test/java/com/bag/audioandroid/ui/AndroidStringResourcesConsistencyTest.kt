@@ -34,8 +34,8 @@ class AndroidStringResourcesConsistencyTest {
                     val localizedValue = localizedStrings.getValue(key)
                     assertEquals(
                         "Placeholder signature mismatch for key '$key' in $directory",
-                        placeholderSignature(baseValue),
-                        placeholderSignature(localizedValue),
+                        placeholderSignature(baseValue).sorted(),
+                        placeholderSignature(localizedValue).sorted(),
                     )
                 }
             }
@@ -55,16 +55,33 @@ class AndroidStringResourcesConsistencyTest {
 
     private fun loadMaintainedLocaleStringMaps(): Map<String, Map<String, String>> =
         MaintainedLocaleDirectories.associateWith { directory ->
-            parseStringsXml(resolveStringsFile(directory))
+            parseStringsXmlFiles(resolveStringsFiles(directory))
         }
 
-    private fun resolveStringsFile(directory: String): File {
-        val file = File("src/main/res/$directory/strings.xml")
-        require(file.exists()) { "Missing strings.xml for $directory at ${file.absolutePath}" }
-        return file
+    private fun resolveStringsFiles(directory: String): List<File> {
+        val resourceDirectory = File("src/main/res/$directory")
+        require(resourceDirectory.exists()) { "Missing resource directory for $directory at ${resourceDirectory.absolutePath}" }
+        val files =
+            resourceDirectory
+                .listFiles { file -> file.isFile && file.name.startsWith("strings") && file.extension == "xml" }
+                .orEmpty()
+                .sortedBy(File::getName)
+        require(files.isNotEmpty()) { "Missing strings*.xml for $directory at ${resourceDirectory.absolutePath}" }
+        return files.toList()
     }
 
-    private fun parseStringsXml(file: File): Map<String, String> {
+    private fun parseStringsXmlFiles(files: List<File>): Map<String, String> {
+        val values = linkedMapOf<String, String>()
+        files.forEach { file ->
+            parseStringsXml(file, values)
+        }
+        return values
+    }
+
+    private fun parseStringsXml(
+        file: File,
+        values: MutableMap<String, String>,
+    ) {
         val documentBuilder =
             DocumentBuilderFactory
                 .newInstance()
@@ -74,15 +91,14 @@ class AndroidStringResourcesConsistencyTest {
                 }.newDocumentBuilder()
         val document = documentBuilder.parse(file)
         val nodes = document.getElementsByTagName("string")
-        val values = linkedMapOf<String, String>()
 
         for (index in 0 until nodes.length) {
             val node = nodes.item(index)
             val attributes = node.attributes ?: continue
             val key = attributes.getNamedItem("name")?.nodeValue ?: continue
+            require(!values.containsKey(key)) { "Duplicate string key '$key' in ${file.absolutePath}" }
             values[key] = node.textContent.orEmpty().trim()
         }
-        return values
     }
 
     private fun placeholderSignature(value: String): List<String> {

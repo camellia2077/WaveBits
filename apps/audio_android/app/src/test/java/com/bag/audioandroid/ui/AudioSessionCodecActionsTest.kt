@@ -376,7 +376,10 @@ class AudioSessionCodecActionsTest {
             advanceUntilIdle()
 
             assertTrue(seenPresets.isNotEmpty())
-            assertEquals(listOf(0 to 3), seenPresets.distinct())
+            assertEquals(
+                listOf(FlashVoicingStyleOption.Hostile.signalProfileValue to FlashVoicingStyleOption.Hostile.voicingFlavorValue),
+                seenPresets.distinct(),
+            )
         }
 
     private fun createFixture(

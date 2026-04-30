@@ -106,8 +106,9 @@ private fun Libs.filterByQuery(query: String): Libs {
     }
     return copy(
         libraries =
-            libraries.filter { library ->
-                library.matchesQuery(normalizedQuery)
-            }.toImmutableList(),
+            libraries
+                .filter { library ->
+                    library.matchesQuery(normalizedQuery)
+                }.toImmutableList(),
     )
 }

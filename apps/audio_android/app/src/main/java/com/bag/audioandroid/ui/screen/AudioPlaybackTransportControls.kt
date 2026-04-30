@@ -47,92 +47,160 @@ internal fun AudioPlaybackTransportControls(
     val playerColors = playerChromeColors()
     var showAudioInfo by remember { mutableStateOf(false) }
     var showSpeedAdjustment by remember { mutableStateOf(false) }
+    val infoDialogTitle = stringResource(R.string.audio_info_dialog_title)
+    val infoUserSectionTitle = stringResource(R.string.audio_info_user_section)
+    val infoTechnicalSectionTitle = stringResource(R.string.audio_info_technical_section)
+    val encodingTypeLabel = stringResource(R.string.audio_info_encoding_type)
+    val encodingTypeValue = stringResource(transportMode.labelResId)
+    val durationLabel = stringResource(R.string.audio_info_duration)
+    val durationValue = formatDurationMillis(durationMs)
+    val savedTimeLabel = stringResource(R.string.audio_player_detail_saved_time)
+    val generatedTimeLabel = stringResource(R.string.audio_player_detail_saved_generated_time)
+    val inputSourceLabel = stringResource(R.string.audio_player_detail_saved_input_source)
+    val inputSourceValue = savedAudioItem?.inputSourceKind?.let { stringResource(it.labelResId) }
+    val sampleRateLabel = stringResource(R.string.audio_info_sample_rate)
+    val sampleRateValue = stringResource(R.string.audio_info_sample_rate_value, sampleRateHz)
+    val frameSamplesLabel = stringResource(R.string.audio_info_frame_samples)
+    val frameSamplesValue = stringResource(R.string.audio_info_frame_samples_value, frameSamples)
+    val fileSizeLabel = stringResource(R.string.audio_player_detail_saved_file_size)
+    val fileSizeValue =
+        savedAudioItem
+            ?.fileSizeBytes
+            ?.let { fileSizeBytes ->
+                stringResource(R.string.audio_player_detail_saved_payload_bytes_value, fileSizeBytes)
+            }
+    val payloadBytesLabel = stringResource(R.string.audio_player_detail_saved_payload_bytes)
+    val payloadBytesValue =
+        savedAudioItem
+            ?.payloadByteCount
+            ?.let { payloadByteCount ->
+                stringResource(R.string.audio_player_detail_saved_payload_bytes_value, payloadByteCount)
+            }
+    val flashVoicingStyleLabel = stringResource(R.string.audio_info_flash_voicing_style)
+    val flashVoicingStyleValue = flashVoicingStyle?.let { stringResource(it.labelResId) }
+    val dismissLabel = stringResource(R.string.common_cancel)
     val audioInfoDialogModel =
-        AudioInfoDialogModel(
-            title = stringResource(R.string.audio_info_dialog_title),
-            userSectionTitle = stringResource(R.string.audio_info_user_section),
-            technicalSectionTitle = stringResource(R.string.audio_info_technical_section),
-            userRows =
-                buildList {
-                    add(
-                        AudioInfoRowModel(
-                            label = stringResource(R.string.audio_info_encoding_type),
-                            value = stringResource(transportMode.labelResId),
-                            testTag = "audio-info-row-encoding-type",
-                        ),
-                    )
-                    add(
-                        AudioInfoRowModel(
-                            label = stringResource(R.string.audio_info_duration),
-                            value = formatDurationMillis(durationMs),
-                            testTag = "audio-info-row-duration",
-                        ),
-                    )
-                    savedAudioItem?.let { item ->
+        remember(
+            infoDialogTitle,
+            infoUserSectionTitle,
+            infoTechnicalSectionTitle,
+            encodingTypeLabel,
+            encodingTypeValue,
+            durationLabel,
+            durationValue,
+            savedTimeLabel,
+            generatedTimeLabel,
+            inputSourceLabel,
+            inputSourceValue,
+            sampleRateLabel,
+            sampleRateValue,
+            frameSamplesLabel,
+            frameSamplesValue,
+            fileSizeLabel,
+            fileSizeValue,
+            payloadBytesLabel,
+            payloadBytesValue,
+            flashVoicingStyleLabel,
+            flashVoicingStyleValue,
+            dismissLabel,
+            savedAudioItem,
+            transportMode,
+        ) {
+            AudioInfoDialogModel(
+                title = infoDialogTitle,
+                userSectionTitle = infoUserSectionTitle,
+                technicalSectionTitle = infoTechnicalSectionTitle,
+                userRows =
+                    buildList {
                         add(
                             AudioInfoRowModel(
-                                label = stringResource(R.string.audio_player_detail_saved_time),
-                                value = formatSavedAudioTime(item.savedAtEpochSeconds),
-                                testTag = "audio-info-row-saved-time",
+                                label = encodingTypeLabel,
+                                value = encodingTypeValue,
+                                testTag = "audio-info-row-encoding-type",
                             ),
                         )
-                        item.generatedAtEpochSeconds?.let { generatedAtEpochSeconds ->
+                        add(
+                            AudioInfoRowModel(
+                                label = durationLabel,
+                                value = durationValue,
+                                testTag = "audio-info-row-duration",
+                            ),
+                        )
+                        savedAudioItem?.let { item ->
                             add(
                                 AudioInfoRowModel(
-                                    label = stringResource(R.string.audio_player_detail_saved_generated_time),
-                                    value = formatSavedAudioTime(generatedAtEpochSeconds),
-                                    testTag = "audio-info-row-generated-time",
+                                    label = savedTimeLabel,
+                                    value = formatSavedAudioTime(item.savedAtEpochSeconds),
+                                    testTag = "audio-info-row-saved-time",
+                                ),
+                            )
+                            item.generatedAtEpochSeconds?.let { generatedAtEpochSeconds ->
+                                add(
+                                    AudioInfoRowModel(
+                                        label = generatedTimeLabel,
+                                        value = formatSavedAudioTime(generatedAtEpochSeconds),
+                                        testTag = "audio-info-row-generated-time",
+                                    ),
+                                )
+                            }
+                            inputSourceValue?.let {
+                                add(
+                                    AudioInfoRowModel(
+                                        label = inputSourceLabel,
+                                        value = it,
+                                        testTag = "audio-info-row-input-source",
+                                    ),
+                                )
+                            }
+                        }
+                    },
+                technicalRows =
+                    buildList {
+                        add(
+                            AudioInfoRowModel(
+                                label = sampleRateLabel,
+                                value = sampleRateValue,
+                                testTag = "audio-info-row-sample-rate",
+                            ),
+                        )
+                        add(
+                            AudioInfoRowModel(
+                                label = frameSamplesLabel,
+                                value = frameSamplesValue,
+                                testTag = "audio-info-row-frame-samples",
+                            ),
+                        )
+                        fileSizeValue?.let {
+                            add(
+                                AudioInfoRowModel(
+                                    label = fileSizeLabel,
+                                    value = it,
+                                    testTag = "audio-info-row-file-size",
                                 ),
                             )
                         }
-                        item.inputSourceKind?.let { inputSourceKind ->
+                        payloadBytesValue?.let {
                             add(
                                 AudioInfoRowModel(
-                                    label = stringResource(R.string.audio_player_detail_saved_input_source),
-                                    value = stringResource(inputSourceKind.labelResId),
-                                    testTag = "audio-info-row-input-source",
+                                    label = payloadBytesLabel,
+                                    value = it,
+                                    testTag = "audio-info-row-payload-bytes",
                                 ),
                             )
                         }
-                    }
-                },
-            technicalRows =
-                buildList {
-                    add(
-                        AudioInfoRowModel(
-                            label = stringResource(R.string.audio_info_sample_rate),
-                            value = stringResource(R.string.audio_info_sample_rate_value, sampleRateHz),
-                            testTag = "audio-info-row-sample-rate",
-                        ),
-                    )
-                    add(
-                        AudioInfoRowModel(
-                            label = stringResource(R.string.audio_info_frame_samples),
-                            value = stringResource(R.string.audio_info_frame_samples_value, frameSamples),
-                            testTag = "audio-info-row-frame-samples",
-                        ),
-                    )
-                    savedAudioItem?.payloadByteCount?.let { payloadByteCount ->
-                        add(
-                            AudioInfoRowModel(
-                                label = stringResource(R.string.audio_player_detail_saved_payload_bytes),
-                                value = stringResource(R.string.audio_player_detail_saved_payload_bytes_value, payloadByteCount),
-                                testTag = "audio-info-row-payload-bytes",
-                            ),
-                        )
-                    }
-                    if (transportMode == TransportModeOption.Flash && flashVoicingStyle != null) {
-                        add(
-                            AudioInfoRowModel(
-                                label = stringResource(R.string.audio_info_flash_voicing_style),
-                                value = stringResource(flashVoicingStyle.labelResId),
-                                testTag = "audio-info-row-flash-voicing-style",
-                            ),
-                        )
-                    }
-                },
-            dismissLabel = stringResource(R.string.common_cancel),
-        )
+                        if (transportMode == TransportModeOption.Flash && flashVoicingStyleValue != null) {
+                            add(
+                                AudioInfoRowModel(
+                                    label = flashVoicingStyleLabel,
+                                    value = flashVoicingStyleValue,
+                                    testTag = "audio-info-row-flash-voicing-style",
+                                ),
+                            )
+                        }
+                    },
+                dismissLabel = dismissLabel,
+            )
+        }
 
     Column(
         modifier = modifier.fillMaxWidth(),

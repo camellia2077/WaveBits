@@ -42,6 +42,7 @@ internal class SavedAudioMetadataReader(
             flashVoicingStyle = metadata?.flashVoicingStyle,
             sampleRateHz = metadata?.sampleRateHz?.takeIf { it > 0 },
             inputSourceKind = metadata?.inputSourceKind,
+            fileSizeBytes = row.sizeBytes.takeIf { it >= 0L },
             payloadByteCount = metadata?.payloadByteCount?.takeIf { it >= 0 },
         )
 
@@ -52,6 +53,7 @@ internal class SavedAudioMetadataReader(
         metadata: GeneratedAudioMetadata?,
         pcmSize: Int,
         sampleRateHz: Int,
+        fileSizeBytes: Long?,
         unknownModeWireName: String,
     ): SavedAudioItem =
         SavedAudioItem(
@@ -68,6 +70,7 @@ internal class SavedAudioMetadataReader(
             flashVoicingStyle = metadata?.flashVoicingStyle,
             sampleRateHz = metadata?.sampleRateHz?.takeIf { it > 0 } ?: sampleRateHz,
             inputSourceKind = metadata?.inputSourceKind,
+            fileSizeBytes = fileSizeBytes?.takeIf { it >= 0L },
             payloadByteCount = metadata?.payloadByteCount?.takeIf { it >= 0 },
         )
 

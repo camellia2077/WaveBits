@@ -18,6 +18,7 @@ internal class MediaStoreSavedAudioQueries(
                 MediaStore.Audio.Media.DISPLAY_NAME,
                 MediaStore.Audio.Media.DURATION,
                 MediaStore.Audio.Media.DATE_ADDED,
+                MediaStore.Audio.Media.SIZE,
             )
         val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
         val args = arrayOf(RELATIVE_PATH_PREFIX)
@@ -29,6 +30,7 @@ internal class MediaStoreSavedAudioQueries(
                 val nameIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
                 val durationIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val dateAddedIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+                val sizeIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idIndex)
                     add(
@@ -37,6 +39,7 @@ internal class MediaStoreSavedAudioQueries(
                             displayName = cursor.getString(nameIndex).orEmpty(),
                             durationMs = cursor.getLong(durationIndex),
                             dateAddedEpochSeconds = cursor.getLong(dateAddedIndex),
+                            sizeBytes = cursor.getLong(sizeIndex),
                             uri = ContentUris.withAppendedId(collection, id),
                         ),
                     )
@@ -142,5 +145,6 @@ internal data class MediaStoreSavedAudioRow(
     val displayName: String,
     val durationMs: Long,
     val dateAddedEpochSeconds: Long,
+    val sizeBytes: Long,
     val uri: Uri,
 )

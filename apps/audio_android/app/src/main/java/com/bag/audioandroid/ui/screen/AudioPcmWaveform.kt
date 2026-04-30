@@ -26,6 +26,7 @@ import com.bag.audioandroid.ui.theme.appThemeVisualTokens
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 @Composable
 internal fun AudioPcmWaveform(
@@ -90,11 +91,23 @@ internal fun AudioPcmWaveform(
             remember(sampleRateHz, totalSamples) {
                 sampleRateHz.coerceAtLeast(1).coerceAtMost(max(totalSamples, 1))
             }
+        val bucketAnalysisSampleStep =
+            remember(sampleRateHz, totalSamples) {
+                pcmWaveformAnalysisSampleStep(sampleRateHz = sampleRateHz, totalSamples = totalSamples)
+            }
+        val bucketDisplayedSamples =
+            remember(animatedDisplayedSamples, bucketAnalysisSampleStep, totalSamples) {
+                quantizePcmWaveformDisplayedSamples(
+                    displayedSamples = animatedDisplayedSamples,
+                    sampleStep = bucketAnalysisSampleStep,
+                    totalSamples = totalSamples,
+                )
+            }
         val buckets =
-            remember(pcm, targetBucketCount, windowSampleCount, animatedDisplayedSamples) {
+            remember(pcm, targetBucketCount, windowSampleCount, bucketDisplayedSamples) {
                 buildPcmWaveBuckets(
                     pcm = pcm,
-                    currentSample = animatedDisplayedSamples,
+                    currentSample = bucketDisplayedSamples,
                     windowSampleCount = windowSampleCount,
                     targetBucketCount = targetBucketCount,
                 )
@@ -262,3 +275,28 @@ private fun bucketVerticalSpan(
 
 private const val PcmWaveformMinBucketCount = 72
 private const val PcmWaveformMaxBucketCount = 220
+private const val PcmWaveformAnalysisFramesPerSecond = 30
+
+internal fun pcmWaveformAnalysisSampleStep(
+    sampleRateHz: Int,
+    totalSamples: Int,
+): Int =
+    (sampleRateHz.coerceAtLeast(1) / PcmWaveformAnalysisFramesPerSecond)
+        .coerceAtLeast(1)
+        .coerceAtMost(totalSamples.coerceAtLeast(1))
+
+internal fun quantizePcmWaveformDisplayedSamples(
+    displayedSamples: Float,
+    sampleStep: Int,
+    totalSamples: Int,
+): Float {
+    val safeStep = sampleStep.coerceAtLeast(1)
+    val clampedDisplayedSamples = displayedSamples.coerceIn(0f, totalSamples.coerceAtLeast(1).toFloat())
+    // Bucket analysis is the expensive part; drawing still uses the animated sample
+    // position so the playhead remains smooth between quantized analysis windows.
+    return (clampedDisplayedSamples / safeStep.toFloat())
+        .roundToInt()
+        .times(safeStep)
+        .coerceIn(0, totalSamples.coerceAtLeast(1))
+        .toFloat()
+}

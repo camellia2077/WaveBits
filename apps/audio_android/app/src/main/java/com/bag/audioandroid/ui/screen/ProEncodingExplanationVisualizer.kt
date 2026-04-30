@@ -21,13 +21,16 @@ internal fun ProEncodingExplanationVisualizer(
     frameSamples: Int,
     modifier: Modifier = Modifier,
 ) {
+    val analysisCache = remember(followData, frameSamples) { ProEncodingVisualizationAnalysisCache() }
     val state =
         remember(followData, displayedSamples, frameSamples) {
-            deriveProEncodingVisualizationState(
-                followData = followData,
-                displayedSamples = displayedSamples,
-                frameSamples = frameSamples,
-            )
+            analysisCache.state(displayedSamples) {
+                deriveProEncodingVisualizationState(
+                    followData = followData,
+                    displayedSamples = displayedSamples,
+                    frameSamples = frameSamples,
+                )
+            }
         }
     if (state == null) {
         Text(
@@ -67,3 +70,25 @@ internal fun ProEncodingExplanationVisualizer(
         )
     }
 }
+
+private class ProEncodingVisualizationAnalysisCache {
+    private val statesByDisplayedSamples = LinkedHashMap<Int, ProEncodingVisualizationState?>()
+
+    fun state(
+        displayedSamples: Int,
+        build: () -> ProEncodingVisualizationState?,
+    ): ProEncodingVisualizationState? {
+        if (statesByDisplayedSamples.containsKey(displayedSamples)) {
+            return statesByDisplayedSamples[displayedSamples]
+        }
+        val state = build()
+        statesByDisplayedSamples[displayedSamples] = state
+        if (statesByDisplayedSamples.size > ProEncodingVisualizationAnalysisCacheMaxEntries) {
+            val eldestKey = statesByDisplayedSamples.keys.first()
+            statesByDisplayedSamples.remove(eldestKey)
+        }
+        return state
+    }
+}
+
+private const val ProEncodingVisualizationAnalysisCacheMaxEntries = 16

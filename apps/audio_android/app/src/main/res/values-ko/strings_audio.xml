@@ -153,6 +153,7 @@
     <string name="audio_player_detail_saved_generated_time">생성 일시</string>
     <string name="audio_player_detail_saved_input_source">입력 출처</string>
     <string name="audio_player_detail_saved_sample_rate">샘플레이트</string>
+    <string name="audio_player_detail_saved_file_size">파일 크기</string>
     <string name="audio_player_detail_saved_payload_bytes">페이로드 크기</string>
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d 바이트</string>
     <string name="audio_generated_input_source_manual">수동</string>
