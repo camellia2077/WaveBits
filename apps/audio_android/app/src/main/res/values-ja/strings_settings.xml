@@ -64,7 +64,7 @@
     <!-- CONTEXT: Settings section title for flash audio voice/style presets. -->
     <string name="config_flash_style_title">Flashスタイル</string>
     <string name="config_flash_style_subtitle">Flashオーディオのサウンド方式を選択します。</string>
-    <string name="config_flash_style_steady_label">安定</string>
+    <string name="config_flash_style_steady_label">停滞</string>
     <string name="config_flash_style_steady_description">明瞭で安定した機械信号。</string>
     <string name="config_flash_style_hostile_label">敵意</string>
     <string name="config_flash_style_hostile_description">怒りの命令プリセット。現在は安定した信号シェルを使用します。</string>

@@ -15,6 +15,7 @@ class AddTranslationKeyResult:
     touched_files: list[Path]
     skipped_files: list[Path]
     errors: list[str]
+    localized_fallback_used: bool
 
 
 def _escape_android_string(value: str) -> str:
@@ -67,22 +68,22 @@ def add_translation_key(
             touched_files=[],
             skipped_files=[],
             errors=[f"Base resource file not found: {base_path}"],
+            localized_fallback_used=False,
         )
 
     touched: list[Path] = []
     skipped: list[Path] = []
     errors: list[str] = []
-    fallback_value = localized_value if localized_value is not None else english_value
-
     target_files = [base_path]
-    target_files.extend(
-        directory / filename
-        for directory in sorted(res_path.iterdir())
-        if directory.is_dir() and directory.name.startswith("values-") and (directory / filename).exists()
-    )
+    if localized_value is not None:
+        target_files.extend(
+            directory / filename
+            for directory in sorted(res_path.iterdir())
+            if directory.is_dir() and directory.name.startswith("values-") and (directory / filename).exists()
+        )
 
     for path in target_files:
-        value = english_value if path == base_path else fallback_value
+        value = english_value if path == base_path else localized_value
         try:
             lines = path.read_text(encoding="utf-8").splitlines()
         except OSError as exc:
@@ -105,4 +106,5 @@ def add_translation_key(
         touched_files=touched,
         skipped_files=skipped,
         errors=errors,
+        localized_fallback_used=localized_value is not None,
     )

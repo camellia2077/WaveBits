@@ -2,6 +2,8 @@ package com.bag.audioandroid.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +38,10 @@ internal fun AudioPlaybackInfoDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = model.title) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 AudioInfoSection(
                     title = model.userSectionTitle,
                     modifier = Modifier.testTag("audio-info-user-section"),

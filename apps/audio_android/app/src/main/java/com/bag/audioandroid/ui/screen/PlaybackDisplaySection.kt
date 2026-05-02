@@ -37,6 +37,7 @@ internal fun PlaybackDisplaySection(
     flashVisualizationModeName: String,
     onDisplayModeSelected: (PlaybackDisplayMode) -> Unit,
     onFlashVisualizationModeSelected: (FlashSignalVisualizationMode) -> Unit,
+    onSeekToSample: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val visualizationRoute =
@@ -159,12 +160,14 @@ internal fun PlaybackDisplaySection(
                 followData = followData,
                 displayedSamples = displayedSamples,
                 transportMode = transportMode,
+                onSeekToSample = onSeekToSample,
             )
         }
         PlaybackTokenContextTape(
             followData = followData,
             displayedSamples = displayedSamples,
             visibleLineCount = if (playbackDisplayMode == PlaybackDisplayMode.Visual) 5 else 2,
+            onSeekToSample = onSeekToSample,
             modifier =
                 if (playbackDisplayMode == PlaybackDisplayMode.Lyrics) {
                     Modifier.padding(top = 12.dp)

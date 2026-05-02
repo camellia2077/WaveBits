@@ -9,7 +9,7 @@ from ..build_config import load_build_config
 from ..constants import ANDROID_GRADLE_ROOT
 from ..errors import ToolError
 from ..paths import gradle_wrapper
-from ..process import print_command, run, run_capture_merged_streaming
+from ..process import print_command, run, run_capture, run_capture_merged_streaming
 from .android_kotlin_policy import cmd_android_kotlin_policy
 
 
@@ -28,6 +28,10 @@ ANDROID_ACTIONS = {
     },
     "native-debug": {
         "tasks": (":app:externalNativeBuildDebug",),
+        "gradle_args": (),
+    },
+    "test-debug": {
+        "tasks": (":app:testDebugUnitTest",),
         "gradle_args": (),
     },
     "modules-smoke": {
@@ -58,10 +62,10 @@ ANDROID_ACTIONS = {
 RELEASE_SIGNING_PROPERTIES_PATH = ANDROID_GRADLE_ROOT / "app" / "release-signing.properties"
 RELEASE_SIGNING_DIRECTORY_PATH = ANDROID_GRADLE_ROOT / "app"
 RELEASE_APK_OUTPUT_PATH = (
-    ANDROID_GRADLE_ROOT / "app" / "build" / "outputs" / "apk" / "release" / "app-release.apk"
+    ANDROID_GRADLE_ROOT / "app" / "build" / "outputs" / "apk" / "release" / "FlipBits-release.apk"
 )
 STAGING_APK_OUTPUT_PATH = (
-    ANDROID_GRADLE_ROOT / "app" / "build" / "outputs" / "apk" / "staging" / "app-staging.apk"
+    ANDROID_GRADLE_ROOT / "app" / "build" / "outputs" / "apk" / "staging" / "FlipBits-staging.apk"
 )
 
 
@@ -183,6 +187,28 @@ def _add_android_string_key(args: argparse.Namespace) -> None:
     if args.context is not None:
         command.extend(["--context", args.context])
     run(command)
+
+    alignment_command = [
+        "python",
+        "tools/scripts/android/translate/run.py",
+        "key-alignment",
+        "--json-output",
+    ]
+    completed = run_capture(alignment_command)
+    if completed.returncode == 0:
+        print("[android] Translation key alignment is already complete.")
+        return
+    if completed.returncode == 2:
+        print(
+            "[android] Translation tasks were generated for missing localized keys.\n"
+            "Review: temp/translation_key_alignment_reports/\n"
+            "Use the Android translate workflow before relying on a localized build.",
+            flush=True,
+        )
+        return
+    print(completed.stdout, end="")
+    print(completed.stderr, end="")
+    raise SystemExit(completed.returncode)
 
 
 def cmd_android(args: argparse.Namespace) -> None:

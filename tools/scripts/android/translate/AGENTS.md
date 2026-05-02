@@ -15,6 +15,27 @@ Human web-chat workflow lives separately in:
 - prefer machine-readable artifacts over markdown parsing when available
 - keep replace operations safe, local, and auditable
 
+## New Android XML Key Flow
+
+When adding a new Android XML string key, start from the Android wrapper:
+
+```powershell
+python tools/run.py android strings-add --file strings_audio.xml --key sample_key --en "Sample text"
+```
+
+Default behavior:
+
+- write only the English `values/` baseline
+- generate `temp/translation_key_alignment_reports/`
+- do not copy English into `values-*`
+
+Then repair each locale from the generated key-alignment task report. Use the locale profile metadata in the report or generated task JSON, especially for:
+
+- `values-la`: stylized Dog Latin / High Gothic, not classical Latin
+- `values-uk`: Ukrainian, not Russian
+
+Only use `--localized` for deliberately shared text such as brand names, protocol tokens, or untranslatable UI symbols.
+
 ## Core Flow
 
 1. Generate scoped review artifacts.

@@ -1,12 +1,16 @@
 package com.bag.audioandroid.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +45,8 @@ internal fun PlaybackFollowTokenCard(
     activeBitIndexWithinByte: Int = -1,
     isActiveBitTone: Boolean = false,
     isPast: Boolean = false,
+    onClick: (() -> Unit)? = null,
+    testTag: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val visualTokens = appThemeVisualTokens()
@@ -61,6 +67,12 @@ internal fun PlaybackFollowTokenCard(
             isActive -> lyricsAccentTextColor
             isPast -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             else -> MaterialTheme.colorScheme.onSurface
+        }
+    val cardModifier =
+        if (onClick != null) {
+            modifier.clickable(onClick = onClick)
+        } else {
+            modifier
         }
 
     val inactiveRawColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (isPast) 0.5f else 1.0f)
@@ -108,10 +120,10 @@ internal fun PlaybackFollowTokenCard(
         color = containerColor,
         shape = MaterialTheme.shapes.large,
         modifier =
-            modifier
+            cardModifier
                 .widthIn(min = PlaybackFollowTokenCardMinimumWidth, max = PlaybackFollowTokenCardMaximumWidth)
                 .testTag(
-                    if (isActive) {
+                    testTag ?: if (isActive) {
                         "follow-token-active"
                     } else {
                         "follow-token"
@@ -233,6 +245,16 @@ internal fun PlaybackFollowTokenCard(
                     }
 
                     PlaybackFollowViewMode.Morse -> {
+                        val morseLetterGroups =
+                            remember(token, rawDisplayUnits, annotationByteGroups) {
+                                morseLetterDisplayGroups(
+                                    token = token,
+                                    characterDisplayUnits = characterDisplayUnits,
+                                    rawDisplayUnits = rawDisplayUnits,
+                                    annotationByteGroups = annotationByteGroups,
+                                )
+                            }
+                        val dividerColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.24f)
                         Column(
                             modifier =
                                 Modifier
@@ -242,26 +264,39 @@ internal fun PlaybackFollowTokenCard(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            annotationByteGroups.chunked(MorseGroupsPerRow).forEachIndexed { rowIndex, rowGroups ->
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    rowGroups.forEachIndexed { groupIndexInRow, group ->
-                                        val byteIndex = rowIndex * MorseGroupsPerRow + groupIndexInRow
-                                        val isActiveByte = isActive && byteIndex == activeByteIndexWithinToken
-                                        PlaybackByteBlock(
-                                            group = group,
-                                            mode = annotationMode,
-                                            isActive = isActiveByte,
-                                            isPast = isActive && byteIndex < activeByteIndexWithinToken,
-                                            activeBitIndex = if (isActiveByte) activeBitIndexWithinByte else -1,
-                                            isActiveBitTone = isActiveBitTone,
-                                            focusColor = focusColor,
-                                            onFocusColor = onFocusColor,
-                                            inactiveColor = inactiveRawColor,
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                morseLetterGroups.forEachIndexed { index, group ->
+                                    if (index > 0) {
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .height(MorseLetterDividerHeight)
+                                                    .width(1.dp)
+                                                    .background(dividerColor),
                                         )
                                     }
+                                    val isActiveByte =
+                                        isActive &&
+                                            activeByteIndexWithinToken >= group.byteStartIndexWithinToken &&
+                                            activeByteIndexWithinToken <
+                                            group.byteStartIndexWithinToken + group.byteCount
+                                    MorseLetterBlock(
+                                        letter = group.text,
+                                        morse = group.morse,
+                                        isActive = isActiveByte,
+                                        isPast =
+                                            isActive &&
+                                                group.byteStartIndexWithinToken + group.byteCount - 1 <
+                                                activeByteIndexWithinToken,
+                                        activeBitIndex = if (isActiveByte) activeBitIndexWithinByte else -1,
+                                        isActiveBitTone = isActiveBitTone,
+                                        focusColor = focusColor,
+                                        onFocusColor = onFocusColor,
+                                        inactiveColor = inactiveRawColor,
+                                    )
                                 }
                             }
                         }
@@ -274,9 +309,128 @@ internal fun PlaybackFollowTokenCard(
 
 private val PlaybackFollowTokenCardMinimumWidth = 92.dp
 private val PlaybackFollowTokenCardMaximumWidth = 360.dp
+private val MorseLetterDividerHeight = 34.dp
 private const val BinaryByteGroupsPerRow = 3
 private const val HexByteGroupsPerRow = 4
-private const val MorseGroupsPerRow = 4
+
+internal data class MorseLetterDisplayGroup(
+    val text: String,
+    val morse: String,
+    val byteStartIndexWithinToken: Int,
+    val byteCount: Int,
+)
+
+internal fun morseLetterDisplayGroups(
+    token: String,
+    rawDisplayUnits: List<TextFollowRawDisplayUnitViewData>,
+): List<MorseLetterDisplayGroup> =
+    morseLetterDisplayGroups(
+        token = token,
+        characterDisplayUnits = characterDisplayUnits(token),
+        rawDisplayUnits = rawDisplayUnits,
+        annotationByteGroups = annotationByteGroupsForMode(PlaybackFollowViewMode.Morse, rawDisplayUnits),
+    )
+
+private fun morseLetterDisplayGroups(
+    token: String,
+    characterDisplayUnits: List<CharacterDisplayUnit>,
+    rawDisplayUnits: List<TextFollowRawDisplayUnitViewData>,
+    annotationByteGroups: List<String>,
+): List<MorseLetterDisplayGroup> {
+    if (token.isEmpty() || characterDisplayUnits.isEmpty()) {
+        return annotationByteGroups.mapIndexed { index, group ->
+            MorseLetterDisplayGroup(
+                text = group,
+                morse = group,
+                byteStartIndexWithinToken = index,
+                byteCount = 1,
+            )
+        }
+    }
+    return characterDisplayUnits
+        .mapNotNull { character ->
+            val firstByte =
+                rawDisplayUnits.firstOrNull { unit ->
+                    unit.byteIndexWithinToken >= character.byteStartIndexWithinToken &&
+                        unit.byteIndexWithinToken < character.byteStartIndexWithinToken + character.byteCount
+                } ?: return@mapNotNull null
+            val morse = annotationByteGroups.getOrNull(rawDisplayUnits.indexOf(firstByte)).orEmpty()
+            if (morse.isBlank()) {
+                null
+            } else {
+                MorseLetterDisplayGroup(
+                    text = character.text,
+                    morse = morse,
+                    byteStartIndexWithinToken = character.byteStartIndexWithinToken,
+                    byteCount = character.byteCount,
+                )
+            }
+        }.ifEmpty {
+            annotationByteGroups.mapIndexed { index, group ->
+                MorseLetterDisplayGroup(
+                    text = group,
+                    morse = group,
+                    byteStartIndexWithinToken = index,
+                    byteCount = 1,
+                )
+            }
+        }
+}
+
+@Composable
+private fun MorseLetterBlock(
+    letter: String,
+    morse: String,
+    isActive: Boolean,
+    isPast: Boolean,
+    activeBitIndex: Int,
+    isActiveBitTone: Boolean,
+    focusColor: Color,
+    onFocusColor: Color,
+    inactiveColor: Color,
+) {
+    val letterColor =
+        when {
+            isActive -> onFocusColor
+            isPast -> focusColor
+            else -> inactiveColor
+        }
+    val letterBackground = if (isActive) focusColor else Color.Transparent
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        Text(
+            text =
+                buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = letterColor,
+                            background = letterBackground,
+                            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
+                        ),
+                    ) {
+                        append(letter)
+                    }
+                },
+            style = MaterialTheme.typography.labelSmall,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false,
+        )
+        PlaybackByteBlock(
+            group = morse,
+            mode = PlaybackFollowViewMode.Morse,
+            isActive = isActive,
+            isPast = isPast,
+            activeBitIndex = activeBitIndex,
+            isActiveBitTone = isActiveBitTone,
+            focusColor = focusColor,
+            onFocusColor = onFocusColor,
+            inactiveColor = inactiveColor,
+        )
+    }
+}
 
 private data class CharacterDisplayUnit(
     val text: String,

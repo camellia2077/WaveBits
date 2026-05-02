@@ -1,31 +1,45 @@
 package com.bag.audioandroid.ui.screen
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.R
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.theme.appThemeAccentTokens
+import com.bag.audioandroid.ui.theme.appThemeVisualTokens
 
 @Composable
 internal fun FlashVoicingSelectorSection(
     enabled: Boolean,
-    expanded: Boolean,
-    onToggleExpanded: () -> Unit,
     isFlashVoicingEnabled: Boolean,
     selectedFlashVoicingStyle: FlashVoicingStyleOption,
     onFlashVoicingStyleSelected: (FlashVoicingStyleOption) -> Unit,
@@ -36,13 +50,164 @@ internal fun FlashVoicingSelectorSection(
         } else {
             FlashVoicingStyleOption.Steady
         }
-    val accentTokens = appThemeAccentTokens()
+    var isVoicingStyleSheetOpen by rememberSaveable { mutableStateOf(false) }
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FlashPresetEntryRow(
+            title = stringResource(R.string.audio_flash_voicing_style_title),
+            value = stringResource(effectiveSelectedStyle.labelResId),
+            contentDescription = stringResource(R.string.audio_action_select_flash_voicing_style),
+            enabled = enabled,
+            onClick = { isVoicingStyleSheetOpen = true },
+        )
+        Text(
+            text = stringResource(R.string.audio_flash_style_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+
+    if (isVoicingStyleSheetOpen) {
+        FlashPresetPickerSheet(
+            selectedStyle = effectiveSelectedStyle,
+            onStyleSelected = { option ->
+                onFlashVoicingStyleSelected(option)
+                isVoicingStyleSheetOpen = false
+            },
+            onDismiss = { isVoicingStyleSheetOpen = false },
+        )
+    }
+}
+
+@Composable
+private fun FlashPresetEntryRow(
+    title: String,
+    value: String,
+    contentDescription: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val accentTokens = appThemeAccentTokens()
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled, onClick = onClick)
+                .semantics { this.contentDescription = contentDescription }
+                .padding(horizontal = 2.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+            color = accentTokens.selectionLabelAccentTint,
+        )
+        Icon(
+            imageVector = Icons.Rounded.ExpandMore,
+            contentDescription = null,
+            tint = accentTokens.disclosureAccentTint,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FlashPresetPickerSheet(
+    selectedStyle: FlashVoicingStyleOption,
+    onStyleSelected: (FlashVoicingStyleOption) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val visualTokens = appThemeVisualTokens()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = visualTokens.modalContainerColor,
+        contentColor = visualTokens.modalContentColor,
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.audio_flash_voicing_style_sheet_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            LazyColumn(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 520.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                items(FlashVoicingStyleOption.entries) { option ->
+                    FlashPresetOptionRow(
+                        option = option,
+                        selected = option == selectedStyle,
+                        onClick = { onStyleSelected(option) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FlashPresetOptionRow(
+    option: FlashVoicingStyleOption,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val accentTokens = appThemeAccentTokens()
+    val visualTokens = appThemeVisualTokens()
+    val contentColor =
+        if (selected) {
+            accentTokens.selectionLabelAccentTint
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        }
+    val borderColor =
+        if (selected) {
+            accentTokens.selectionBorderAccentTint
+        } else {
+            Color.Transparent
+        }
+
+    Surface(
+        color =
+            if (selected) {
+                visualTokens.selectionSelectedContainerColor
+            } else {
+                visualTokens.selectionUnselectedContainerColor
+            },
+        border = if (selected) BorderStroke(SelectedOutlineWidth, borderColor) else null,
+        shape = MaterialTheme.shapes.medium,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
@@ -50,46 +215,19 @@ internal fun FlashVoicingSelectorSection(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    text = stringResource(R.string.audio_flash_style_title, stringResource(effectiveSelectedStyle.labelResId)),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = accentTokens.disclosureAccentTint,
+                    text = stringResource(option.labelResId),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    color = contentColor,
                 )
-                if (expanded) {
-                    Text(
-                        text = stringResource(R.string.audio_flash_style_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            IconButton(
-                onClick = onToggleExpanded,
-                enabled = enabled,
-            ) {
-                Icon(
-                    imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                    contentDescription =
-                        stringResource(
-                            if (expanded) {
-                                R.string.audio_action_collapse_flash_style
-                            } else {
-                                R.string.audio_action_expand_flash_style
-                            },
-                        ),
-                    tint = accentTokens.disclosureAccentTint,
+                Text(
+                    text = stringResource(option.descriptionResId),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        }
-        if (expanded) {
-            FlashVoicingStyleOption.entries.forEach { option ->
-                SelectionRow(
-                    accentTokens = accentTokens,
-                    label = stringResource(option.labelResId),
-                    selected = option == effectiveSelectedStyle,
-                    onClick = { onFlashVoicingStyleSelected(option) },
-                    enabled = enabled,
-                )
+            if (selected) {
+                SelectedBadge(text = stringResource(R.string.config_palette_selected))
             }
         }
     }

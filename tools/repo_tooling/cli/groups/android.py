@@ -18,9 +18,11 @@ def register_android_group(subparsers: argparse._SubParsersAction[argparse.Argum
             "- Resolves the action to the matching :app Gradle task.\n"
             "- Optionally prepends `clean` before the selected task.\n"
             "- `assemble-staging` builds a minified, shrink-enabled, debuggable APK for catching release-only issues earlier.\n"
+            "- `test-debug` runs the Android debug JVM unit test suite.\n"
             "- `ktlint-check` / `ktlint-format` / `detekt` provide Kotlin quality tooling for apps/audio_android.\n"
             "- `kotlin-policy` runs lightweight project-specific Kotlin policy checks.\n"
             "- `quality` is the minimal Android Kotlin quality gate: ktlintCheck + detekt.\n"
+            "- `strings-add` adds only the English XML baseline key by default, then generates translation alignment reports.\n"
             "- `modules-smoke` enables the opt-in Android named-modules smoke target for the Phase 3A direct-owner shift.\n"
             "- It does not claim Android host-style `import std;` readiness."
         ),
@@ -34,6 +36,7 @@ def register_android_group(subparsers: argparse._SubParsersAction[argparse.Argum
             "assemble-staging",
             "assemble-release",
             "native-debug",
+            "test-debug",
             "modules-smoke",
             "ktlint-check",
             "ktlint-format",
@@ -68,7 +71,7 @@ def register_android_group(subparsers: argparse._SubParsersAction[argparse.Argum
     )
     android_parser.add_argument(
         "--localized",
-        help="When used with `strings-add`, localized fallback value for values-* files. Defaults to --en.",
+        help="When used with `strings-add`, explicit fallback for values-* files. Use only for intentionally shared text.",
     )
     android_parser.add_argument(
         "--context",

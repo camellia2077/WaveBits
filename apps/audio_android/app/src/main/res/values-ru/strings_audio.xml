@@ -54,8 +54,6 @@
     <string name="audio_action_collapse_result_content">Свернуть текст результата</string>
     <string name="audio_action_expand_result_content_short">Показать</string>
     <string name="audio_action_collapse_result_content_short">Скрыть</string>
-    <string name="audio_action_expand_flash_style">Развернуть стиль</string>
-    <string name="audio_action_collapse_flash_style">Свернуть стиль</string>
     <string name="audio_status">%1$s</string>
     <string name="audio_sample_count">%1$d сэмплов</string>
     <string name="audio_result_title">Результат считывания</string>
@@ -66,8 +64,10 @@
     <string name="audio_decode_raw_hex_label">Hex</string>
     <string name="audio_decode_text_unavailable">Этот payload не удалось интерпретировать как текст. Raw-данные по-прежнему доступны.</string>
     <string name="audio_decode_raw_unavailable">Raw-данные payload пока недоступны.</string>
-    <string name="audio_flash_style_title">Стиль озвучивания flash: %1$s</string>
     <string name="audio_flash_style_hint">Применяется к следующему созданному аудио. Уже созданные аудио сохраняют стиль, с которым были созданы.</string>
+    <string name="audio_flash_voicing_style_title">Стиль озвучивания</string>
+    <string name="audio_action_select_flash_voicing_style">Выбрать стиль озвучивания</string>
+    <string name="audio_flash_voicing_style_sheet_title">Стиль озвучивания</string>
     <string name="audio_saved_audio_sheet_title">Сохранённое аудио</string>
     <string name="audio_saved_audio_empty">Пока нет сохранённого аудио.</string>
     <string name="audio_mini_player_generated_title">Созданное аудио %1$s</string>
@@ -128,6 +128,8 @@
     <string name="audio_follow_view_hex">Hex</string>
     <string name="audio_follow_view_binary">Бинарный</string>
     <string name="audio_follow_view_morse">Morse</string>
+    <string name="audio_follow_tokenizer_title">Tokenizer</string>
+    <string name="audio_action_open_tokenizer">Открыть tokenizer</string>
     <string name="audio_player_detail_saved_info_title">Подробности</string>
     <string name="audio_player_detail_saved_mode">Режим</string>
     <string name="audio_player_detail_saved_duration">Длительность</string>
@@ -207,4 +209,13 @@
     <string name="status_saved_audio_load_failed">Не удалось загрузить</string>
     <string name="status_playing_saved_audio">Воспроизведение: %1$s</string>
     <string name="status_no_audio_for_mode">Для этого режима пока нет аудио</string>
+    <string name="audio_input_encoding_rules_title">Правила кодирования</string>
+    <string name="audio_input_encoding_rules">Правила кодирования</string>
+    <string name="audio_input_encoding_rules_done">Готово</string>
+    <string name="audio_input_encoding_rules_pro">Pro принимает только текст ASCII. Не-ASCII символы, например текст CJK, эмодзи и многие буквы с диакритикой, нельзя закодировать в pro.</string>
+    <string name="audio_input_encoding_rules_unrestricted">Этот режим принимает текущий текст как байты UTF-8/обычного текста. У mini и pro более строгие правила ввода.</string>
+    <string name="audio_input_encoding_rules_mini">Mini принимает A-Z, 0-9, пробелы и распространённую пунктуацию Morse. Строчные буквы кодируются как прописные, повторяющиеся пробелы объединяются.</string>
+    <string name="audio_pro_unsupported_characters">Неподдерживаемые символы pro: %1$s</string>
+    <string name="audio_input_encoding_valid_mini">Ввод mini готов. Он будет закодирован как Morse-совместимый текст.</string>
+    <string name="audio_input_encoding_valid_pro">Ввод pro готов. Все символы являются ASCII.</string>
 </resources>

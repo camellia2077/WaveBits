@@ -120,7 +120,7 @@ internal class AudioPlaybackUiStateSync(
                 nowNanos - lastUpdateNanos >= PlaybackProgressUiUpdateIntervalNanos
         if (shouldPublish) {
             // Playback polling can stay precise; only global Compose state is throttled
-            // so visual playback does not force the entire app tree through 60Hz updates.
+            // to the same rough 60 Hz cadence as the playback loop.
             lastProgressUiUpdateNanosBySource[sourceKey] = nowNanos
         }
         return shouldPublish
@@ -137,6 +137,6 @@ internal class AudioPlaybackUiStateSync(
         }
 
     private companion object {
-        const val PlaybackProgressUiUpdateIntervalNanos = 33_000_000L
+        const val PlaybackProgressUiUpdateIntervalNanos = 16_000_000L
     }
 }

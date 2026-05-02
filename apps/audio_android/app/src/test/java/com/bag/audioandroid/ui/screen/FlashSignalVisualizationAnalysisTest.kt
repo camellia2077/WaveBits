@@ -135,6 +135,85 @@ class FlashSignalVisualizationAnalysisTest {
     }
 
     @Test
+    fun `follow timeline segments preserve fixed bit geometry`() {
+        val followData =
+            PayloadFollowViewData(
+                binaryTokens = listOf("0", "1", "0", "1"),
+                binaryGroupTimeline =
+                    listOf(
+                        PayloadFollowBinaryGroupTimelineEntry(100, 20, 0, 0, 1),
+                        PayloadFollowBinaryGroupTimelineEntry(120, 20, 1, 1, 1),
+                        PayloadFollowBinaryGroupTimelineEntry(140, 20, 2, 2, 1),
+                        PayloadFollowBinaryGroupTimelineEntry(160, 20, 3, 3, 1),
+                    ),
+                totalPcmSampleCount = 240,
+                followAvailable = true,
+            )
+
+        val segments = buildFlashSignalToneSegments(followData)
+
+        assertEquals(4, segments.size)
+        assertEquals(100, segments[0].startSample)
+        assertEquals(120, segments[0].endSample)
+        assertEquals(FskDominantTone.Low, segments[0].tone)
+        assertEquals(120, segments[1].startSample)
+        assertEquals(140, segments[1].endSample)
+        assertEquals(FskDominantTone.High, segments[1].tone)
+        assertEquals(160, segments[3].startSample)
+        assertEquals(180, segments[3].endSample)
+        assertEquals(FskDominantTone.High, segments[3].tone)
+    }
+
+    @Test
+    fun `flash bit readout reveals current eight bit group by playback`() {
+        val segments =
+            listOf(
+                FskDominantTone.Low,
+                FskDominantTone.High,
+                FskDominantTone.High,
+                FskDominantTone.Low,
+                FskDominantTone.High,
+                FskDominantTone.Low,
+                FskDominantTone.Low,
+                FskDominantTone.High,
+            ).mapIndexed { index, tone ->
+                FlashSignalToneSegment(
+                    startSample = index * 10,
+                    endSample = index * 10 + 10,
+                    tone = tone,
+                )
+            }
+
+        val frame = flashBitReadoutFrame(segments = segments, sample = 35f)
+
+        requireNotNull(frame)
+        assertEquals(0, frame.currentGroupStartIndex)
+        assertEquals(List(8) { null }, frame.previousCells.map { it.bit })
+        assertEquals(listOf('0', '1', '1', '0', null, null, null, null), frame.currentCells.map { it.bit })
+        assertEquals(listOf(false, false, false, true, false, false, false, false), frame.currentCells.map { it.isCurrent })
+    }
+
+    @Test
+    fun `flash bit readout shows previous and current groups after eight revealed bits`() {
+        val segments =
+            List(10) { index ->
+                FlashSignalToneSegment(
+                    startSample = index * 10,
+                    endSample = index * 10 + 10,
+                    tone = if (index % 2 == 0) FskDominantTone.Low else FskDominantTone.High,
+                )
+            }
+
+        val frame = flashBitReadoutFrame(segments = segments, sample = 85f)
+
+        requireNotNull(frame)
+        assertEquals(8, frame.currentGroupStartIndex)
+        assertEquals(listOf('0', '1', '0', '1', '0', '1', '0', '1'), frame.previousCells.map { it.bit })
+        assertEquals(listOf('0', null, null, null, null, null, null, null), frame.currentCells.map { it.bit })
+        assertEquals(listOf(true, false, false, false, false, false, false, false), frame.currentCells.map { it.isCurrent })
+    }
+
+    @Test
     fun `flash visualization analysis samples quantize to twenty four fps`() {
         assertEquals(1837, visualizationAnalysisSampleStep(sampleRateHz = 44_100, totalSamples = 44_100))
         assertEquals(1, visualizationAnalysisSampleStep(sampleRateHz = 10, totalSamples = 44_100))

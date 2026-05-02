@@ -70,6 +70,14 @@ Note:
 - `1`: input file missing or setup failure
 - `2`: suggestion schema or conversion validation failure
 
+### `add-key`
+
+- `0`: English baseline key was added or already existed
+- `1`: one or more target files could not be read or written
+- `2`: English baseline resource file was not found
+
+By default, `add-key` writes only `values/<file>`. It writes existing `values-*` files only when `--localized` is explicitly provided for deliberately shared text.
+
 ## Human-Readable Output
 
 By default, commands may print human-oriented progress and summaries.

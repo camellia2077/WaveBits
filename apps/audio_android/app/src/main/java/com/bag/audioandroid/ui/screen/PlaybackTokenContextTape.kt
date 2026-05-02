@@ -5,10 +5,12 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,14 +21,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
@@ -43,6 +48,8 @@ import com.bag.audioandroid.domain.TextFollowTimelineEntry
 
 private const val TokenTapeAnimationDurationMs = 180
 private const val TokenTapeAnchorRatio = 0.72f
+private const val DisplayLinePreferredUnits = 24
+private const val DisplayLineHardUnits = 32
 private val TokenTapeVerticalPadding = 6.dp
 private val TokenTapeFadeWidth = 28.dp
 private const val TokenTapeSingleLineHeightDp = 36f
@@ -59,6 +66,17 @@ internal data class ContinuousViewportLine(
     val tokenSegments: List<ContinuousViewportTokenSegment>,
     val shouldWrap: Boolean,
 )
+
+internal data class DisplayTokenLineRange(
+    val lineIndex: Int,
+    val tokenBeginIndex: Int,
+    val tokenCount: Int,
+    val sourceLineIndex: Int,
+    val coversFullSourceLine: Boolean,
+) {
+    val tokenRange: IntRange
+        get() = tokenBeginIndex until (tokenBeginIndex + tokenCount)
+}
 
 internal data class TokenPixelBounds(
     val startPx: Float,
@@ -83,6 +101,7 @@ internal fun PlaybackTokenContextTape(
     displayedSamples: Int,
     visibleLineCount: Int = 3,
     modifier: Modifier = Modifier,
+    onSeekToSample: (Int) -> Unit = {},
 ) {
     if (!followData.textFollowAvailable || followData.textTokens.isEmpty()) {
         return
@@ -94,39 +113,41 @@ internal fun PlaybackTokenContextTape(
         }
     val activeTimelineEntry = followData.textTokenTimeline.getOrNull(activeTimelineIndex)
     val activeTokenIndex = activeTimelineEntry?.tokenIndex ?: -1
+    val tokenStartSamples =
+        remember(followData.textTokenTimeline) {
+            followData.textTokenTimeline
+                .groupBy { it.tokenIndex }
+                .mapValues { (_, entries) -> entries.minOfOrNull { it.startSample } }
+        }
 
-    val lineRanges =
+    val sourceLineRanges =
         followData.lineTokenRanges.ifEmpty {
             listOf(TextFollowLineTokenRangeViewData(0, 0, followData.textTokens.size))
         }
+    val displayLineRanges =
+        remember(followData.textTokens, sourceLineRanges) {
+            buildDisplayTokenLineRanges(
+                followData = followData,
+                sourceLineRanges = sourceLineRanges,
+            )
+        }
     val prefersWrappedLines =
-        remember(followData.textTokens, followData.lyricLines, lineRanges) {
-            lineRanges.any { lineRange ->
-                val lineTokenRange = lineRange.tokenBeginIndex until (lineRange.tokenBeginIndex + lineRange.tokenCount)
+        remember(followData.textTokens, followData.lyricLines, displayLineRanges) {
+            displayLineRanges.any { lineRange ->
                 resolveContinuousViewportLineForRange(
                     followData = followData,
-                    tokenRange = lineTokenRange,
-                    lyricLineText = followData.lyricLines.getOrNull(lineRange.lineIndex),
+                    tokenRange = lineRange.tokenRange,
+                    lyricLineText = lineRange.exactLyricLineText(followData),
                 ).shouldWrap
             }
         }
 
-    val activeTokenLineRange =
-        remember(lineRanges, followData.lyricLineFollowAvailable, activeTokenIndex, followData.textTokens.size) {
-            resolveActiveTokenLineRange(
-                lineTokenRanges = lineRanges,
-                lyricLineFollowAvailable = followData.lyricLineFollowAvailable,
-                activeTokenIndex = activeTokenIndex,
-                tokenCount = followData.textTokens.size,
-            )
-        }
     val activeLineIndex =
-        remember(lineRanges, activeTokenLineRange) {
-            lineRanges
-                .indexOfFirst { lineRange ->
-                    activeTokenLineRange?.first == lineRange.tokenBeginIndex &&
-                        activeTokenLineRange.last == lineRange.tokenBeginIndex + lineRange.tokenCount - 1
-                }.takeIf { it >= 0 } ?: -1
+        remember(displayLineRanges, activeTokenIndex) {
+            resolveActiveDisplayLineIndex(
+                displayLineRanges = displayLineRanges,
+                activeTokenIndex = activeTokenIndex,
+            )
         }
 
     val listState =
@@ -170,16 +191,15 @@ internal fun PlaybackTokenContextTape(
                 .height(totalHeightDp.dp)
                 .testTag("playback-token-context-tape-list"),
     ) {
-        items(lineRanges.size) { lineIndex ->
-            val lineRange = lineRanges[lineIndex]
+        items(displayLineRanges.size) { lineIndex ->
+            val lineRange = displayLineRanges[lineIndex]
             val isActiveLine = lineIndex == activeLineIndex
-            val lineTokenRange = lineRange.tokenBeginIndex until (lineRange.tokenBeginIndex + lineRange.tokenCount)
             val lineModel =
                 remember(followData.textTokens, followData.lyricLines, lineRange) {
                     resolveContinuousViewportLineForRange(
                         followData = followData,
-                        tokenRange = lineTokenRange,
-                        lyricLineText = followData.lyricLines.getOrNull(lineRange.lineIndex),
+                        tokenRange = lineRange.tokenRange,
+                        lyricLineText = lineRange.exactLyricLineText(followData),
                     )
                 }
 
@@ -202,6 +222,8 @@ internal fun PlaybackTokenContextTape(
                 activeTokenIndex = activeTokenIndex,
                 activeTimelineEntry = if (isActiveLine) activeTimelineEntry else null,
                 displayedSamples = displayedSamples,
+                tokenStartSamples = tokenStartSamples,
+                onSeekToSample = onSeekToSample,
                 modifier = Modifier.alpha(alpha),
             )
         }
@@ -214,6 +236,8 @@ internal fun PlaybackTokenContextTapeLine(
     activeTokenIndex: Int,
     activeTimelineEntry: TextFollowTimelineEntry?,
     displayedSamples: Int,
+    tokenStartSamples: Map<Int, Int?> = emptyMap(),
+    onSeekToSample: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -236,6 +260,7 @@ internal fun PlaybackTokenContextTapeLine(
     )
     val tokenPixelBounds = remember(lineModel) { mutableStateMapOf<Int, TokenPixelBounds>() }
     var lineTextWidthPx by remember(lineModel) { mutableFloatStateOf(0f) }
+    var textLayoutResult by remember(lineModel) { mutableStateOf<TextLayoutResult?>(null) }
 
     BoxWithConstraints(
         modifier =
@@ -307,6 +332,7 @@ internal fun PlaybackTokenContextTapeLine(
             softWrap = shouldWrap,
             overflow = TextOverflow.Clip,
             onTextLayout = { layoutResult ->
+                textLayoutResult = layoutResult
                 lineTextWidthPx = layoutResult.size.width.toFloat()
                 updateTokenPixelBounds(
                     layoutResult = layoutResult,
@@ -347,6 +373,29 @@ internal fun PlaybackTokenContextTapeLine(
                         ).testTag("playback-token-context-fade-right"),
             )
         }
+
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .pointerInput(lineModel, resolvedTranslationPx, tokenStartSamples, onSeekToSample) {
+                        detectTapGestures { tapOffset ->
+                            val tappedTokenIndex =
+                                resolveTappedContinuousTokenIndex(
+                                    tapOffset = tapOffset,
+                                    layoutResult = textLayoutResult,
+                                    lineModel = lineModel,
+                                    translationPx = resolvedTranslationPx,
+                                    horizontalPaddingPx = horizontalPaddingPx,
+                                    verticalPaddingPx = with(density) { TokenTapeVerticalPadding.toPx() },
+                                ) ?: return@detectTapGestures
+                            val startSample =
+                                tokenStartSamples[tappedTokenIndex]?.takeIf { it >= 0 }
+                                    ?: return@detectTapGestures
+                            onSeekToSample(startSample)
+                        }
+                    },
+        )
     }
 }
 
@@ -381,6 +430,37 @@ internal fun buildContinuousViewportAnnotatedString(
     if (cursor < lineModel.text.length) {
         append(lineModel.text.substring(cursor))
     }
+}
+
+internal fun resolveContinuousTokenIndexAtTextOffset(
+    lineModel: ContinuousViewportLine,
+    characterOffset: Int,
+): Int? =
+    lineModel.tokenSegments
+        .firstOrNull { segment ->
+            characterOffset >= segment.start && characterOffset < segment.endExclusive
+        }?.tokenIndex
+
+private fun resolveTappedContinuousTokenIndex(
+    tapOffset: Offset,
+    layoutResult: TextLayoutResult?,
+    lineModel: ContinuousViewportLine,
+    translationPx: Float,
+    horizontalPaddingPx: Float,
+    verticalPaddingPx: Float,
+): Int? {
+    if (layoutResult == null) {
+        return null
+    }
+    val localX = tapOffset.x - translationPx - horizontalPaddingPx
+    val localY = tapOffset.y - verticalPaddingPx
+    if (localX < 0f || localX > layoutResult.size.width || localY < 0f || localY > layoutResult.size.height) {
+        return null
+    }
+    return resolveContinuousTokenIndexAtTextOffset(
+        lineModel = lineModel,
+        characterOffset = layoutResult.getOffsetForPosition(Offset(localX, localY)),
+    )
 }
 
 internal fun updateTokenPixelBounds(
@@ -431,6 +511,125 @@ internal fun resolveActiveTokenLineRange(
     val endExclusive = (activeLineRange.tokenBeginIndex + activeLineRange.tokenCount).coerceIn(start + 1, tokenCount)
     return start until endExclusive
 }
+
+internal fun buildDisplayTokenLineRanges(
+    followData: PayloadFollowViewData,
+    sourceLineRanges: List<TextFollowLineTokenRangeViewData> =
+        followData.lineTokenRanges.ifEmpty {
+            listOf(TextFollowLineTokenRangeViewData(0, 0, followData.textTokens.size))
+        },
+): List<DisplayTokenLineRange> {
+    if (followData.textTokens.isEmpty()) {
+        return emptyList()
+    }
+
+    val displayLineRanges = ArrayList<DisplayTokenLineRange>()
+    sourceLineRanges.forEach { sourceLineRange ->
+        val sourceStart = sourceLineRange.tokenBeginIndex
+        val sourceEndExclusive = (sourceLineRange.tokenBeginIndex + sourceLineRange.tokenCount)
+        if (sourceStart !in followData.textTokens.indices || sourceEndExclusive > followData.textTokens.size) {
+            return@forEach
+        }
+        appendDisplayLineRangesForSourceLine(
+            followData = followData,
+            sourceLineRange = sourceLineRange,
+            out = displayLineRanges,
+        )
+    }
+    return displayLineRanges
+}
+
+private fun appendDisplayLineRangesForSourceLine(
+    followData: PayloadFollowViewData,
+    sourceLineRange: TextFollowLineTokenRangeViewData,
+    out: MutableList<DisplayTokenLineRange>,
+) {
+    val sourceStart = sourceLineRange.tokenBeginIndex
+    val sourceEndExclusive = sourceLineRange.tokenBeginIndex + sourceLineRange.tokenCount
+    var lineStart = sourceStart
+    var lineUnits = 0
+
+    fun appendLine(endExclusive: Int) {
+        if (endExclusive <= lineStart) {
+            return
+        }
+        out +=
+            DisplayTokenLineRange(
+                lineIndex = out.size,
+                tokenBeginIndex = lineStart,
+                tokenCount = endExclusive - lineStart,
+                sourceLineIndex = sourceLineRange.lineIndex,
+                coversFullSourceLine = lineStart == sourceStart && endExclusive == sourceEndExclusive,
+            )
+        lineStart = endExclusive
+        lineUnits = 0
+    }
+
+    for (tokenIndex in sourceStart until sourceEndExclusive) {
+        val tokenText = followData.textTokens[tokenIndex]
+        val separatorUnits = displaySeparatorUnitsBeforeToken(followData.textTokens, tokenIndex, lineStart)
+        val tokenUnits = tokenText.displayLineUnitCount()
+        val projectedUnits = lineUnits + separatorUnits + tokenUnits
+
+        // Punctuation tokens should finish the current display line; otherwise a split can
+        // leave commas or sentence endings stranded at the start of the next UI line.
+        if (
+            lineUnits > 0 &&
+            projectedUnits > DisplayLinePreferredUnits &&
+            !shouldAttachDisplayTokenToPreviousLine(tokenText)
+        ) {
+            appendLine(tokenIndex)
+        }
+
+        lineUnits += displaySeparatorUnitsBeforeToken(followData.textTokens, tokenIndex, lineStart)
+        lineUnits += tokenUnits
+
+        val tailCodePoint = tokenText.codePointBeforeOrNull(tokenText.length)
+        val nextTokenExists = tokenIndex + 1 < sourceEndExclusive
+        val shouldBreakAfterToken =
+            nextTokenExists &&
+                (
+                    tailCodePoint?.let(::isStrongDisplayLineBreakCodePoint) == true ||
+                        (
+                            lineUnits >= DisplayLinePreferredUnits &&
+                                tailCodePoint?.let(::isWeakDisplayLineBreakCodePoint) == true
+                        ) ||
+                        lineUnits >= DisplayLineHardUnits
+                )
+        if (shouldBreakAfterToken) {
+            appendLine(tokenIndex + 1)
+        }
+    }
+    appendLine(sourceEndExclusive)
+}
+
+private fun displaySeparatorUnitsBeforeToken(
+    textTokens: List<String>,
+    tokenIndex: Int,
+    lineStart: Int,
+): Int =
+    if (tokenIndex > lineStart && shouldInsertTokenSeparator(textTokens[tokenIndex - 1], textTokens[tokenIndex])) {
+        1
+    } else {
+        0
+    }
+
+internal fun resolveActiveDisplayLineIndex(
+    displayLineRanges: List<DisplayTokenLineRange>,
+    activeTokenIndex: Int,
+): Int =
+    displayLineRanges
+        .indexOfFirst { lineRange ->
+            activeTokenIndex >= lineRange.tokenBeginIndex &&
+                activeTokenIndex < lineRange.tokenBeginIndex + lineRange.tokenCount
+        }.takeIf { it >= 0 } ?: -1
+
+private fun DisplayTokenLineRange.exactLyricLineText(followData: PayloadFollowViewData): String? =
+    if (coversFullSourceLine) {
+        followData.lyricLines.getOrNull(sourceLineIndex)
+    } else {
+        null
+    }
 
 internal fun resolveContinuousViewportLine(
     followData: PayloadFollowViewData,
@@ -503,7 +702,7 @@ internal fun resolveContinuousViewportLineForRange(
     return ContinuousViewportLine(
         text = textBuilder.toString(),
         tokenSegments = tokenSegments,
-        shouldWrap = shouldWrap,
+        shouldWrap = shouldWrap || textBuilder.toString().displayLineUnitCount() > DisplayLineHardUnits,
     )
 }
 
@@ -534,7 +733,7 @@ internal fun resolveExactLyricViewportLine(
     return ContinuousViewportLine(
         text = lyricLineText,
         tokenSegments = tokenSegments,
-        shouldWrap = shouldWrap,
+        shouldWrap = shouldWrap || lyricLineText.displayLineUnitCount() > DisplayLineHardUnits,
     )
 }
 
@@ -568,6 +767,11 @@ internal fun shouldInsertTokenSeparator(
         return false
     }
     return true
+}
+
+internal fun shouldAttachDisplayTokenToPreviousLine(tokenText: String): Boolean {
+    val firstCodePoint = tokenText.codePointAtOrNull(0) ?: return false
+    return isPunctuationCodePoint(firstCodePoint) || isGluePunctuationCodePoint(firstCodePoint)
 }
 
 internal fun String.codePointAtOrNull(index: Int): Int? =
@@ -640,6 +844,44 @@ internal fun String.containsCjkCodePoint(): Boolean {
     }
     return false
 }
+
+internal fun String.displayLineUnitCount(): Int {
+    var index = 0
+    var units = 0
+    while (index < length) {
+        val codePoint = codePointAt(index)
+        units += if (isCjkCodePoint(codePoint)) 2 else 1
+        index += Character.charCount(codePoint)
+    }
+    return units
+}
+
+internal fun isStrongDisplayLineBreakCodePoint(codePoint: Int): Boolean =
+    when (codePoint) {
+        '.'.code,
+        '!'.code,
+        '?'.code,
+        ';'.code,
+        ':'.code,
+        0x3002,
+        0xFF01,
+        0xFF1F,
+        0xFF1B,
+        0xFF1A,
+        -> true
+
+        else -> false
+    }
+
+internal fun isWeakDisplayLineBreakCodePoint(codePoint: Int): Boolean =
+    when (codePoint) {
+        ','.code,
+        0x3001,
+        0xFF0C,
+        -> true
+
+        else -> false
+    }
 
 internal fun targetContinuousViewportTranslationPx(
     displayedSamples: Int,

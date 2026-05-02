@@ -60,9 +60,6 @@ fun AudioTabScreen(
     val isDecodingBusy = isCodecBusy && !isEncodingBusy
     var showInputEditor by rememberSaveable { mutableStateOf(false) }
     var inputCardExpanded by rememberSaveable(transportMode) { mutableStateOf(true) }
-    var flashVoicingExpanded by rememberSaveable(transportMode) {
-        mutableStateOf(transportMode == TransportModeOption.Flash)
-    }
     var resultExpanded by rememberSaveable(transportMode) { mutableStateOf(true) }
     var resultContentExpanded by rememberSaveable(transportMode) { mutableStateOf(true) }
     var sampleInputLength by rememberSaveable { mutableStateOf(SampleInputLengthOption.Short) }
@@ -138,17 +135,10 @@ fun AudioTabScreen(
                 onClearInput = onClear,
                 onEncode = onEncode,
                 onCancelEncode = onCancelEncode,
-                flashVoicingExpanded = flashVoicingExpanded,
-                onToggleFlashVoicingExpanded = {
-                    val nextExpanded = !flashVoicingExpanded
-                    flashVoicingExpanded = nextExpanded
-                    if (!nextExpanded && selectedFlashVoicingStyle != FlashVoicingStyleOption.Steady) {
-                        onFlashVoicingStyleSelected(FlashVoicingStyleOption.Steady)
-                    }
-                },
             )
             AudioResultCard(
                 decodedPayload = decodedPayload,
+                transportMode = transportMode,
                 isCodecBusy = isCodecBusy,
                 isDecodeBusy = isDecodingBusy,
                 expanded = resultExpanded,

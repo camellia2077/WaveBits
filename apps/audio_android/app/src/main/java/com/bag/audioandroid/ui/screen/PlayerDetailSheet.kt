@@ -54,6 +54,11 @@ internal fun PlayerDetailSheetContent(
     onScrubChanged: (Int) -> Unit,
     onScrubFinished: () -> Unit,
     onLyricsRequested: () -> Unit = {},
+    onSeekToSample: (Int) -> Unit = { targetSamples ->
+        onScrubStarted()
+        onScrubChanged(targetSamples)
+        onScrubFinished()
+    },
     initialDisplayMode: PlaybackDisplayMode = PlaybackDisplayMode.Visual,
     modifier: Modifier = Modifier,
 ) {
@@ -90,6 +95,7 @@ internal fun PlayerDetailSheetContent(
             isPlaying = isPlaying,
             displaySectionState = displaySectionState,
             savedAudioItem = savedAudioItem,
+            onSeekToSample = onSeekToSample,
         )
         PlayerDetailBottomDock(
             modifier = Modifier.fillMaxWidth(),
@@ -140,6 +146,7 @@ private fun PlayerDetailScrollContent(
     isPlaying: Boolean,
     displaySectionState: PlaybackDisplaySectionState,
     savedAudioItem: SavedAudioItem?,
+    onSeekToSample: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -160,6 +167,7 @@ private fun PlayerDetailScrollContent(
             followData = followData,
             isPlaying = isPlaying,
             displaySectionState = displaySectionState,
+            onSeekToSample = onSeekToSample,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -224,6 +232,7 @@ private fun PlayerDetailBottomDock(
             canExportGeneratedAudio = canExportGeneratedAudio,
             transportMode = transportMode,
             durationMs = durationMs,
+            totalSamples = totalSamples,
             sampleRateHz = sampleRateHz,
             frameSamples = frameSamples,
             flashVoicingStyle = flashVoicingStyle,

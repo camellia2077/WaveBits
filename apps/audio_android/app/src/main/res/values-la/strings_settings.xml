@@ -57,9 +57,9 @@
     <string name="palette_family_neutrals">Neutra</string>
     <string name="config_flash_style_title">Ritus Vocis</string>
     <string name="config_flash_style_subtitle">Confirma quomodo vox resonare debeat.</string>
-    <string name="config_flash_style_steady_label">Stabilis</string>
+    <string name="config_flash_style_steady_label">Stasis</string>
     <string name="config_flash_style_steady_description">Signum machinale clarum et stabile.</string>
-    <string name="config_flash_style_hostile_label">Hostilis</string>
+    <string name="config_flash_style_hostile_label">Hostilitas</string>
     <string name="config_flash_style_hostile_description">Praeceptum iratum; nunc eodem involucro stabili utitur.</string>
     <string name="config_flash_style_litany_label">Litania</string>
     <string name="config_flash_style_litany_description">Praescriptum precum reverens cum cadenza rituali tardiore.</string>

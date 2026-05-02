@@ -132,6 +132,138 @@ class PlaybackTokenContextTapeTest {
     }
 
     @Test
+    fun `display splitter keeps punctuation attached to previous token`() {
+        val followData =
+            PayloadFollowViewData(
+                textTokens = listOf("AAAAAAAAAAAAAAAAAAAAAAAA", ",", "next"),
+                lineTokenRanges = listOf(TextFollowLineTokenRangeViewData(0, 0, 3)),
+                textFollowAvailable = true,
+            )
+        val displayLines = buildDisplayTokenLineRanges(followData)
+
+        assertEquals(2, displayLines.size)
+        assertEquals(0, displayLines[0].tokenBeginIndex)
+        assertEquals(2, displayLines[0].tokenCount)
+        assertEquals(
+            "AAAAAAAAAAAAAAAAAAAAAAAA,",
+            resolveContinuousViewportLineForRange(followData, displayLines[0].tokenRange).text,
+        )
+        assertEquals(
+            "next",
+            resolveContinuousViewportLineForRange(followData, displayLines[1].tokenRange).text,
+        )
+    }
+
+    @Test
+    fun `long ascii token flow is split into display lines`() {
+        val displayLines =
+            buildDisplayTokenLineRanges(
+                followData =
+                    PayloadFollowViewData(
+                        textTokens = listOf("PRAISE", "THE", "OMNISSIAH", "PRAISE", "THE", "MACHINE"),
+                        lineTokenRanges = listOf(TextFollowLineTokenRangeViewData(0, 0, 6)),
+                        textFollowAvailable = true,
+                    ),
+            )
+
+        assertEquals(2, displayLines.size)
+        assertEquals(0, displayLines[0].tokenBeginIndex)
+        assertEquals(3, displayLines[0].tokenCount)
+        assertEquals(3, displayLines[1].tokenBeginIndex)
+        assertEquals(3, displayLines[1].tokenCount)
+    }
+
+    @Test
+    fun `mini morse style long text does not remain one display line`() {
+        val displayLines =
+            buildDisplayTokenLineRanges(
+                followData =
+                    PayloadFollowViewData(
+                        textTokens = listOf("PRAISE", "THE", "OMNISSIAH", "PRAISE", "THE", "MACHINE"),
+                        textFollowAvailable = true,
+                    ),
+            )
+
+        assertTrue(displayLines.size > 1)
+    }
+
+    @Test
+    fun `cjk display line still wraps`() {
+        val line =
+            resolveContinuousViewportLineForRange(
+                followData =
+                    PayloadFollowViewData(
+                        textTokens = listOf("二", "进", "制", "祷", "文"),
+                        textFollowAvailable = true,
+                    ),
+                tokenRange = 0..4,
+            )
+
+        assertTrue(line.shouldWrap)
+    }
+
+    @Test
+    fun `oversized single token stays one display line and wraps`() {
+        val followData =
+            PayloadFollowViewData(
+                textTokens = listOf("SUPERCALIFRAGILISTICEXPIALIDOCIOUS"),
+                textFollowAvailable = true,
+            )
+        val displayLines = buildDisplayTokenLineRanges(followData)
+        val line = resolveContinuousViewportLineForRange(followData, displayLines.single().tokenRange)
+
+        assertEquals(1, displayLines.size)
+        assertEquals(1, displayLines.single().tokenCount)
+        assertTrue(line.shouldWrap)
+    }
+
+    @Test
+    fun `active token resolves to split display line`() {
+        val displayLines =
+            buildDisplayTokenLineRanges(
+                followData =
+                    PayloadFollowViewData(
+                        textTokens = listOf("PRAISE", "THE", "OMNISSIAH", "PRAISE", "THE", "MACHINE"),
+                        lineTokenRanges = listOf(TextFollowLineTokenRangeViewData(0, 0, 6)),
+                        textFollowAvailable = true,
+                    ),
+            )
+
+        assertEquals(1, resolveActiveDisplayLineIndex(displayLines, activeTokenIndex = 4))
+    }
+
+    @Test
+    fun `tap resolver maps character offset to token index`() {
+        val line =
+            resolveContinuousViewportLineForRange(
+                followData =
+                    PayloadFollowViewData(
+                        textTokens = listOf("ASH", "BELL", "RITE"),
+                        textFollowAvailable = true,
+                    ),
+                tokenRange = 0..2,
+            )
+
+        assertEquals(1, resolveContinuousTokenIndexAtTextOffset(line, characterOffset = 5))
+        assertEquals(2, resolveContinuousTokenIndexAtTextOffset(line, characterOffset = 9))
+    }
+
+    @Test
+    fun `tap resolver ignores separator space between tokens`() {
+        val line =
+            resolveContinuousViewportLineForRange(
+                followData =
+                    PayloadFollowViewData(
+                        textTokens = listOf("ASH", "BELL"),
+                        textFollowAvailable = true,
+                    ),
+                tokenRange = 0..1,
+            )
+
+        assertEquals(null, resolveContinuousTokenIndexAtTextOffset(line, characterOffset = 3))
+    }
+
+    @Test
     fun `short active segment stays anchored in viewport`() {
         val translation =
             targetContinuousViewportTranslationPx(

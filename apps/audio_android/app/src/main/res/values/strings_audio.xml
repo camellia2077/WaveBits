@@ -105,10 +105,6 @@
     <string name="audio_action_expand_result_content_short">Show</string>
     <!-- CONTEXT: Short visible label for the small helper control that collapses the result content area. -->
     <string name="audio_action_collapse_result_content_short">Hide</string>
-    <!-- CONTEXT: Accessibility/action label for expanding the flash style selector section. -->
-    <string name="audio_action_expand_flash_style">Expand style</string>
-    <!-- CONTEXT: Accessibility/action label for collapsing the flash style selector section. -->
-    <string name="audio_action_collapse_flash_style">Collapse style</string>
     <!-- CONTEXT: Generic audio status wrapper where %1$s is a more specific status message. -->
     <string name="audio_status">%1$s</string>
     <!-- CONTEXT: Technical summary showing the sample count of generated/loaded audio. %1$d is the number of audio samples, not text examples. -->
@@ -129,10 +125,11 @@
     <string name="audio_decode_text_unavailable">This payload could not be interpreted as text. Raw data is still available.</string>
     <!-- CONTEXT: Message shown when there is no raw payload data available yet for the current result. -->
     <string name="audio_decode_raw_unavailable">No raw payload data is available yet.</string>
-    <!-- CONTEXT: Section title for the selected flash voicing style. %1$s is the current style name. -->
-    <string name="audio_flash_style_title">Flash voicing style: %1$s</string>
     <!-- CONTEXT: Helper text under the flash voicing style selector. It applies only to future generated audio, not already-generated audio. -->
     <string name="audio_flash_style_hint">Applies to the next generated audio. Existing generated audio keeps the style it was created with.</string>
+    <string name="audio_flash_voicing_style_title">Voicing style</string>
+    <string name="audio_action_select_flash_voicing_style">Select voicing style</string>
+    <string name="audio_flash_voicing_style_sheet_title">Voicing style</string>
     <!-- CONTEXT: Title for the bottom sheet/dialog that lets the user pick from saved audio items. -->
     <string name="audio_saved_audio_sheet_title">Saved audio</string>
     <!-- CONTEXT: Empty-state text inside the saved-audio picker sheet when the library has no saved audio. -->
@@ -406,4 +403,24 @@
     <string name="status_playing_saved_audio">Playing: %1$s</string>
     <!-- CONTEXT: Status shown when the user tries to play or inspect a mode that has no generated audio yet. -->
     <string name="status_no_audio_for_mode">No audio yet for this mode</string>
+    <string name="audio_follow_tokenizer_title">Tokenizer</string>
+    <string name="audio_action_open_tokenizer">Open tokenizer</string>
+    <!-- CONTEXT: CONTEXT: Dialog title for mode-specific input encoding rules. -->
+    <string name="audio_input_encoding_rules_title">Encoding rules</string>
+    <!-- CONTEXT: CONTEXT: Text button beside input validation feedback that opens a dialog explaining mode-specific input encoding rules. -->
+    <string name="audio_input_encoding_rules">Encoding rules</string>
+    <!-- CONTEXT: CONTEXT: Confirmation button that closes the input encoding rules dialog. -->
+    <string name="audio_input_encoding_rules_done">Done</string>
+    <!-- CONTEXT: CONTEXT: Body text in the input encoding rules dialog for pro mode. -->
+    <string name="audio_input_encoding_rules_pro">Pro accepts ASCII text only. Non-ASCII characters such as CJK text, emoji, and many accented letters cannot be encoded in pro.</string>
+    <!-- CONTEXT: CONTEXT: Body text in the input encoding rules dialog for flash/ultra modes, which do not need inline blocking for special characters. -->
+    <string name="audio_input_encoding_rules_unrestricted">This mode accepts the current text as UTF-8/plain text bytes. Mini and pro have stricter input rules.</string>
+    <!-- CONTEXT: CONTEXT: Body text in the input encoding rules dialog for mini/Morse mode. Keep the punctuation list exact. -->
+    <string name="audio_input_encoding_rules_mini">Mini accepts A-Z, 0-9, spaces, and common Morse punctuation. Lowercase is encoded as uppercase and repeated spaces are folded.</string>
+    <!-- CONTEXT: CONTEXT: Pro input helper. %1$s is the list of non-ASCII characters typed by the user. -->
+    <string name="audio_pro_unsupported_characters">Unsupported pro characters: %1$s</string>
+    <!-- CONTEXT: CONTEXT: Inline validation success message under the input field for mini/Morse mode. -->
+    <string name="audio_input_encoding_valid_mini">Mini input is ready. It will be encoded as Morse-compatible text.</string>
+    <!-- CONTEXT: CONTEXT: Inline validation success message under the input field for pro mode. -->
+    <string name="audio_input_encoding_valid_pro">Pro input is ready. All characters are ASCII.</string>
 </resources>

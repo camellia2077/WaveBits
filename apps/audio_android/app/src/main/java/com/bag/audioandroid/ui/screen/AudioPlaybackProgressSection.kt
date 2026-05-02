@@ -57,6 +57,11 @@ internal fun AudioPlaybackProgressSection(
             followData = followData,
             isPlaying = isPlaying,
             displaySectionState = displaySectionState,
+            onSeekToSample = { targetSamples ->
+                onScrubStarted()
+                onScrubChanged(targetSamples)
+                onScrubFinished()
+            },
         )
         AudioPlaybackTimelineBlock(
             displayedSamples = displayedSamples,

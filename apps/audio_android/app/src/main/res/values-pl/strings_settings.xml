@@ -57,9 +57,9 @@
     <string name="palette_family_neutrals">Neutralne</string>
     <string name="config_flash_style_title">Styl flash</string>
     <string name="config_flash_style_subtitle">Wybierz, jak ma brzmieć audio flash.</string>
-    <string name="config_flash_style_steady_label">Stabilny</string>
+    <string name="config_flash_style_steady_label">Staza</string>
     <string name="config_flash_style_steady_description">Wyraźna, stabilna sygnalizacja mechaniczna.</string>
-    <string name="config_flash_style_hostile_label">Wrogi</string>
+    <string name="config_flash_style_hostile_label">Wrogość</string>
     <string name="config_flash_style_hostile_description">Gniewny preset rozkazu; na razie używa stabilnej powłoki sygnału.</string>
     <string name="config_flash_style_litany_label">Litania</string>
     <string name="config_flash_style_litany_description">Preset nabożnej modlitwy z wolniejszą rytualną kadencją sygnału.</string>

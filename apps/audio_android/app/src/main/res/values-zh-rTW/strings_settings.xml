@@ -56,9 +56,9 @@
     <string name="palette_family_neutrals">中性色</string>
     <string name="config_flash_style_title">Flash 風格</string>
     <string name="config_flash_style_subtitle">選擇 flash 音訊的聲音風格。</string>
-    <string name="config_flash_style_steady_label">平穩</string>
+    <string name="config_flash_style_steady_label">靜滯</string>
     <string name="config_flash_style_steady_description">清晰穩定的機械訊號。</string>
-    <string name="config_flash_style_hostile_label">憤怒</string>
+    <string name="config_flash_style_hostile_label">敵意</string>
     <string name="config_flash_style_hostile_description">憤怒的命令預設；目前先使用平穩訊號外殼。</string>
     <string name="config_flash_style_litany_label">崇敬</string>
     <string name="config_flash_style_litany_description">崇敬祈禱預設，使用較慢的儀式訊號節奏。</string>

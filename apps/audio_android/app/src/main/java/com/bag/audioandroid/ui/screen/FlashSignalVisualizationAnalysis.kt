@@ -25,6 +25,50 @@ internal data class FskEnergyBucket(
     val confidence: Float,
 )
 
+internal data class FlashSignalToneSegment(
+    val startSample: Int,
+    val endSample: Int,
+    val tone: FskDominantTone,
+) {
+    val sampleCount: Int = (endSample - startSample).coerceAtLeast(0)
+}
+
+internal fun buildFlashSignalToneSegments(followData: PayloadFollowViewData): List<FlashSignalToneSegment> {
+    if (!followData.followAvailable || followData.binaryGroupTimeline.isEmpty()) {
+        return emptyList()
+    }
+
+    val segments = ArrayList<FlashSignalToneSegment>()
+    followData.binaryGroupTimeline
+        .sortedBy { it.startSample }
+        .forEach { entry ->
+            val bits =
+                followData.binaryTokens
+                    .getOrNull(entry.groupIndex)
+                    .orEmpty()
+                    .filter { it == '0' || it == '1' }
+            if (bits.isEmpty() || entry.sampleCount <= 0) {
+                return@forEach
+            }
+
+            // Android stores one binary token per binary timeline entry. The entry's
+            // bitOffset is an absolute payload offset, not an index into this token.
+            val highWeight = bits.count { it == '1' }.toFloat() / bits.length.toFloat()
+            val tone =
+                when {
+                    highWeight >= 0.5f -> FskDominantTone.High
+                    else -> FskDominantTone.Low
+                }
+            segments +=
+                FlashSignalToneSegment(
+                    startSample = entry.startSample,
+                    endSample = entry.startSample + entry.sampleCount,
+                    tone = tone,
+                )
+        }
+    return segments
+}
+
 internal fun buildFskEnergyBuckets(
     pcm: ShortArray,
     sampleRateHz: Int,

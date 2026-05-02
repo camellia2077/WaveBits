@@ -54,8 +54,6 @@
     <string name="audio_action_collapse_result_content">Згорнути текст результату</string>
     <string name="audio_action_expand_result_content_short">Показати</string>
     <string name="audio_action_collapse_result_content_short">Сховати</string>
-    <string name="audio_action_expand_flash_style">Розгорнути стиль</string>
-    <string name="audio_action_collapse_flash_style">Згорнути стиль</string>
     <string name="audio_status">%1$s</string>
     <string name="audio_sample_count">%1$d зразків</string>
     <string name="audio_result_title">Результат читання</string>
@@ -66,8 +64,10 @@
     <string name="audio_decode_raw_hex_label">Hex</string>
     <string name="audio_decode_text_unavailable">Цей payload не вдалося інтерпретувати як текст. Сирі дані все ще доступні.</string>
     <string name="audio_decode_raw_unavailable">Сирі дані payload поки недоступні.</string>
-    <string name="audio_flash_style_title">Стиль flash: %1$s</string>
     <string name="audio_flash_style_hint">Застосовується до наступного згенерованого аудіо. Уже згенероване аудіо зберігає стиль, з яким його було створено.</string>
+    <string name="audio_flash_voicing_style_title">Стиль голосу</string>
+    <string name="audio_action_select_flash_voicing_style">Вибрати стиль голосу</string>
+    <string name="audio_flash_voicing_style_sheet_title">Стиль голосу</string>
     <string name="audio_saved_audio_sheet_title">Збережене аудіо</string>
     <string name="audio_saved_audio_empty">Збереженого аудіо ще немає.</string>
     <string name="audio_mini_player_generated_title">Згенероване аудіо %1$s</string>
@@ -207,4 +207,15 @@
     <string name="status_saved_audio_load_failed">Не вдалося завантажити</string>
     <string name="status_playing_saved_audio">Відтворюється: %1$s</string>
     <string name="status_no_audio_for_mode">Для цього режиму ще немає аудіо</string>
+    <string name="audio_follow_tokenizer_title">Токенізатор</string>
+    <string name="audio_action_open_tokenizer">Відкрити токенізатор</string>
+    <string name="audio_input_encoding_rules_title">Правила кодування</string>
+    <string name="audio_input_encoding_rules">Правила кодування</string>
+    <string name="audio_input_encoding_rules_pro">Pro приймає лише текст ASCII. Не-ASCII символи, як-от текст CJK, емодзі та багато літер із діакритикою, не можна закодувати в pro.</string>
+    <string name="audio_input_encoding_rules_unrestricted">Цей режим приймає поточний текст як байти UTF-8/звичайного тексту. Mini та pro мають суворіші правила введення.</string>
+    <string name="audio_input_encoding_rules_mini">Mini приймає A-Z, 0-9, пробіли та поширену пунктуацію Morse. Малі літери кодуються як великі, повторювані пробіли об’єднуються.</string>
+    <string name="audio_pro_unsupported_characters">Непідтримувані символи pro: %1$s</string>
+    <string name="audio_input_encoding_valid_mini">Введення mini готове. Його буде закодовано як Morse-сумісний текст.</string>
+    <string name="audio_input_encoding_valid_pro">Введення pro готове. Усі символи є ASCII.</string>
+    <string name="audio_input_encoding_rules_done">Готово</string>
 </resources>

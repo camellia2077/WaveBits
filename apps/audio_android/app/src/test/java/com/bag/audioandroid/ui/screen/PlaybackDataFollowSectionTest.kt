@@ -4,12 +4,15 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.PayloadFollowBinaryGroupTimelineEntry
@@ -73,7 +76,7 @@ class PlaybackDataFollowSectionTest {
         }
 
         composeRule.onNodeWithText("01000010").assertIsDisplayed()
-        composeRule.onAllNodesWithText("01001100").assertCountEquals(2)
+        composeRule.onAllNodesWithText("01001100", useUnmergedTree = true).assertCountEquals(2)
     }
 
     @Test
@@ -136,6 +139,41 @@ class PlaybackDataFollowSectionTest {
         assertEquals(stripCenterX, activeCenterX, 2f)
         assertTrue(activeBounds.left >= stripBounds.left)
         assertTrue(activeBounds.right <= stripBounds.right)
+    }
+
+    @Test
+    fun `main token strip card is preview only and does not seek`() {
+        var seekTarget: Int? = null
+        composeRule.setContent {
+            PlaybackDataFollowSection(
+                followData = sampleFollowData(),
+                displayedSamples = 7,
+                transportMode = TransportModeOption.Flash,
+                onSeekToSample = { seekTarget = it },
+            )
+        }
+
+        composeRule.onNodeWithTag("follow-token-active", useUnmergedTree = true).assertHasNoClickAction()
+
+        assertEquals(null, seekTarget)
+    }
+
+    @Test
+    fun `tokenizer opens token list without stealing follow strip state`() {
+        composeRule.setContent {
+            PlaybackDataFollowSection(
+                followData = sampleFollowData(),
+                displayedSamples = 7,
+                transportMode = TransportModeOption.Flash,
+            )
+        }
+
+        composeRule
+            .onNodeWithContentDescription(string(R.string.audio_action_open_tokenizer))
+            .performClick()
+
+        composeRule.onNodeWithTag("follow-tokenizer-sheet").assertIsDisplayed()
+        composeRule.onNodeWithTag("follow-tokenizer-card-0", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
@@ -255,6 +293,23 @@ class PlaybackDataFollowSectionTest {
             )
 
         assertEquals(listOf(".--.", ".-.", ".-"), annotation)
+    }
+
+    @Test
+    fun `morse display groups keep letters paired with morse patterns`() {
+        val groups =
+            morseLetterDisplayGroups(
+                token = "ASH",
+                rawDisplayUnits =
+                    listOf(
+                        TextFollowRawDisplayUnitViewData(0, 0, 1, 0, 0, 1, "41", "01000001"),
+                        TextFollowRawDisplayUnitViewData(0, 1, 1, 1, 1, 1, "53", "01010011"),
+                        TextFollowRawDisplayUnitViewData(0, 2, 2, 2, 2, 1, "48", "01001000"),
+                    ),
+            )
+
+        assertEquals(listOf("A", "S", "H"), groups.map(MorseLetterDisplayGroup::text))
+        assertEquals(listOf(".-", "...", "...."), groups.map(MorseLetterDisplayGroup::morse))
     }
 
     @Test

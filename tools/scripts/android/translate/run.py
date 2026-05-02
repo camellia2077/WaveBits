@@ -9,7 +9,10 @@ from commands.apply_translation_replacements import (
 from commands.add_translation_key import add_translation_key
 from commands.fix_android_resource_escapes import run_fix_android_resource_escapes
 from commands.check_mixed_language import run_mixed_language_check
-from commands.check_translation_key_alignment import run_translation_key_alignment_check
+from commands.check_translation_key_alignment import (
+    DEFAULT_OUTPUT_DIRECTORY as DEFAULT_KEY_ALIGNMENT_OUTPUT_DIRECTORY,
+    run_translation_key_alignment_check,
+)
 from commands.compare_translation_quality import generate_comparisons_for_res
 from commands.build_replacements_from_suggestions import build_replacements_from_suggestions
 from core.translation_cli_payloads import (
@@ -139,6 +142,16 @@ def parse_args() -> argparse.Namespace:
         help="Check that localized translation keys are a strict subset of the English base keys.",
     )
     key_alignment_parser.add_argument(
+        "--res-dir",
+        default=str(DEFAULT_RES_DIRECTORY),
+        help="Android res root. Defaults to apps/audio_android/app/src/main/res.",
+    )
+    key_alignment_parser.add_argument(
+        "--output-dir",
+        default="",
+        help="Override output directory for generated key-alignment task reports.",
+    )
+    key_alignment_parser.add_argument(
         "--quiet",
         action="store_true",
         help="Suppress routine progress output.",
@@ -242,7 +255,7 @@ def parse_args() -> argparse.Namespace:
     )
     add_key_parser = subparsers.add_parser(
         "add-key",
-        help="Add a string key to the English baseline file and matching localized files.",
+        help="Add a string key to the English baseline file.",
     )
     add_key_parser.add_argument(
         "--res-dir",
@@ -267,7 +280,7 @@ def parse_args() -> argparse.Namespace:
     add_key_parser.add_argument(
         "--localized",
         default=None,
-        help="Optional localized fallback value for all values-* files. Defaults to --en.",
+        help="Optional explicit fallback value for existing values-* files. Use only for intentionally shared text.",
     )
     add_key_parser.add_argument(
         "--context",
@@ -353,7 +366,12 @@ def run() -> int:
     if command == "key-alignment":
         if not quiet and not json_output:
             print("[translate] Generating translation key alignment reports")
-        result = run_translation_key_alignment_check(quiet=quiet or json_output, emit_text=not json_output)
+        result = run_translation_key_alignment_check(
+            res_dir=args.res_dir,
+            output_dir=args.output_dir or DEFAULT_KEY_ALIGNMENT_OUTPUT_DIRECTORY,
+            quiet=quiet or json_output,
+            emit_text=not json_output,
+        )
         if json_output:
             emit_json_payload(key_alignment_payload(result))
         return result.exit_code
@@ -444,6 +462,7 @@ def run() -> int:
             "summary": {
                 "touched_files": len(result.touched_files),
                 "skipped_files": len(result.skipped_files),
+                "localized_fallback_used": result.localized_fallback_used,
             },
             "artifacts": {
                 "touched_files": [normalize_path_string(path) for path in result.touched_files],
@@ -458,6 +477,10 @@ def run() -> int:
                 f"Added key `{args.key}` to {len(result.touched_files)} files "
                 f"(skipped existing: {len(result.skipped_files)})."
             )
+            if not result.localized_fallback_used:
+                print("Localized files were not updated; run key-alignment to generate translation tasks.")
+            else:
+                print("Localized fallback was applied explicitly; verify that the shared text is intentional.")
             if result.touched_files:
                 print("Touched:")
                 for path in result.touched_files:

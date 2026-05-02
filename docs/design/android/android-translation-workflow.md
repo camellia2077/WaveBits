@@ -48,14 +48,22 @@
 
 推荐顺序：
 
-1. 新增 key 时优先用 `python tools/run.py android strings-add --file <strings_*.xml> --key <name> --en "<English text>"`
-2. 修改已有 key 时改英文基线 XML
-3. 同步补本地化 XML
-4. 如果改动涉及样例文本，再检查：
+1. 新增 key 时必须用 `python tools/run.py android strings-add --file <strings_*.xml> --key <name> --en "<English text>"`
+2. `strings-add` 默认只写英文 `values/` 基线，并自动生成 translation key alignment 报告
+3. 根据 `temp/translation_key_alignment_reports/` 里的语言任务补齐 `values-*`
+4. 补齐本地化时优先使用 `tools/scripts/android/translate/AGENTS.md` 的 agent job 流程，不要手工把英文复制成 localized fallback
+5. 修改已有 key 时先改英文基线 XML，再用 translate 工具生成 review / task / replacement 产物修订对应语言
+6. 如果改动涉及样例文本，再检查：
    - `apps/audio_android/app/src/main/java/com/bag/audioandroid/data/AndroidSampleInputTextProvider.kt`
    - `apps/audio_android/app/src/main/java/com/bag/audioandroid/ui/SampleInputSessionUpdater.kt`
-5. 运行 Android 验证
-6. 如果翻译检查失败，去看自动生成的报告再补齐
+7. 运行 Android 验证
+8. 如果翻译检查失败，去看自动生成的报告再补齐
+
+例外：
+
+- 只有品牌名、协议 token、不可翻译 UI 符号等明确全语言共享的文本，才允许传 `--localized`
+- `values-la` 是 Dog Latin / High Gothic 风格，不是真正的 classical Latin
+- `values-uk` 必须按乌克兰语处理，不要照搬俄语资源
 
 ## Tool Entry
 
@@ -74,6 +82,12 @@ pwsh -NoLogo -Command "python tools/scripts/android/translate/run.py key-alignme
 ```powershell
 pwsh -NoLogo -Command "python tools/run.py android strings-add --file strings_audio.xml --key sample_key --en 'Sample text'"
 ```
+
+这条命令会：
+
+- 写入英文 `res/values/<file>`
+- 生成 `temp/translation_key_alignment_reports/`
+- 不会默认写入 `values-*`
 
 静默模式：
 

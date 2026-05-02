@@ -30,6 +30,7 @@ internal fun AudioPlaybackTransportControls(
     canExportGeneratedAudio: Boolean,
     transportMode: TransportModeOption,
     durationMs: Long,
+    totalSamples: Int,
     sampleRateHz: Int,
     frameSamples: Int,
     flashVoicingStyle: FlashVoicingStyleOption?,
@@ -63,12 +64,13 @@ internal fun AudioPlaybackTransportControls(
     val frameSamplesLabel = stringResource(R.string.audio_info_frame_samples)
     val frameSamplesValue = stringResource(R.string.audio_info_frame_samples_value, frameSamples)
     val fileSizeLabel = stringResource(R.string.audio_player_detail_saved_file_size)
+    val displayFileSizeBytes =
+        savedAudioItem?.fileSizeBytes
+            ?: estimatedMonoPcm16WavSizeBytes(totalSamples)
     val fileSizeValue =
-        savedAudioItem
-            ?.fileSizeBytes
-            ?.let { fileSizeBytes ->
-                stringResource(R.string.audio_player_detail_saved_payload_bytes_value, fileSizeBytes)
-            }
+        displayFileSizeBytes?.let { fileSizeBytes ->
+            stringResource(R.string.audio_player_detail_saved_payload_bytes_value, fileSizeBytes)
+        }
     val payloadBytesLabel = stringResource(R.string.audio_player_detail_saved_payload_bytes)
     val payloadBytesValue =
         savedAudioItem
@@ -126,6 +128,15 @@ internal fun AudioPlaybackTransportControls(
                                 testTag = "audio-info-row-duration",
                             ),
                         )
+                        fileSizeValue?.let {
+                            add(
+                                AudioInfoRowModel(
+                                    label = fileSizeLabel,
+                                    value = it,
+                                    testTag = "audio-info-row-file-size",
+                                ),
+                            )
+                        }
                         savedAudioItem?.let { item ->
                             add(
                                 AudioInfoRowModel(
@@ -170,15 +181,6 @@ internal fun AudioPlaybackTransportControls(
                                 testTag = "audio-info-row-frame-samples",
                             ),
                         )
-                        fileSizeValue?.let {
-                            add(
-                                AudioInfoRowModel(
-                                    label = fileSizeLabel,
-                                    value = it,
-                                    testTag = "audio-info-row-file-size",
-                                ),
-                            )
-                        }
                         payloadBytesValue?.let {
                             add(
                                 AudioInfoRowModel(
@@ -247,3 +249,15 @@ private val GeneratedAudioInputSourceKind.labelResId: Int
             GeneratedAudioInputSourceKind.Manual -> R.string.audio_generated_input_source_manual
             GeneratedAudioInputSourceKind.Sample -> R.string.audio_generated_input_source_sample
         }
+
+private fun estimatedMonoPcm16WavSizeBytes(totalSamples: Int): Long? {
+    if (totalSamples <= 0) {
+        return null
+    }
+    // Generated and fallback saved playback use mono PCM16 WAV, so this gives a
+    // stable display value even when MediaStore has not returned SIZE yet.
+    return WavHeaderByteCount + totalSamples.toLong() * Pcm16BytesPerSample
+}
+
+private const val WavHeaderByteCount = 44L
+private const val Pcm16BytesPerSample = 2L

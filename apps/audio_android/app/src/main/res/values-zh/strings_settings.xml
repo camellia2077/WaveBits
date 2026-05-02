@@ -64,9 +64,9 @@
     <!-- CONTEXT: Settings section title for flash audio voice/style presets. -->
     <string name="config_flash_style_title">Flash 风格</string>
     <string name="config_flash_style_subtitle">选择 Flash 音频的发声效果。</string>
-    <string name="config_flash_style_steady_label">平稳</string>
+    <string name="config_flash_style_steady_label">静滞</string>
     <string name="config_flash_style_steady_description">清晰稳定的机械信号。</string>
-    <string name="config_flash_style_hostile_label">愤怒</string>
+    <string name="config_flash_style_hostile_label">敌意</string>
     <string name="config_flash_style_hostile_description">愤怒的命令预设；当前先使用平稳信号外壳。</string>
     <string name="config_flash_style_litany_label">崇敬</string>
     <string name="config_flash_style_litany_description">崇敬祷告预设，使用更慢的仪式信号节奏。</string>

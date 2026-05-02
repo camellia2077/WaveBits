@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.PayloadFollowBinaryGroupTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
+import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.TextFollowRawDisplayUnitViewData
 import com.bag.audioandroid.domain.TextFollowTimelineEntry
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
@@ -140,6 +141,116 @@ class PlayerDetailSheetContentTest {
         composeRule.onAllNodesWithTag("audio-info-technical-section", useUnmergedTree = true).assertCountEquals(1)
         composeRule.onAllNodesWithTag("audio-info-row-sample-rate", useUnmergedTree = true).assertCountEquals(1)
         composeRule.onAllNodesWithTag("audio-info-row-frame-samples", useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    @Test
+    fun `saved audio info dialog shows file size`() {
+        composeRule.setContent {
+            PlayerDetailSheetContent(
+                miniPlayerModel =
+                    MiniPlayerUiModel(
+                        title = UiText.Plain("Saved"),
+                        subtitle = UiText.Plain("saved"),
+                        leadingIcon = MiniPlayerLeadingIcon.Saved,
+                        durationMs = 44_000L,
+                        transportMode = TransportModeOption.Flash,
+                        isFlashMode = true,
+                        flashVoicingStyle = FlashVoicingStyleOption.Litany,
+                        source = MiniPlayerSource.Saved,
+                    ),
+                displayedSamples = 7,
+                totalSamples = 12,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4, 5, 6),
+                sampleRateHz = 44_100,
+                displayedTime = "0:07",
+                totalTime = "0:12",
+                isPlaying = false,
+                playbackSequenceMode = PlaybackSequenceMode.Normal,
+                playbackSpeed = 1.0f,
+                canSkipPrevious = false,
+                canSkipNext = false,
+                canExportGeneratedAudio = false,
+                followData = sampleFollowData(),
+                savedAudioItem =
+                    SavedAudioItem(
+                        itemId = "1",
+                        displayName = "Saved.wav",
+                        uriString = "content://saved/1",
+                        modeWireName = TransportModeOption.Flash.wireName,
+                        durationMs = 44_000L,
+                        savedAtEpochSeconds = 1_700_000_000L,
+                        flashVoicingStyle = FlashVoicingStyleOption.Litany,
+                        fileSizeBytes = 12_345L,
+                    ),
+                onTogglePlayback = {},
+                onSkipToPreviousTrack = {},
+                onSkipToNextTrack = {},
+                onPlaybackSequenceModeSelected = {},
+                onPlaybackSpeedSelected = {},
+                onExportGeneratedAudio = {},
+                onExportGeneratedAudioToDocument = {},
+                onShareSavedAudio = null,
+                onOpenSavedAudioSheet = {},
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.audio_action_open_audio_info)).performClick()
+        composeRule.onAllNodesWithTag("audio-info-row-file-size", useUnmergedTree = true).assertCountEquals(1)
+        composeRule.onNodeWithText("12345 bytes").assertIsDisplayed()
+    }
+
+    @Test
+    fun `generated audio info dialog shows estimated wav file size`() {
+        composeRule.setContent {
+            PlayerDetailSheetContent(
+                miniPlayerModel =
+                    MiniPlayerUiModel(
+                        title = UiText.Plain("Pro"),
+                        subtitle = UiText.Plain("generated"),
+                        leadingIcon = MiniPlayerLeadingIcon.Generated,
+                        durationMs = 44_000L,
+                        transportMode = TransportModeOption.Pro,
+                        isFlashMode = false,
+                        flashVoicingStyle = null,
+                        source = MiniPlayerSource.Generated,
+                    ),
+                displayedSamples = 7,
+                totalSamples = 12,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4, 5, 6),
+                sampleRateHz = 44_100,
+                displayedTime = "0:07",
+                totalTime = "0:12",
+                isPlaying = false,
+                playbackSequenceMode = PlaybackSequenceMode.Normal,
+                playbackSpeed = 1.0f,
+                canSkipPrevious = false,
+                canSkipNext = false,
+                canExportGeneratedAudio = true,
+                followData = sampleFollowData(),
+                savedAudioItem = null,
+                onTogglePlayback = {},
+                onSkipToPreviousTrack = {},
+                onSkipToNextTrack = {},
+                onPlaybackSequenceModeSelected = {},
+                onPlaybackSpeedSelected = {},
+                onExportGeneratedAudio = {},
+                onExportGeneratedAudioToDocument = {},
+                onShareSavedAudio = null,
+                onOpenSavedAudioSheet = {},
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.audio_action_open_audio_info)).performClick()
+        composeRule.onAllNodesWithTag("audio-info-row-file-size", useUnmergedTree = true).assertCountEquals(1)
+        composeRule.onNodeWithText("68 bytes").assertIsDisplayed()
     }
 
     @Test

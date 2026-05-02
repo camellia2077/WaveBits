@@ -57,9 +57,9 @@
     <string name="palette_family_neutrals">Нейтральные</string>
     <string name="config_flash_style_title">Стиль flash</string>
     <string name="config_flash_style_subtitle">Выберите, как должен звучать flash-аудио.</string>
-    <string name="config_flash_style_steady_label">Ровный</string>
+    <string name="config_flash_style_steady_label">Стазис</string>
     <string name="config_flash_style_steady_description">Чёткая стабильная машинная сигнализация.</string>
-    <string name="config_flash_style_hostile_label">Враждебный</string>
+    <string name="config_flash_style_hostile_label">Враждебность</string>
     <string name="config_flash_style_hostile_description">Пресет яростной команды; пока использует ровную сигнальную оболочку.</string>
     <string name="config_flash_style_litany_label">Литания</string>
     <string name="config_flash_style_litany_description">Пресет благоговейной молитвы с более медленной ритуальной каденцией.</string>

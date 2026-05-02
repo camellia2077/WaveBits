@@ -192,6 +192,44 @@ android {
     }
 }
 
+fun registerFlipBitsApkRename(
+    variantName: String,
+    assembleTaskName: String,
+) {
+    val variantDirectoryName = variantName.lowercase()
+    val renameTask =
+        tasks.register("rename${variantName}ApkToFlipBits") {
+            group = "build"
+            description = "Renames the $variantName APK artifact to use the FlipBits product name."
+            doLast {
+                val apkDirectory =
+                    layout
+                        .buildDirectory
+                        .dir("outputs/apk/$variantDirectoryName")
+                        .get()
+                        .asFile
+                val sourceApk = apkDirectory.resolve("app-$variantDirectoryName.apk")
+                val targetApk = apkDirectory.resolve("FlipBits-$variantDirectoryName.apk")
+                if (sourceApk.exists()) {
+                    if (targetApk.exists()) {
+                        targetApk.delete()
+                    }
+                    if (!sourceApk.renameTo(targetApk)) {
+                        sourceApk.copyTo(targetApk, overwrite = true)
+                        sourceApk.delete()
+                    }
+                }
+            }
+        }
+    tasks.matching { it.name == assembleTaskName }.configureEach {
+        finalizedBy(renameTask)
+    }
+}
+
+registerFlipBitsApkRename(variantName = "Debug", assembleTaskName = "assembleDebug")
+registerFlipBitsApkRename(variantName = "Staging", assembleTaskName = "assembleStaging")
+registerFlipBitsApkRename(variantName = "Release", assembleTaskName = "assembleRelease")
+
 if (!hasReleaseSigningProperties) {
     logger.lifecycle(
         "Release signing properties are not configured; debug builds stay available, " +

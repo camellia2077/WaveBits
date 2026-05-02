@@ -66,8 +66,6 @@
     <string name="audio_action_collapse_result_content">結果テキストを折りたたむ</string>
     <string name="audio_action_expand_result_content_short">表示</string>
     <string name="audio_action_collapse_result_content_short">非表示</string>
-    <string name="audio_action_expand_flash_style">スタイルを展開</string>
-    <string name="audio_action_collapse_flash_style">スタイルを折りたたむ</string>
     <string name="audio_status">%1$s</string>
     <string name="audio_sample_count">%1$d サンプル</string>
     <!-- CONTEXT: Panel title for the text produced by reading audio back. Product term is 'Read result'. -->
@@ -79,8 +77,10 @@
     <string name="audio_decode_raw_hex_label">16進数</string>
     <string name="audio_decode_text_unavailable">このペイロードはテキストとして解釈できませんでした。RAWデータは引き続き利用可能です。</string>
     <string name="audio_decode_raw_unavailable">RAWペイロードデータはまだ利用できません。</string>
-    <string name="audio_flash_style_title">Flash音声スタイル: %1$s</string>
     <string name="audio_flash_style_hint">次に生成されるオーディオに適用されます。既存の生成済みオーディオは、作成時のスタイルを維持します。</string>
+    <string name="audio_flash_voicing_style_title">音声スタイル</string>
+    <string name="audio_action_select_flash_voicing_style">音声スタイルを選択</string>
+    <string name="audio_flash_voicing_style_sheet_title">音声スタイル</string>
     <string name="audio_saved_audio_sheet_title">保存されたオーディオ</string>
     <string name="audio_saved_audio_empty">保存されたオーディオはまだありません。</string>
     <string name="audio_mini_player_generated_title">%1$s 生成オーディオ</string>
@@ -228,4 +228,15 @@
     <string name="status_saved_audio_load_failed">ロード失敗</string>
     <string name="status_playing_saved_audio">再生中: %1$s</string>
     <string name="status_no_audio_for_mode">このモードのオーディオはまだありません</string>
+    <string name="audio_follow_tokenizer_title">トークナイザー</string>
+    <string name="audio_action_open_tokenizer">トークナイザーを開く</string>
+    <string name="audio_input_encoding_rules_title">エンコード規則</string>
+    <string name="audio_input_encoding_rules">エンコード規則</string>
+    <string name="audio_input_encoding_rules_done">完了</string>
+    <string name="audio_input_encoding_rules_pro">Pro は ASCII テキストのみ対応しています。CJK テキスト、絵文字、多くのアクセント付き文字などの非 ASCII 文字は pro ではエンコードできません。</string>
+    <string name="audio_input_encoding_rules_unrestricted">このモードは現在のテキストを UTF-8/プレーンテキストのバイトとして扱います。Mini と pro にはより厳しい入力規則があります。</string>
+    <string name="audio_input_encoding_rules_mini">Mini は A-Z、0-9、スペース、一般的な Morse 句読点に対応しています。小文字は大文字としてエンコードされ、連続するスペースはまとめられます。</string>
+    <string name="audio_pro_unsupported_characters">pro で未対応の文字: %1$s</string>
+    <string name="audio_input_encoding_valid_mini">Mini 入力は使用できます。Morse 互換テキストとしてエンコードされます。</string>
+    <string name="audio_input_encoding_valid_pro">Pro 入力は使用できます。すべての文字が ASCII です。</string>
 </resources>

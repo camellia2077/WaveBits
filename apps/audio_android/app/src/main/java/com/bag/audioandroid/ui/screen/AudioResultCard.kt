@@ -25,11 +25,13 @@ import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.BagDecodeContentCodes
 import com.bag.audioandroid.domain.DecodedPayloadViewData
 import com.bag.audioandroid.ui.component.ActionButton
+import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.theme.appThemeAccentTokens
 
 @Composable
 internal fun AudioResultCard(
     decodedPayload: DecodedPayloadViewData,
+    transportMode: TransportModeOption,
     isCodecBusy: Boolean,
     isDecodeBusy: Boolean,
     expanded: Boolean,
@@ -94,30 +96,31 @@ internal fun AudioResultCard(
                     accentTokens = accentTokens,
                     decodedPayload = decodedPayload,
                     emptyTextResId = R.string.audio_result_empty,
+                    transportMode = transportMode,
                     bodyExpanded = resultContentExpanded,
                     onToggleBodyExpanded = onToggleResultContentExpanded,
                 )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                ActionButton(
-                    text =
-                        stringResource(
-                            if (isDecodeBusy) {
-                                R.string.audio_action_decode_busy
-                            } else {
-                                R.string.audio_action_decode
-                            },
-                        ),
-                    onClick = onDecode,
-                    enabled = !isCodecBusy,
-                    textColor = accentTokens.disclosureAccentTint,
-                    borderColor = accentTokens.selectionBorderAccentTint,
-                    borderWidth = 2.dp,
-                    modifier = Modifier.weight(1f),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    ActionButton(
+                        text =
+                            stringResource(
+                                if (isDecodeBusy) {
+                                    R.string.audio_action_decode_busy
+                                } else {
+                                    R.string.audio_action_decode
+                                },
+                            ),
+                        onClick = onDecode,
+                        enabled = !isCodecBusy,
+                        textColor = accentTokens.disclosureAccentTint,
+                        borderColor = accentTokens.selectionBorderAccentTint,
+                        borderWidth = 2.dp,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
     }

@@ -34,14 +34,18 @@ import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.BagDecodeContentCodes
 import com.bag.audioandroid.domain.DecodedPayloadViewData
 import com.bag.audioandroid.ui.appSegmentedButtonColors
+import com.bag.audioandroid.ui.model.TransportModeOption
+import com.bag.audioandroid.ui.model.analyzeMorseText
 import com.bag.audioandroid.ui.theme.AppThemeAccentTokens
 
 private enum class DecodedPayloadTab {
     Text,
+    Morse,
     Raw,
 }
 
 private const val DECODED_PAYLOAD_TAB_TEXT_TAG = "decodedPayloadTabText"
+private const val DECODED_PAYLOAD_TAB_MORSE_TAG = "decodedPayloadTabMorse"
 private const val DECODED_PAYLOAD_TAB_RAW_TAG = "decodedPayloadTabRaw"
 
 @Composable
@@ -49,15 +53,27 @@ internal fun DecodedPayloadContent(
     accentTokens: AppThemeAccentTokens,
     decodedPayload: DecodedPayloadViewData,
     emptyTextResId: Int,
+    transportMode: TransportModeOption? = null,
     bodyExpanded: Boolean = true,
     onToggleBodyExpanded: () -> Unit = {},
     startInRawView: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
+    val showMorseTab = transportMode == TransportModeOption.Mini
+    val availableTabs =
+        if (showMorseTab) {
+            DecodedPayloadTab.entries
+        } else {
+            listOf(DecodedPayloadTab.Text, DecodedPayloadTab.Raw)
+        }
     var selectedTabName by rememberSaveable {
         mutableStateOf(if (startInRawView) DecodedPayloadTab.Raw.name else DecodedPayloadTab.Text.name)
     }
-    val selectedTab = DecodedPayloadTab.valueOf(selectedTabName)
+    val selectedTab =
+        DecodedPayloadTab
+            .valueOf(selectedTabName)
+            .takeIf { it in availableTabs }
+            ?: availableTabs.first()
     val scrollState = rememberScrollState()
 
     Column(
@@ -67,10 +83,11 @@ internal fun DecodedPayloadContent(
         SingleChoiceSegmentedButtonRow(
             modifier = Modifier.fillMaxWidth(),
         ) {
-            DecodedPayloadTab.entries.forEachIndexed { index, tab ->
+            availableTabs.forEachIndexed { index, tab ->
                 val labelResId =
                     when (tab) {
                         DecodedPayloadTab.Text -> R.string.audio_decode_view_text
+                        DecodedPayloadTab.Morse -> R.string.audio_follow_view_morse
                         DecodedPayloadTab.Raw -> R.string.audio_decode_view_raw
                     }
                 SegmentedButton(
@@ -79,7 +96,7 @@ internal fun DecodedPayloadContent(
                     shape =
                         SegmentedButtonDefaults.itemShape(
                             index = index,
-                            count = DecodedPayloadTab.entries.size,
+                            count = availableTabs.size,
                         ),
                     colors = appSegmentedButtonColors(),
                     modifier =
@@ -88,6 +105,7 @@ internal fun DecodedPayloadContent(
                             .testTag(
                                 when (tab) {
                                     DecodedPayloadTab.Text -> DECODED_PAYLOAD_TAB_TEXT_TAG
+                                    DecodedPayloadTab.Morse -> DECODED_PAYLOAD_TAB_MORSE_TAG
                                     DecodedPayloadTab.Raw -> DECODED_PAYLOAD_TAB_RAW_TAG
                                 },
                             ),
@@ -107,6 +125,7 @@ internal fun DecodedPayloadContent(
                     stringResource(
                         when (selectedTab) {
                             DecodedPayloadTab.Text -> R.string.audio_decode_view_text
+                            DecodedPayloadTab.Morse -> R.string.audio_follow_view_morse
                             DecodedPayloadTab.Raw -> R.string.audio_decode_view_raw
                         },
                     ),
@@ -166,6 +185,21 @@ internal fun DecodedPayloadContent(
                             Text(
                                 text = bodyText,
                                 style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+
+                        DecodedPayloadTab.Morse -> {
+                            val morseText =
+                                if (decodedPayload.hasTextResult) {
+                                    analyzeMorseText(decodedPayload.text).morseNotation
+                                } else {
+                                    ""
+                                }
+                            Text(
+                                text = morseText.ifBlank { stringResource(emptyTextResId) },
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.fillMaxWidth(),
                             )

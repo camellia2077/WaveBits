@@ -66,8 +66,6 @@
     <string name="audio_action_collapse_result_content">결과 텍스트 축소</string>
     <string name="audio_action_expand_result_content_short">표시</string>
     <string name="audio_action_collapse_result_content_short">숨기기</string>
-    <string name="audio_action_expand_flash_style">스타일 확장</string>
-    <string name="audio_action_collapse_flash_style">스타일 축소</string>
     <string name="audio_status">%1$s</string>
     <string name="audio_sample_count">%1$d개 샘플</string>
     <!-- CONTEXT: Panel title for the text produced by reading audio back. Product term is 'Read result'. -->
@@ -79,8 +77,10 @@
     <string name="audio_decode_raw_hex_label">16진수</string>
     <string name="audio_decode_text_unavailable">이 페이로드는 텍스트로 해석할 수 없습니다. 원시 데이터는 계속 확인할 수 있습니다.</string>
     <string name="audio_decode_raw_unavailable">아직 원시 페이로드 데이터가 없습니다.</string>
-    <string name="audio_flash_style_title">Flash 음성 스타일: %1$s</string>
     <string name="audio_flash_style_hint">다음에 생성될 오디오에 적용됩니다. 이미 생성된 오디오는 생성 당시의 스타일을 유지합니다.</string>
+    <string name="audio_flash_voicing_style_title">음성 스타일</string>
+    <string name="audio_action_select_flash_voicing_style">음성 스타일 선택</string>
+    <string name="audio_flash_voicing_style_sheet_title">음성 스타일</string>
     <string name="audio_saved_audio_sheet_title">저장된 오디오</string>
     <string name="audio_saved_audio_empty">아직 저장된 오디오가 없습니다.</string>
     <string name="audio_mini_player_generated_title">%1$s 생성된 오디오</string>
@@ -228,4 +228,15 @@
     <string name="status_saved_audio_load_failed">불러오기 실패</string>
     <string name="status_playing_saved_audio">재생 중: %1$s</string>
     <string name="status_no_audio_for_mode">이 모드에 아직 생성된 오디오가 없습니다</string>
+    <string name="audio_follow_tokenizer_title">토크나이저</string>
+    <string name="audio_action_open_tokenizer">토크나이저 열기</string>
+    <string name="audio_input_encoding_rules_title">인코딩 규칙</string>
+    <string name="audio_input_encoding_rules">인코딩 규칙</string>
+    <string name="audio_input_encoding_rules_done">완료</string>
+    <string name="audio_input_encoding_rules_pro">Pro는 ASCII 텍스트만 지원합니다. CJK 텍스트, 이모지, 여러 악센트 문자는 pro에서 인코딩할 수 없습니다.</string>
+    <string name="audio_input_encoding_rules_unrestricted">이 모드는 현재 텍스트를 UTF-8/일반 텍스트 바이트로 사용합니다. Mini와 pro는 더 엄격한 입력 규칙이 있습니다.</string>
+    <string name="audio_input_encoding_rules_mini">Mini는 A-Z, 0-9, 공백, 일반적인 Morse 문장 부호를 지원합니다. 소문자는 대문자로 인코딩되고 반복 공백은 합쳐집니다.</string>
+    <string name="audio_pro_unsupported_characters">지원되지 않는 pro 문자: %1$s</string>
+    <string name="audio_input_encoding_valid_mini">Mini 입력을 사용할 수 있습니다. Morse 호환 텍스트로 인코딩됩니다.</string>
+    <string name="audio_input_encoding_valid_pro">Pro 입력을 사용할 수 있습니다. 모든 문자가 ASCII입니다.</string>
 </resources>

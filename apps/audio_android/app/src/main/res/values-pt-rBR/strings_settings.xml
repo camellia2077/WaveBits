@@ -57,9 +57,9 @@
     <string name="palette_family_neutrals">Neutros</string>
     <string name="config_flash_style_title">Estilo flash</string>
     <string name="config_flash_style_subtitle">Escolha como o áudio flash deve soar.</string>
-    <string name="config_flash_style_steady_label">Estável</string>
+    <string name="config_flash_style_steady_label">Estase</string>
     <string name="config_flash_style_steady_description">Sinalização mecânica clara e estável.</string>
-    <string name="config_flash_style_hostile_label">Hostil</string>
+    <string name="config_flash_style_hostile_label">Hostilidade</string>
     <string name="config_flash_style_hostile_description">Predefinição de comando furioso; por enquanto usa a carcaça estável.</string>
     <string name="config_flash_style_litany_label">Ladainha</string>
     <string name="config_flash_style_litany_description">Predefinição de prece reverente com cadência ritual mais lenta.</string>

@@ -21,6 +21,7 @@ internal fun AudioPlaybackDisplayBlock(
     isPlaying: Boolean,
     displaySectionState: PlaybackDisplaySectionState,
     modifier: Modifier = Modifier,
+    onSeekToSample: (Int) -> Unit = {},
 ) {
     PlaybackDisplaySection(
         followData = followData,
@@ -38,6 +39,7 @@ internal fun AudioPlaybackDisplayBlock(
         flashVisualizationModeName = displaySectionState.flashVisualizationModeName,
         onDisplayModeSelected = displaySectionState.onDisplayModeSelected,
         onFlashVisualizationModeSelected = displaySectionState.onFlashVisualizationModeSelected,
+        onSeekToSample = onSeekToSample,
         modifier = modifier,
     )
 }

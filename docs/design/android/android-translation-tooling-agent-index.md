@@ -39,7 +39,8 @@
 
 然后至少知道这两件事：
 
-- 多语言可能要同步
+- 新增 key 必须走 `python tools/run.py android strings-add ...`
+- `strings-add` 默认只写英文基线，并生成缺译任务报告
 - Android 构建会自动触发 key alignment
 
 ### 2. 我想先检查本地化结构有没有漂移
@@ -68,7 +69,20 @@ pwsh -NoLogo -Command "python tools/scripts/android/translate/run.py key-alignme
 
 - [android-translation-workflow.md](/C:/code/WaveBits/docs/design/android/android-translation-workflow.md)
 
-### 4. 我想生成给 LLM / 人工审校的翻译对照 Markdown
+### 4. 我刚新增了英文 key，要补其他语言
+
+默认先跑：
+
+```powershell
+pwsh -NoLogo -Command "python tools/run.py android strings-add --file strings_audio.xml --key sample_key --en 'Sample text'"
+```
+
+然后按报告补齐：
+
+- `temp/translation_key_alignment_reports/<locale>/<locale>_translation_tasks.md`
+- [tools/scripts/android/translate/AGENTS.md](/C:/code/WaveBits/tools/scripts/android/translate/AGENTS.md)
+
+### 5. 我想生成给 LLM / 人工审校的翻译对照 Markdown
 
 先看：
 
@@ -78,7 +92,7 @@ pwsh -NoLogo -Command "python tools/scripts/android/translate/run.py key-alignme
 
 - [sop.md](/C:/code/WaveBits/tools/scripts/android/translate/docs/sop.md)
 
-### 5. 我已经拿到翻译修订 JSON，想安全写回 XML
+### 6. 我已经拿到翻译修订 JSON，想安全写回 XML
 
 先看：
 
@@ -88,13 +102,13 @@ pwsh -NoLogo -Command "python tools/scripts/android/translate/run.py key-alignme
 
 - [sop.md](/C:/code/WaveBits/tools/scripts/android/translate/docs/sop.md)
 
-### 6. 我怀疑某个语言文件里混进了别的语言
+### 7. 我怀疑某个语言文件里混进了别的语言
 
 看：
 
 - [check_mixed_language.md](/C:/code/WaveBits/tools/scripts/android/translate/docs/check_mixed_language.md)
 
-### 7. 我是来改工具本身，不是用工具
+### 8. 我是来改工具本身，不是用工具
 
 直接看完整地图：
 
@@ -114,6 +128,12 @@ pwsh -NoLogo -Command "python tools/scripts/android/translate/run.py key-alignme
 
 ```powershell
 pwsh -NoLogo -Command "python tools/scripts/android/translate/run.py key-alignment --quiet"
+```
+
+### Add Android XML key
+
+```powershell
+pwsh -NoLogo -Command "python tools/run.py android strings-add --file strings_audio.xml --key sample_key --en 'Sample text'"
 ```
 
 ### Compare

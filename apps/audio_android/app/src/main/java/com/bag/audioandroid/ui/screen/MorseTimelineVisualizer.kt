@@ -15,7 +15,14 @@ import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.domain.PayloadFollowBinaryGroupTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.ui.theme.appThemeVisualTokens
-import kotlin.math.max
+
+internal data class MorseTimelineWindow(
+    val startSample: Int,
+    val sampleCount: Int,
+) {
+    val endSample: Int
+        get() = startSample + sampleCount
+}
 
 @Composable
 internal fun MorseTimelineVisualizer(
@@ -40,8 +47,13 @@ internal fun MorseTimelineVisualizer(
         remember(frameSamples) {
             (frameSamples * 96).coerceAtLeast(frameSamples * 16)
         }
-    val windowStart = (currentSample - (windowSamples * 0.40f).toInt()).coerceAtLeast(0)
-    val windowEnd = (windowStart + windowSamples).coerceAtMost(totalSamples)
+    val window =
+        remember(currentSample, windowSamples) {
+            resolveMorseTimelineWindow(
+                currentSample = currentSample,
+                windowSamples = windowSamples,
+            )
+        }
 
     val toneColor = MaterialTheme.colorScheme.primary
     val pastToneColor = MaterialTheme.colorScheme.secondary
@@ -68,20 +80,20 @@ internal fun MorseTimelineVisualizer(
         val bottomPadding = 16.dp.toPx()
         val innerWidth = (size.width - leftPadding - rightPadding).coerceAtLeast(1f)
         val innerHeight = (size.height - topPadding - bottomPadding).coerceAtLeast(1f)
-        val visibleSamples = max(1, windowEnd - windowStart)
+        val visibleSamples = window.sampleCount.coerceAtLeast(1)
         val centerY = topPadding + innerHeight / 2f
 
         toneEntries.forEach { entry ->
             val entryStart = entry.startSample
             val entryEnd = entry.startSample + entry.sampleCount
-            if (entryEnd < windowStart || entryStart > windowEnd) {
+            if (entryEnd < window.startSample || entryStart > window.endSample) {
                 return@forEach
             }
-            val visibleStart = entryStart.coerceAtLeast(windowStart)
-            val visibleEnd = entryEnd.coerceAtMost(windowEnd)
+            val visibleStart = entryStart.coerceAtLeast(window.startSample)
+            val visibleEnd = entryEnd.coerceAtMost(window.endSample)
             val x =
                 leftPadding +
-                    ((visibleStart - windowStart).toFloat() / visibleSamples.toFloat()) * innerWidth
+                    ((visibleStart - window.startSample).toFloat() / visibleSamples.toFloat()) * innerWidth
             val width =
                 (((visibleEnd - visibleStart).coerceAtLeast(1)).toFloat() / visibleSamples.toFloat()) *
                     innerWidth
@@ -111,7 +123,7 @@ internal fun MorseTimelineVisualizer(
 
         val playheadX =
             leftPadding +
-                ((currentSample - windowStart).toFloat() / visibleSamples.toFloat()) * innerWidth
+                ((currentSample - window.startSample).toFloat() / visibleSamples.toFloat()) * innerWidth
         drawLine(
             color = playheadColor.copy(alpha = 0.80f),
             start = Offset(playheadX, topPadding),
@@ -121,4 +133,22 @@ internal fun MorseTimelineVisualizer(
     }
 }
 
+internal fun resolveMorseTimelineWindow(
+    currentSample: Int,
+    windowSamples: Int,
+): MorseTimelineWindow {
+    val safeWindowSamples = windowSamples.coerceAtLeast(1)
+    val windowStart = (currentSample - (safeWindowSamples * MorseTimelinePlayheadAnchorRatio).toInt()).coerceAtLeast(0)
+    return MorseTimelineWindow(
+        startSample = windowStart,
+        sampleCount = safeWindowSamples,
+    )
+}
+
+internal fun morseTimelineSampleWidthFraction(
+    sampleCount: Int,
+    window: MorseTimelineWindow,
+): Float = sampleCount.coerceAtLeast(1).toFloat() / window.sampleCount.coerceAtLeast(1).toFloat()
+
+private const val MorseTimelinePlayheadAnchorRatio = 0.40f
 private const val MorseDashUnitThreshold = 3

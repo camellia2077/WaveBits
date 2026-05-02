@@ -54,8 +54,6 @@
     <string name="audio_action_collapse_result_content">Ocultar texto del resultado</string>
     <string name="audio_action_expand_result_content_short">Mostrar</string>
     <string name="audio_action_collapse_result_content_short">Ocultar</string>
-    <string name="audio_action_expand_flash_style">Expandir estilo</string>
-    <string name="audio_action_collapse_flash_style">Ocultar estilo</string>
     <string name="audio_status">%1$s</string>
     <string name="audio_sample_count">%1$d muestras</string>
     <string name="audio_result_title">Resultado de lectura</string>
@@ -66,8 +64,10 @@
     <string name="audio_decode_raw_hex_label">Hex</string>
     <string name="audio_decode_text_unavailable">No se pudo interpretar esta carga como texto. Los datos raw siguen disponibles.</string>
     <string name="audio_decode_raw_unavailable">Aún no hay datos raw disponibles.</string>
-    <string name="audio_flash_style_title">Estilo flash: %1$s</string>
     <string name="audio_flash_style_hint">Se aplica al siguiente audio generado. El audio ya generado conserva el estilo con el que fue creado.</string>
+    <string name="audio_flash_voicing_style_title">Estilo de voz</string>
+    <string name="audio_action_select_flash_voicing_style">Seleccionar estilo de voz</string>
+    <string name="audio_flash_voicing_style_sheet_title">Estilo de voz</string>
     <string name="audio_saved_audio_sheet_title">Audio guardado</string>
     <string name="audio_saved_audio_empty">Aún no hay audio guardado.</string>
     <string name="audio_mini_player_generated_title">Audio %1$s generado</string>
@@ -207,4 +207,15 @@
     <string name="status_saved_audio_load_failed">No se pudo cargar</string>
     <string name="status_playing_saved_audio">Reproduciendo: %1$s</string>
     <string name="status_no_audio_for_mode">Aún no hay audio para este modo</string>
+    <string name="audio_follow_tokenizer_title">Tokenizador</string>
+    <string name="audio_action_open_tokenizer">Abrir tokenizador</string>
+    <string name="audio_input_encoding_rules_title">Reglas de codificación</string>
+    <string name="audio_input_encoding_rules">Reglas de codificación</string>
+    <string name="audio_input_encoding_rules_done">Listo</string>
+    <string name="audio_input_encoding_rules_pro">Pro solo acepta texto ASCII. Los caracteres que no son ASCII, como texto CJK, emojis y muchas letras acentuadas, no se pueden codificar en pro.</string>
+    <string name="audio_input_encoding_rules_unrestricted">Este modo acepta el texto actual como bytes UTF-8/texto plano. Mini y pro tienen reglas de entrada más estrictas.</string>
+    <string name="audio_input_encoding_rules_mini">Mini acepta A-Z, 0-9, espacios y puntuación Morse común. Las minúsculas se codifican como mayúsculas y los espacios repetidos se agrupan.</string>
+    <string name="audio_pro_unsupported_characters">Caracteres pro no admitidos: %1$s</string>
+    <string name="audio_input_encoding_valid_mini">La entrada mini está lista. Se codificará como texto compatible con Morse.</string>
+    <string name="audio_input_encoding_valid_pro">La entrada pro está lista. Todos los caracteres son ASCII.</string>
 </resources>

@@ -57,9 +57,9 @@
     <string name="palette_family_neutrals">Нейтральні</string>
     <string name="config_flash_style_title">Стиль flash</string>
     <string name="config_flash_style_subtitle">Виберіть, як має звучати flash-аудіо.</string>
-    <string name="config_flash_style_steady_label">Рівний</string>
+    <string name="config_flash_style_steady_label">Стазис</string>
     <string name="config_flash_style_steady_description">Чіткий стабільний машинний сигнал.</string>
-    <string name="config_flash_style_hostile_label">Ворожий</string>
+    <string name="config_flash_style_hostile_label">Ворожість</string>
     <string name="config_flash_style_hostile_description">Пресет лютого наказу; поки використовує рівну сигнальну оболонку.</string>
     <string name="config_flash_style_litany_label">Літанія</string>
     <string name="config_flash_style_litany_description">Пресет благоговійної молитви з повільнішою ритуальною каденцією.</string>

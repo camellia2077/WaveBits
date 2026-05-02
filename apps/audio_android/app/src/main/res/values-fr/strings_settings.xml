@@ -56,9 +56,9 @@
     <string name="palette_family_neutrals">Neutres</string>
     <string name="config_flash_style_title">Style flash</string>
     <string name="config_flash_style_subtitle">Choisissez le rendu sonore de l’audio flash.</string>
-    <string name="config_flash_style_steady_label">Stable</string>
+    <string name="config_flash_style_steady_label">Stase</string>
     <string name="config_flash_style_steady_description">Signalisation mécanique claire et stable.</string>
-    <string name="config_flash_style_hostile_label">Hostile</string>
+    <string name="config_flash_style_hostile_label">Hostilité</string>
     <string name="config_flash_style_hostile_description">Préréglage de commandement furieux ; utilise pour l’instant l’enveloppe stable.</string>
     <string name="config_flash_style_litany_label">Litanie</string>
     <string name="config_flash_style_litany_description">Préréglage de prière révérencielle avec une cadence rituelle plus lente.</string>

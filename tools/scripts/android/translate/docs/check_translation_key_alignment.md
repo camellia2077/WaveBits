@@ -11,6 +11,8 @@ It checks that every localized text XML under `values-*` satisfies both rules:
 
 This is the structural guardrail for workflows where every translation must originate from English.
 
+New keys should enter through `python tools/run.py android strings-add ...`. That wrapper writes only the English baseline by default and then generates these alignment reports so locale-specific translation work follows the agent prompt flow instead of using English fallback text in `values-*`.
+
 ## Rules
 
 For each localized `values-*` directory, the checker looks only at translation text XML files:

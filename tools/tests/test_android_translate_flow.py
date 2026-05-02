@@ -240,6 +240,90 @@ class AndroidTranslateFlowTests(unittest.TestCase):
             self.assertIn("modalità selezionata", updated_xml)
             self.assertIn("Colore d\\'accento", updated_xml)
 
+    def test_add_key_json_output_adds_english_baseline_only(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_root = Path(tmp_dir)
+            res_dir = temp_root / "res"
+            values_dir = res_dir / "values"
+            values_it_dir = res_dir / "values-it"
+            values_dir.mkdir(parents=True, exist_ok=True)
+            values_it_dir.mkdir(parents=True, exist_ok=True)
+            xml_text = (
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                "<resources>\n"
+                "</resources>\n"
+            )
+            (values_dir / "strings_audio.xml").write_text(xml_text, encoding="utf-8")
+            (values_it_dir / "strings_audio.xml").write_text(xml_text, encoding="utf-8")
+
+            completed = self._run_cli(
+                "add-key",
+                "--res-dir",
+                str(res_dir),
+                "--file",
+                "strings_audio.xml",
+                "--key",
+                "audio_new_label",
+                "--en",
+                "New label",
+                "--json-output",
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            payload = json.loads(completed.stdout)
+            self.assertTrue(payload["ok"])
+            self.assertEqual(payload["command"], "add-key")
+            self.assertEqual(payload["summary"]["touched_files"], 1)
+            self.assertFalse(payload["summary"]["localized_fallback_used"])
+            base_text = (values_dir / "strings_audio.xml").read_text(encoding="utf-8")
+            it_text = (values_it_dir / "strings_audio.xml").read_text(encoding="utf-8")
+            self.assertIn('<string name="audio_new_label">New label</string>', base_text)
+            self.assertNotIn("audio_new_label", it_text)
+
+    def test_key_alignment_json_output_accepts_res_and_output_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_root = Path(tmp_dir)
+            res_dir = temp_root / "res"
+            output_dir = temp_root / "reports"
+            values_dir = res_dir / "values"
+            values_it_dir = res_dir / "values-it"
+            values_dir.mkdir(parents=True, exist_ok=True)
+            values_it_dir.mkdir(parents=True, exist_ok=True)
+            (values_dir / "strings_audio.xml").write_text(
+                (
+                    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                    "<resources>\n"
+                    "    <string name=\"audio_new_label\">New label</string>\n"
+                    "</resources>\n"
+                ),
+                encoding="utf-8",
+            )
+            (values_it_dir / "strings_audio.xml").write_text(
+                (
+                    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                    "<resources>\n"
+                    "</resources>\n"
+                ),
+                encoding="utf-8",
+            )
+
+            completed = self._run_cli(
+                "key-alignment",
+                "--res-dir",
+                str(res_dir),
+                "--output-dir",
+                str(output_dir),
+                "--json-output",
+            )
+
+            self.assertEqual(completed.returncode, 2, completed.stderr)
+            payload = json.loads(completed.stdout)
+            self.assertFalse(payload["ok"])
+            self.assertEqual(payload["command"], "key-alignment")
+            self.assertEqual(payload["summary"]["alignment_issue_count"], 1)
+            self.assertEqual(payload["artifacts"]["output_dir"], str(output_dir))
+            self.assertTrue((output_dir / "it" / "it_translation_tasks.md").exists())
+
     def _run_cli(self, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [sys.executable, str(RUN_PY), *args],

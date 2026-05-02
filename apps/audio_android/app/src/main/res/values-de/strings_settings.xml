@@ -57,9 +57,9 @@
     <string name="palette_family_neutrals">Neutral</string>
     <string name="config_flash_style_title">Flash-Stil</string>
     <string name="config_flash_style_subtitle">Wähle, wie Flash-Audio klingen soll.</string>
-    <string name="config_flash_style_steady_label">Stabil</string>
+    <string name="config_flash_style_steady_label">Stase</string>
     <string name="config_flash_style_steady_description">Klare, stabile Maschinensignale.</string>
-    <string name="config_flash_style_hostile_label">Feindselig</string>
+    <string name="config_flash_style_hostile_label">Feindseligkeit</string>
     <string name="config_flash_style_hostile_description">Ein wütendes Befehls-Preset; nutzt derzeit die stabile Signalhülle.</string>
     <string name="config_flash_style_litany_label">Litanei</string>
     <string name="config_flash_style_litany_description">Ein ehrfürchtiges Gebets-Preset mit langsamerem rituellem Signaltakt.</string>

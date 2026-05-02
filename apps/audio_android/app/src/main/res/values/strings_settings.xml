@@ -57,9 +57,9 @@
     <string name="palette_family_neutrals">Neutrals</string>
     <string name="config_flash_style_title">Flash style</string>
     <string name="config_flash_style_subtitle">Choose how flash audio should sound.</string>
-    <string name="config_flash_style_steady_label">Steady</string>
+    <string name="config_flash_style_steady_label">Stasis</string>
     <string name="config_flash_style_steady_description">Clear, stable machine signaling.</string>
-    <string name="config_flash_style_hostile_label">Hostile</string>
+    <string name="config_flash_style_hostile_label">Hostility</string>
     <string name="config_flash_style_hostile_description">An angry command preset; currently uses the steady signal shell.</string>
     <string name="config_flash_style_litany_label">Litany</string>
     <string name="config_flash_style_litany_description">A reverent prayer preset using the slower ritual signal cadence.</string>

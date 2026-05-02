@@ -57,9 +57,9 @@
     <string name="palette_family_neutrals">Neutros</string>
     <string name="config_flash_style_title">Estilo flash</string>
     <string name="config_flash_style_subtitle">Elige cómo debe sonar el audio flash.</string>
-    <string name="config_flash_style_steady_label">Estable</string>
+    <string name="config_flash_style_steady_label">Estasis</string>
     <string name="config_flash_style_steady_description">Señalización mecánica clara y estable.</string>
-    <string name="config_flash_style_hostile_label">Hostil</string>
+    <string name="config_flash_style_hostile_label">Hostilidad</string>
     <string name="config_flash_style_hostile_description">Un ajuste de mando airado; por ahora usa la envolvente estable.</string>
     <string name="config_flash_style_litany_label">Letanía</string>
     <string name="config_flash_style_litany_description">Un ajuste de plegaria reverente con cadencia ritual más lenta.</string>

@@ -90,7 +90,7 @@ class ReplacementJsonPreflightTests(unittest.TestCase):
 
 
 class AddTranslationKeyTests(unittest.TestCase):
-    def test_add_translation_key_updates_base_and_localized_files(self) -> None:
+    def test_add_translation_key_updates_only_english_baseline_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             res_dir = Path(tmp_dir) / "res"
             values_dir = res_dir / "values"
@@ -111,14 +111,14 @@ class AddTranslationKeyTests(unittest.TestCase):
                 filename="strings_audio.xml",
                 key="sample_new_key",
                 english_value='Audio "sample" & status',
-                localized_value="Audio localise",
                 context="Shown in the audio toolbar.",
                 res_dir=res_dir,
             )
 
             self.assertEqual(result.exit_code, 0)
-            self.assertEqual(len(result.touched_files), 2)
+            self.assertEqual(len(result.touched_files), 1)
             self.assertEqual(len(result.skipped_files), 0)
+            self.assertFalse(result.localized_fallback_used)
             base_text = base_xml.read_text(encoding="utf-8")
             fr_text = fr_xml.read_text(encoding="utf-8")
             self.assertIn("CONTEXT: Shown in the audio toolbar.", base_text)
@@ -126,10 +126,7 @@ class AddTranslationKeyTests(unittest.TestCase):
                 '<string name="sample_new_key">Audio \\"sample\\" &amp; status</string>',
                 base_text,
             )
-            self.assertIn(
-                '<string name="sample_new_key">Audio localise</string>',
-                fr_text,
-            )
+            self.assertNotIn("sample_new_key", fr_text)
 
             second_result = add_translation_key(
                 filename="strings_audio.xml",
@@ -140,7 +137,44 @@ class AddTranslationKeyTests(unittest.TestCase):
 
             self.assertEqual(second_result.exit_code, 0)
             self.assertEqual(len(second_result.touched_files), 0)
-            self.assertEqual(len(second_result.skipped_files), 2)
+            self.assertEqual(len(second_result.skipped_files), 1)
+
+    def test_add_translation_key_uses_localized_fallback_only_when_explicit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            res_dir = Path(tmp_dir) / "res"
+            values_dir = res_dir / "values"
+            values_fr_dir = res_dir / "values-fr"
+            values_dir.mkdir(parents=True, exist_ok=True)
+            values_fr_dir.mkdir(parents=True, exist_ok=True)
+            base_xml = values_dir / "strings_audio.xml"
+            fr_xml = values_fr_dir / "strings_audio.xml"
+            xml_text = (
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                "<resources>\n"
+                "</resources>\n"
+            )
+            base_xml.write_text(xml_text, encoding="utf-8")
+            fr_xml.write_text(xml_text, encoding="utf-8")
+
+            result = add_translation_key(
+                filename="strings_audio.xml",
+                key="shared_protocol_key",
+                english_value="FlipBits",
+                localized_value="FlipBits",
+                res_dir=res_dir,
+            )
+
+            self.assertEqual(result.exit_code, 0)
+            self.assertEqual(len(result.touched_files), 2)
+            self.assertTrue(result.localized_fallback_used)
+            self.assertIn(
+                '<string name="shared_protocol_key">FlipBits</string>',
+                base_xml.read_text(encoding="utf-8"),
+            )
+            self.assertIn(
+                '<string name="shared_protocol_key">FlipBits</string>',
+                fr_xml.read_text(encoding="utf-8"),
+            )
 
     def test_add_translation_key_reports_missing_base_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
