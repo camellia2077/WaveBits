@@ -87,6 +87,9 @@
 - Rust CLI 的中间产物默认落在 `build/<dir>/rust-cli/target/`，最终可执行文件默认复制到 `build/<dir>/bin/`。
 - 需要先整理 Rust 代码格式时，优先运行：
   - `cargo fmt`
+- 修改 CLI presentation 版本时，优先运行：
+  - `python tools/run.py cli bump-version <version>`
+  - 只把 `Cargo.toml` 作为版本号来源；`Cargo.lock` 必须由 Cargo 自动刷新，不手工编辑。
 - 修改 Rust CLI 后，最小编译与测试验证优先运行：
   - `python tools/run.py cli test`
 - 需要做优化构建时，优先运行：
