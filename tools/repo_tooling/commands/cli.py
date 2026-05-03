@@ -6,7 +6,12 @@ import re
 import shutil
 from pathlib import Path
 
-from ..constants import CLI_RUST_DIR, CLI_TARGET_NAME, RUST_CLI_TARGET_TRIPLE
+from ..constants import (
+    CLI_RUST_DIR,
+    CLI_TARGET_NAME,
+    RUST_CLI_TARGET_TRIPLE,
+    RUST_CLI_WINDOWS_TOOLCHAIN,
+)
 from ..errors import ToolError
 from ..paths import resolve_build_dir
 from ..process import run
@@ -34,7 +39,10 @@ def cmd_cli(args: argparse.Namespace) -> None:
     cargo_env["FLIPBITS_CMAKE_BUILD_DIR"] = str(build_dir)
     cargo_env["CARGO_TARGET_DIR"] = str(_cargo_target_dir(build_dir))
 
-    command = ["cargo", args.action, "--target", RUST_CLI_TARGET_TRIPLE]
+    command = ["cargo"]
+    if os.name == "nt":
+        command.append(f"+{RUST_CLI_WINDOWS_TOOLCHAIN}")
+    command.extend([args.action, "--target", RUST_CLI_TARGET_TRIPLE])
     if args.release:
         command.append("--release")
 

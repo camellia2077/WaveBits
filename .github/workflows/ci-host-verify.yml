@@ -2,6 +2,7 @@ name: ci-host-verify
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - ".github/workflows/ci-host-verify.yml"
       - "CMakeLists.txt"
@@ -10,6 +11,10 @@ on:
       - "cmake/**"
       - "libs/**"
       - "tools/**"
+    paths-ignore:
+      - "apps/audio_cli/AGENTS.md"
+      - "libs/AGENTS.md"
+      - "libs/README.md"
   push:
     paths:
       - ".github/workflows/ci-host-verify.yml"
@@ -19,6 +24,14 @@ on:
       - "cmake/**"
       - "libs/**"
       - "tools/**"
+    paths-ignore:
+      - "apps/audio_cli/AGENTS.md"
+      - "libs/AGENTS.md"
+      - "libs/README.md"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   host-verify:
@@ -36,6 +49,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Setup Rust GNU toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable-x86_64-pc-windows-gnu
+          targets: x86_64-pc-windows-gnu
 
       - name: Install Python tooling dependencies
         shell: pwsh
@@ -65,6 +84,8 @@ jobs:
         run: |
           $env:PATH = "${{ steps.msys2.outputs.msys2-location }}\ucrt64\bin;${{ steps.msys2.outputs.msys2-location }}\usr\bin;$env:PATH"
           python --version
+          cargo +stable-x86_64-pc-windows-gnu --version
+          rustc +stable-x86_64-pc-windows-gnu --version
           clang++ --version
           cmake --version
           ninja --version

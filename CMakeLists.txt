@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.28)
 # `import std` is still gated behind a CMake-version-specific UUID.
 # Keep this branch aligned with the CMake version actually used by the active
 # host lane instead of editing test fixtures or ad-hoc docs to match.
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.0)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.3)
+    set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
+elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 4.0)
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
 else()
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "0e5b6991-d74f-4b3d-a41c-cf096e0b2508")

@@ -89,7 +89,7 @@ fn rejects_encode_command_without_input() {
 #[test]
 fn version_output_includes_core_version_line() {
     let output = version_output();
-    assert!(output.contains("presentation: v0.2.4"));
+    assert!(output.contains(&format!("presentation: v{CLI_PRESENTATION_VERSION}")));
     assert!(output.contains("core: v"));
 }
 

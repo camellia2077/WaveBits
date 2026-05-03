@@ -3,6 +3,8 @@ use predicates::prelude::*;
 use std::fs;
 use tempfile::tempdir;
 
+use flipbits::CLI_PRESENTATION_VERSION;
+
 #[test]
 fn version_command_reports_rust_wav_build() {
     let mut command = Command::cargo_bin("FlipBits").unwrap();
@@ -10,7 +12,9 @@ fn version_command_reports_rust_wav_build() {
         .arg("version")
         .assert()
         .success()
-        .stdout(predicate::str::contains("presentation: v0.2.4"))
+        .stdout(predicate::str::contains(format!(
+            "presentation: v{CLI_PRESENTATION_VERSION}"
+        )))
         .stdout(predicate::str::contains("core: v"))
         .stdout(predicate::str::contains("build: rust-wav"))
         .stdout(predicate::str::contains("bag_api + audio_io WAV build"));

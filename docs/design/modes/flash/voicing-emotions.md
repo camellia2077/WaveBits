@@ -9,12 +9,12 @@
 
 ## 文档索引
 按 voicing/preset 拆分后的详细设计：
-- [Steady](flash-voicing/steady.md)
-- [Hostile](flash-voicing/hostile.md)
-- [Litany](flash-voicing/litany.md)
-- [Collapse](flash-voicing/collapse.md)
-- [Zeal](flash-voicing/zeal.md)
-- [Void](flash-voicing/void.md)
+- [Steady](steady.md)
+- [Hostile](hostile.md)
+- [Litany](litany.md)
+- [Collapse](collapse.md)
+- [Zeal](zeal.md)
+- [Void](void.md)
 
 ## 情绪模型
 `flash` 当前是一次破坏性重构后的六情绪模型：用户可见和代码配置只保留 `Steady / Hostile / Litany / Collapse / Zeal / Void`。每个 emotion 同时决定 payload timing 与 voicing 声效，不再保留旧 flavor 或旧兼容映射。

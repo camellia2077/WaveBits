@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bag/common/version_generated.h"
+#include "test/test_cli_version_generated.h"
 
 #if !defined(FLIPBITS_TEST_IMPORT_STD)
 #include <string>
@@ -104,5 +105,6 @@ inline std::string BuildTooLongUltraCorpus() {
 }
 
 inline constexpr char kExpectedCoreVersion[] = FLIPBITS_CORE_VERSION_TEXT;
+inline constexpr char kExpectedCliPresentationVersion[] = FLIPBITS_TEST_CLI_PRESENTATION_VERSION_TEXT;
 
 }  // namespace test

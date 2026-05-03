@@ -1,3 +1,27 @@
+file(
+    STRINGS
+    "${PROJECT_SOURCE_DIR}/apps/audio_cli/rust/Cargo.toml"
+    FLIPBITS_CLI_VERSION_LINE
+    REGEX "^version = \"[0-9]+\\.[0-9]+\\.[0-9]+\"$"
+)
+if(NOT FLIPBITS_CLI_VERSION_LINE)
+    message(FATAL_ERROR "Failed to read CLI presentation version from apps/audio_cli/rust/Cargo.toml.")
+endif()
+string(
+    REGEX REPLACE
+    "^version = \"([0-9]+\\.[0-9]+\\.[0-9]+)\"$"
+    "\\1"
+    FLIPBITS_CLI_PRESENTATION_VERSION
+    "${FLIPBITS_CLI_VERSION_LINE}"
+)
+
+file(MAKE_DIRECTORY "${FLIPBITS_CORE_GENERATED_INCLUDE_DIR}/test")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/test_cli_version_generated.h.in"
+    "${FLIPBITS_CORE_GENERATED_INCLUDE_DIR}/test/test_cli_version_generated.h"
+    @ONLY
+)
+
 flipbits_add_host_test(test_artifact
     NAME artifact_tests
     SOURCES artifact/artifact_tests.cpp

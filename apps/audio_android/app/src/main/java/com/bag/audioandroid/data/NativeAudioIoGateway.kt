@@ -16,6 +16,5 @@ class NativeAudioIoGateway : AudioIoGateway {
     override fun decodeMonoPcm16WavBytes(wavBytes: ByteArray): DecodedAudioData =
         NativeAudioIoBridge.nativeDecodeMonoPcm16WavBytes(wavBytes)
 
-    override fun probeMonoPcm16WavBytes(wavBytes: ByteArray): WavAudioInfo =
-        NativeAudioIoBridge.nativeProbeMonoPcm16WavBytes(wavBytes)
+    override fun probeMonoPcm16WavBytes(wavBytes: ByteArray): WavAudioInfo = NativeAudioIoBridge.nativeProbeMonoPcm16WavBytes(wavBytes)
 }

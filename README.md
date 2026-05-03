@@ -14,9 +14,10 @@
 </p>
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](LICENSE)
-[![Protocol](https://img.shields.io/badge/Protocol-Multi--Mode%20Audio%20Signaling-gold.svg)]()
-
-> **“语言可以被书写，逻辑也可以被听见。”**
+[![Platform Android](https://img.shields.io/badge/Platform-Android-3DDC84.svg)]()
+[![CI Android Assemble](https://github.com/camellia2077/WaveBits/actions/workflows/ci-android-assemble.yml/badge.svg)](https://github.com/camellia2077/WaveBits/actions/workflows/ci-android-assemble.yml)
+[![CI Android Quality](https://github.com/camellia2077/WaveBits/actions/workflows/ci-android-quality.yml/badge.svg)](https://github.com/camellia2077/WaveBits/actions/workflows/ci-android-quality.yml)
+[![CI Host Verify](https://github.com/camellia2077/WaveBits/actions/workflows/ci-host-verify.yml/badge.svg)](https://github.com/camellia2077/WaveBits/actions/workflows/ci-host-verify.yml)
 
 ## 🛠️ 项目定位 (Project Overview)
 本项目是一个面向复古未来主义通信体验的实验性音频工具，用于在文本与可听音频信号之间进行多模式编码与解码。它聚焦于数字信号处理（DSP）实验、声学调制解调验证，以及带有工业风格气质的人机交互表达。
@@ -27,33 +28,74 @@
 * **设计理念**：以现代处理器的性能余量，稳定生成低速、可辨识、风格明确的声学编码体验，在工程实现与风格化表达之间取得平衡。
 * **项目意图**：这是一个以娱乐性、氛围感和风格化表达为优先目标的项目。某些模式会刻意牺牲效率来换取更强的听感特征与仪式感，而不是追求最短时长或最高吞吐。
 
-模式速览：
-- `mini`：用 International Morse code 的 dot / dash / silence 组织文本，强调清晰、可视化友好和点划节奏。
-- `flash`：用高频 / 低频切换逐 bit 传输，强调仪式感、可听辨性和风格化表现。
-- `pro`：用双音组合承载每个 nibble，结构规整，适合作为更正式的文本声学链路。
-- `ultra`：用 `16-FSK` 频点映射承载 nibble，面向 UTF-8 文本，信息密度更高。
+## 命名映射
+为方便快速理解，可先把项目内部命名对应到更常见的技术分类：
 
+- `mini` -> Morse code
+- `flash` -> BFSK / 逐 bit FSK 风格
+- `pro` -> DTMF-like 双音映射
+- `ultra` -> `16-FSK` 频点映射
 
-其中，`flash` 是最偏风格化的模式：相同文本在 `flash` 下可能生成接近一分钟的音频，而在 `ultra` 下只需几秒。这种差异是有意设计的，目标是保留“像仪式一样被播放出来”的质感，而不是单纯压缩传输时间。
+这些名字不是“强弱等级”，而是项目内部的产品化命名。它们分别强调不同的听感、表达气质和传输结构，而不是同一协议从基础版到高级版的线性升级关系。
 
-`flash` 当前提供六种 style，每种 style 同时决定基础 low/high 载波和情绪化声效：
+## 设计边界
+本项目当前重点是“文本 -> 风格化音频 -> 项目内解码”的受控闭环，尤其强调 Android app 内的音频生成、转换、分享与导出体验。
+
+它不以“外放后被另一设备直接实时解析”为主要交互目标，也不以真实环境下的抗噪、抗回声、远场接收或复杂同步鲁棒性为设计优先级。对本项目来说，氛围感、可辨识的风格表达和可控的模式体验，优先于现实声学环境中的通信稳健性。
+
+## Android App 特性
+Android app 当前保持轻量原生取向：冷启动速度快，包体控制较小，适合直接生成、转换、分享与导出音频。
+
+当前参考构建下，安装包约 `5.5 MB`，安装后占用约 `5.9 MB`。这些数字会随版本、ABI 与构建配置变化。
+
+## 模式说明
+
+### `flash`
+`flash` 是最偏风格化的模式：它用高频 / 低频两种 Hz 作为 bit 状态，再通过调整 bit 持续时间、频率配置与停顿间隔，模拟出更接近人类说话情绪与语气的风格化表达。相同文本在 `flash` 下可能生成接近一分钟的音频，而在 `ultra` 下只需几秒。这种差异是有意设计的，目标是保留“像仪式一样被播放出来”的质感，而不是单纯压缩传输时间。
+
+`flash` 当前提供六种 style。每种 style 都以 low / high 两种 Hz 决定 bit 状态，并通过 bit 持续时间、频率组织与停顿间隔的组合，塑造出不同的情绪化“说话语气”：
 
 | Style | Low / High | 听感目标 |
 | --- | --- | --- |
-| Litany | `220 / 440 Hz` | 低沉、肃穆、吟诵 |
-| Collapse | `280 / 560 Hz` | 低声、慌张、结巴 |
-| Steady | `300 / 600 Hz` | 日常、精确、平稳 |
-| Hostile | `450 / 900 Hz` | 尖锐、急促、攻击 |
-| Zeal | variable `560-900 / 1120-1800 Hz` | 明亮、变速、密集 |
-| Void | `240 / 480 Hz` | 低沉、拖尾、稀疏 |
+| [Litany](docs/design/modes/flash/litany.md) | `220 / 440 Hz` | 低沉、肃穆、吟诵 |
+| [Collapse](docs/design/modes/flash/collapse.md) | `280 / 560 Hz` | 低声、慌张、结巴 |
+| [Steady](docs/design/modes/flash/steady.md) | `300 / 600 Hz` | 日常、精确、平稳 |
+| [Hostile](docs/design/modes/flash/hostile.md) | `450 / 900 Hz` | 尖锐、急促、攻击 |
+| [Zeal](docs/design/modes/flash/zeal.md) | variable `560-900 / 1120-1800 Hz` | 明亮、变速、密集 |
+| [Void](docs/design/modes/flash/void.md) | `240 / 480 Hz` | 低沉、拖尾、稀疏 |
 
-`mini` 是 Morse code 模式，输入会按 Morse 规则规范化；当前提供三种 speed preset：
+更多 `flash` voicing style 的情绪定位、命名语义与 preset 设计见：
+- [`docs/design/modes/flash/README.md`](docs/design/modes/flash/README.md)
+- [`docs/design/modes/flash/voicing-emotions.md`](docs/design/modes/flash/voicing-emotions.md)
+- [`docs/design/modes/flash/`](docs/design/modes/flash/)
+
+### `mini`
+`mini` 是 Morse code 模式，输入会按 Morse 规则规范化，强调清晰、可视化友好和点划节奏；当前提供三种 speed preset：
 
 | Speed | 定位 |
 | --- | --- |
 | Slow | 更慢、更适合观察 dot / dash 和 lyrics follow |
 | Standard | 默认 Morse 节奏 |
 | Fast | 更短、更紧凑的 Morse 输出 |
+
+更多 `mini` 的输入规范、follow / visual 与实现说明见：
+- [`docs/design/modes/mini.md`](docs/design/modes/mini.md)
+
+### `pro`
+`pro` 是更正式的 ASCII-only 模式：输入文本先转成 ASCII byte，再把每个 byte 拆成高 4 bit / 低 4 bit，并分别映射为 `DTMF-like` 双音 symbol，因此 `1 byte = 2 symbol`。它偏向结构清晰、职责单纯的正式声学链路表达。
+
+更多 `pro` 的模式定位与实现说明见：
+- [`docs/design/modes/pro.md`](docs/design/modes/pro.md)
+- [`docs/design/transports.md`](docs/design/transports.md)
+- [`docs/architecture/repo-map.md`](docs/architecture/repo-map.md)
+
+### `ultra`
+`ultra` 是面向 UTF-8 文本的更高密度模式：输入文本直接按 UTF-8 byte 处理，每个 byte 拆成两个 nibble，再映射到 clean `16-FSK` 的固定频点，因此 `1 byte = 2 symbol`，但每个 symbol 只发送一个频点。它偏向更高的信息密度和更正式的 UTF-8 文本传输。
+
+更多 `ultra` 的模式定位与实现说明见：
+- [`docs/design/modes/ultra.md`](docs/design/modes/ultra.md)
+- [`docs/design/transports.md`](docs/design/transports.md)
+- [`docs/architecture/repo-map.md`](docs/architecture/repo-map.md)
 
 ---
 
@@ -79,7 +121,7 @@
 
 > 若发现仓库中存在不准确、过度风格化或可能引发误解的内容，欢迎通过 [GitHub Issues](../../issues) 反馈。
 
-## 开发入口
+若你是 AI / agent，建议先阅读 [`.agent/AGENTS.md`](.agent/AGENTS.md) 以及对应子系统下的 `AGENTS.md`，用来快速理解仓库结构、工具入口与修改约定。
 
 ### Android
 - Android 官方工程入口在 `C:\code\WaveBits\apps\audio_android`。
@@ -110,6 +152,7 @@
 ### 开发导航
 按模块阅读或修改时，可优先从以下入口进入：
 
+- agent / AI 总入口：[`.agent/AGENTS.md`](.agent/AGENTS.md)
 - 核心库与共享业务逻辑：[`libs/AGENTS.md`](libs/AGENTS.md)
 - CLI 表现层：[`apps/audio_cli/AGENTS.md`](apps/audio_cli/AGENTS.md)
 - Android 应用：[`apps/audio_android/AGENTS.md`](apps/audio_android/AGENTS.md)

@@ -1,7 +1,7 @@
 package com.bag.audioandroid.ui.state
 
-import com.bag.audioandroid.domain.GeneratedAudioInputSourceKind
 import com.bag.audioandroid.domain.FlashSignalInfo
+import com.bag.audioandroid.domain.GeneratedAudioInputSourceKind
 import com.bag.audioandroid.domain.GeneratedAudioMetadata
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.WavAudioInfo

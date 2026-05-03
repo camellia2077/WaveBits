@@ -57,7 +57,7 @@
 ## 当前已实现能力
 1. `transport facade + mini/flash/pro/ultra` 的 mode-first 内部主线。
 2. `flash` 的原始文本/字节直通 + clean `BFSK` signal 层 + `phy_clean` facade。
-3. `flash` 当前已通过 `CoreConfig` / `bag_api.h` 正式公开六个用户可见 emotion preset：`Steady / Hostile / Litany / Collapse / Zeal / Void`。内部拆成 `flash_signal_profile` 与 `flash_voicing_flavor` 两轴：`bag.flash.signal` 负责按 signal profile 派生 payload `samples_per_bit` 与可跳过 silence layout，`bag.flash.voicing` 负责按 emotion 派生固定 preamble / epilogue、payload texture、句尾收束、结巴停顿与 trim descriptor。总览见 `docs/design/flash-voicing-emotions.md`，具体 preset 设计见 `docs/design/flash-voicing/<preset>.md`。
+3. `flash` 当前已通过 `CoreConfig` / `bag_api.h` 正式公开六个用户可见 emotion preset：`Steady / Hostile / Litany / Collapse / Zeal / Void`。内部拆成 `flash_signal_profile` 与 `flash_voicing_flavor` 两轴：`bag.flash.signal` 负责按 signal profile 派生 payload `samples_per_bit` 与可跳过 silence layout，`bag.flash.voicing` 负责按 emotion 派生固定 preamble / epilogue、payload texture、句尾收束、结巴停顿与 trim descriptor。总览见 `docs/design/modes/flash/voicing-emotions.md`，具体 preset 设计见 `docs/design/modes/flash/<preset>.md`。
 4. `pro` 的 ASCII byte + `DTMF-like` 双音 clean PHY。
 5. `ultra` 的 UTF-8 byte + clean `16-FSK` PHY。
 6. `mini` 的 Morse-compatible text + clean Morse tone PHY：输入仅支持 `A-Z / 0-9 / space / 常见 Morse 标点`，小写和连续空格会先规范化，音频层按 dot / dash / silence units 渲染。

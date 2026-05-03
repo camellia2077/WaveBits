@@ -16,7 +16,7 @@ from .module_structure_policy import run_module_structure_policy_checks
 from .retirement_policy import run_retirement_policy_checks
 from .test import cmd_test
 from .test_lib import cmd_test_lib
-from ..constants import ROOT_DIR
+from ..constants import ROOT_DIR, RUST_CLI_WINDOWS_TOOLCHAIN
 from ..paths import resolve_build_dir
 from ..process import run
 
@@ -128,16 +128,17 @@ def run_verify_steps(
     _print_verify_banner(f"{test_step}: running cargo test for Rust CLI and ctest in {build_dir}")
     cargo_env = os.environ.copy()
     cargo_env["FLIPBITS_CMAKE_BUILD_DIR"] = str(build_dir)
-    run(
+    cargo_command = ["cargo"]
+    if os.name == "nt":
+        cargo_command.append(f"+{RUST_CLI_WINDOWS_TOOLCHAIN}")
+    cargo_command.extend(
         [
-            "cargo",
             "test",
             "--target",
             RUST_TARGET_TRIPLE,
-        ],
-        cwd=RUST_CLI_DIR,
-        env=cargo_env,
+        ]
     )
+    run(cargo_command, cwd=RUST_CLI_DIR, env=cargo_env)
     cmd_test(
         argparse.Namespace(
             build_dir=str(build_dir),

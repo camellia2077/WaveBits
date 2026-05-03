@@ -20,6 +20,7 @@ def register_cli_group(
             "- Automatically sets CARGO_TARGET_DIR under build/<dir>/rust-cli/target.\n"
             "- Copies the final CLI binary to build/<dir>/bin/.\n"
             "- Always uses the repository-supported target triple x86_64-pc-windows-gnu.\n"
+            "- On Windows, uses the GNU-host Rust toolchain stable-x86_64-pc-windows-gnu.\n"
             "- `build` maps to `cargo build`.\n"
             "- `test` maps to `cargo test`.\n\n"
             "Version workflow:\n"

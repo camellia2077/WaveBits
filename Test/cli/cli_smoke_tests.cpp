@@ -32,7 +32,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
     test::AssertEq(version_result.exit_code, 0, "`version` should exit successfully.");
     test::AssertContains(
         version_result.output,
-        "presentation: v0.2.1",
+        std::string("presentation: v") + test::kExpectedCliPresentationVersion,
         "`version` output should contain the presentation version.");
     test::AssertContains(
         version_result.output,
@@ -47,7 +47,7 @@ void TestVersionCommand(const std::filesystem::path& cli_path) {
     test::AssertEq(dash_version_result.exit_code, 0, "`--version` should exit successfully.");
     test::AssertContains(
         dash_version_result.output,
-        "0.2.1",
+        test::kExpectedCliPresentationVersion,
         "`--version` output should contain the presentation version.");
 }
 

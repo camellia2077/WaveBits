@@ -2,12 +2,16 @@ name: ci-android-quality
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - ".github/workflows/ci-android-assemble.yml"
       - ".github/workflows/ci-android-quality.yml"
       - "apps/audio_android/**"
       - "tooling/**"
       - "tools/**"
+    paths-ignore:
+      - "apps/audio_android/AGENTS.md"
+      - "apps/audio_android/README.md"
   push:
     paths:
       - ".github/workflows/ci-android-assemble.yml"
@@ -15,6 +19,13 @@ on:
       - "apps/audio_android/**"
       - "tooling/**"
       - "tools/**"
+    paths-ignore:
+      - "apps/audio_android/AGENTS.md"
+      - "apps/audio_android/README.md"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   android-quality:

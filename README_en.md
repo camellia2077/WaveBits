@@ -14,9 +14,10 @@
 </p>
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](LICENSE)
-[![Protocol](https://img.shields.io/badge/Protocol-Multi--Mode%20Audio%20Signaling-gold.svg)]()
-
-> **"Language can be written. Logic can also be heard."**
+[![Platform Android](https://img.shields.io/badge/Platform-Android-3DDC84.svg)]()
+[![CI Android Assemble](https://github.com/camellia2077/WaveBits/actions/workflows/ci-android-assemble.yml/badge.svg)](https://github.com/camellia2077/WaveBits/actions/workflows/ci-android-assemble.yml)
+[![CI Android Quality](https://github.com/camellia2077/WaveBits/actions/workflows/ci-android-quality.yml/badge.svg)](https://github.com/camellia2077/WaveBits/actions/workflows/ci-android-quality.yml)
+[![CI Host Verify](https://github.com/camellia2077/WaveBits/actions/workflows/ci-host-verify.yml/badge.svg)](https://github.com/camellia2077/WaveBits/actions/workflows/ci-host-verify.yml)
 
 ## Project Overview
 FlipBits is an experimental audio project built around retro-futurist communication aesthetics. It encodes text into audible signal patterns and decodes those patterns back into text, combining DSP experimentation with a deliberately stylized industrial-tech presentation.
@@ -28,32 +29,74 @@ The project provides multiple transport modes that map text into waveform struct
 - **Design intent**: the goal is not just to transmit content, but to make the generated audio feel deliberate, dramatic, and technologically evocative.
 - **Entertainment-first focus**: some modes intentionally sacrifice efficiency in exchange for stronger atmosphere and a more distinctive listening experience.
 
-Mode summary:
-- `flash`: transmits bit-by-bit through high / low frequency switching, emphasizing atmosphere, audibility, and stylized presentation.
-- `pro`: uses dual-tone combinations for each nibble, with a more regular structure suited to a more formal signaling path.
-- `ultra`: uses `16-FSK` frequency mapping for nibbles, targeting UTF-8 text with higher information density.
-- `mini`: uses International Morse code dot / dash / silence timing, emphasizing clear rhythm, visual readability, and follow-along playback.
+## Naming Map
+For fast orientation, the project-specific mode names roughly map to these more familiar technical categories:
 
-`flash` is intentionally the least efficient mode. The same input text may produce audio close to a minute long in `flash`, while `ultra` may finish in only a few seconds. That gap is intentional: the project values the feeling of "being played like a ritual signal" more than raw throughput.
+- `mini` -> Morse code
+- `flash` -> BFSK / bit-by-bit FSK-style signaling
+- `pro` -> DTMF-like dual-tone mapping
+- `ultra` -> `16-FSK` frequency mapping
 
-`flash` currently provides six styles. Each style defines both the base low/high carrier pair and the emotional voicing layer:
+These names are product-facing labels, not a simple ladder of "basic to advanced" versions of the same protocol. Each mode emphasizes a different listening character, expressive goal, and transport structure.
+
+## Design Boundary
+The current project focus is the controlled loop of "text -> stylized audio -> in-project decoding", with particular emphasis on Android app workflows for audio generation, conversion, sharing, and export.
+
+It is not primarily designed around real-time over-speaker playback decoding by another device, nor around noise robustness, echo resistance, far-field reception, or complex real-world synchronization. In this project, atmosphere, recognizable stylistic expression, and controlled mode behavior take priority over real-world acoustic communication robustness.
+
+## Android App Footprint
+The Android app is intentionally lightweight and native-leaning, with fast cold start behavior and a small package footprint for audio generation, conversion, sharing, and export.
+
+In the current reference build, the install package is about `5.5 MB`, and the installed size is about `5.9 MB`. These numbers may change across versions, ABIs, and build configurations.
+
+## Modes
+
+### `flash`
+`flash` is intentionally the most stylized mode. It uses two high / low Hz states to represent bits, then shapes bit duration, frequency choices, and pause spacing to simulate a more human-like emotional tone and stylized delivery. The same input text may produce audio close to a minute long in `flash`, while `ultra` may finish in only a few seconds. That gap is intentional: the project values the feeling of "being played like a ritual signal" more than raw throughput.
+
+`flash` currently provides six styles. Each style uses a low / high Hz pair to define bit states, then combines bit duration, frequency shaping, and pause spacing to create a distinct emotional "speaking tone":
 
 | Style | Low / High | Listening target |
 | --- | --- | --- |
-| Litany | `220 / 440 Hz` | low, solemn, chant-like |
-| Collapse | `280 / 560 Hz` | hushed, panicked, stuttering |
-| Steady | `300 / 600 Hz` | everyday, precise, stable |
-| Hostile | `450 / 900 Hz` | sharp, urgent, aggressive |
-| Zeal | variable `560-900 / 1120-1800 Hz` | bright, variable-speed, dense |
-| Void | `240 / 480 Hz` | low, trailing, sparse |
+| [Litany](docs/design/modes/flash/litany.md) | `220 / 440 Hz` | low, solemn, chant-like |
+| [Collapse](docs/design/modes/flash/collapse.md) | `280 / 560 Hz` | hushed, panicked, stuttering |
+| [Steady](docs/design/modes/flash/steady.md) | `300 / 600 Hz` | everyday, precise, stable |
+| [Hostile](docs/design/modes/flash/hostile.md) | `450 / 900 Hz` | sharp, urgent, aggressive |
+| [Zeal](docs/design/modes/flash/zeal.md) | variable `560-900 / 1120-1800 Hz` | bright, variable-speed, dense |
+| [Void](docs/design/modes/flash/void.md) | `240 / 480 Hz` | low, trailing, sparse |
 
-`mini` is the Morse code mode. Input is normalized through Morse-compatible text rules, and the current speed presets are:
+For deeper `flash` voicing-style semantics, emotional intent, and preset design notes, see:
+- [`docs/design/modes/flash/README.md`](docs/design/modes/flash/README.md)
+- [`docs/design/modes/flash/voicing-emotions.md`](docs/design/modes/flash/voicing-emotions.md)
+- [`docs/design/modes/flash/`](docs/design/modes/flash/)
+
+### `mini`
+`mini` is the Morse code mode. Input is normalized through Morse-compatible text rules, emphasizing clear rhythm, visual readability, and follow-along playback. The current speed presets are:
 
 | Speed | Role |
 | --- | --- |
 | Slow | slower and easier to inspect in dot/dash visuals and lyrics follow |
 | Standard | default Morse rhythm |
 | Fast | shorter, more compact Morse output |
+
+For deeper `mini` rules, follow/visual behavior, and implementation notes, see:
+- [`docs/design/modes/mini.md`](docs/design/modes/mini.md)
+
+### `pro`
+`pro` is the more formal ASCII-only mode: input text is first converted into ASCII bytes, then each byte is split into a high nibble and a low nibble, each of which maps to a `DTMF-like` dual-tone symbol, so `1 byte = 2 symbol`. It favors a cleaner and more regular acoustic signaling structure.
+
+For deeper `pro` mode positioning and implementation notes, see:
+- [`docs/design/modes/pro.md`](docs/design/modes/pro.md)
+- [`docs/design/transports.md`](docs/design/transports.md)
+- [`docs/architecture/repo-map.md`](docs/architecture/repo-map.md)
+
+### `ultra`
+`ultra` is the denser UTF-8-oriented mode: input text is processed directly as UTF-8 bytes, each byte is split into two nibbles, and each nibble maps to a fixed frequency in clean `16-FSK`, so `1 byte = 2 symbol`, with each symbol emitting only one frequency. It favors higher information density and a more formal UTF-8 text transport path.
+
+For deeper `ultra` mode positioning and implementation notes, see:
+- [`docs/design/modes/ultra.md`](docs/design/modes/ultra.md)
+- [`docs/design/transports.md`](docs/design/transports.md)
+- [`docs/architecture/repo-map.md`](docs/architecture/repo-map.md)
 
 ---
 
@@ -79,7 +122,7 @@ Mode summary:
 
 > If you notice wording, assets, or stylistic material in this repository that feels inaccurate or potentially misleading, please report it through [GitHub Issues](../../issues).
 
-## Development Entry
+If you are an AI / agent, start with [`.agent/AGENTS.md`](.agent/AGENTS.md) and then read the relevant subsystem `AGENTS.md` files for a faster overview of repository structure, tooling entry points, and editing conventions.
 
 ### Android
 - The official Android project root is `C:\code\WaveBits\apps\audio_android`.
@@ -110,6 +153,7 @@ Mode summary:
 ### Development Navigation
 When reading or modifying the codebase by area, these are good starting points:
 
+- Agent / AI entry point: [`.agent/AGENTS.md`](.agent/AGENTS.md)
 - Core libraries and shared logic: [`libs/AGENTS.md`](libs/AGENTS.md)
 - CLI presentation layer: [`apps/audio_cli/AGENTS.md`](apps/audio_cli/AGENTS.md)
 - Android application: [`apps/audio_android/AGENTS.md`](apps/audio_android/AGENTS.md)

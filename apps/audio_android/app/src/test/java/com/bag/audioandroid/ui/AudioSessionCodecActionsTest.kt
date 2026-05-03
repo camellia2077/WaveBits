@@ -5,8 +5,8 @@ import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.domain.AudioEncodePhase
 import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.BagApiCodes
-import com.bag.audioandroid.domain.DecodedAudioPayloadResult
 import com.bag.audioandroid.domain.DecodedAudioData
+import com.bag.audioandroid.domain.DecodedAudioPayloadResult
 import com.bag.audioandroid.domain.EncodeAudioResult
 import com.bag.audioandroid.domain.EncodeProgressUpdate
 import com.bag.audioandroid.domain.FlashSignalInfo
@@ -17,10 +17,10 @@ import com.bag.audioandroid.domain.PayloadFollowBinaryGroupTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowByteTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
-import com.bag.audioandroid.domain.WavAudioInfo
 import com.bag.audioandroid.domain.TextFollowLineTokenRangeViewData
 import com.bag.audioandroid.domain.TextFollowLyricLineTimelineEntry
 import com.bag.audioandroid.domain.TextFollowTimelineEntry
+import com.bag.audioandroid.domain.WavAudioInfo
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.model.UiText
@@ -583,24 +583,26 @@ private class CodecFakeAudioIoGateway : AudioIoGateway {
         metadata: GeneratedAudioMetadata?,
     ): ByteArray = ByteArray(44 + pcm.size * 2)
 
-    override fun decodeMonoPcm16WavBytes(wavBytes: ByteArray): DecodedAudioData = DecodedAudioData(
-        wavStatusCode = com.bag.audioandroid.domain.AudioIoWavCodes.STATUS_OK,
-        metadataStatusCode = com.bag.audioandroid.domain.AudioIoMetadataCodes.STATUS_NOT_FOUND,
-        sampleRateHz = 44_100,
-        channels = 1,
-        pcm = shortArrayOf(),
-    )
+    override fun decodeMonoPcm16WavBytes(wavBytes: ByteArray): DecodedAudioData =
+        DecodedAudioData(
+            wavStatusCode = com.bag.audioandroid.domain.AudioIoWavCodes.STATUS_OK,
+            metadataStatusCode = com.bag.audioandroid.domain.AudioIoMetadataCodes.STATUS_NOT_FOUND,
+            sampleRateHz = 44_100,
+            channels = 1,
+            pcm = shortArrayOf(),
+        )
 
-    override fun probeMonoPcm16WavBytes(wavBytes: ByteArray): WavAudioInfo = WavAudioInfo(
-        wavStatusCode = com.bag.audioandroid.domain.AudioIoWavCodes.STATUS_OK,
-        sampleRateHz = 44_100,
-        channels = 1,
-        bitsPerSample = 16,
-        pcmSampleCount = ((wavBytes.size - 44) / 2).coerceAtLeast(0).toLong(),
-        dataByteCount = (wavBytes.size - 44).coerceAtLeast(0).toLong(),
-        fileByteCount = wavBytes.size.toLong(),
-        durationMs = 0L,
-    )
+    override fun probeMonoPcm16WavBytes(wavBytes: ByteArray): WavAudioInfo =
+        WavAudioInfo(
+            wavStatusCode = com.bag.audioandroid.domain.AudioIoWavCodes.STATUS_OK,
+            sampleRateHz = 44_100,
+            channels = 1,
+            bitsPerSample = 16,
+            pcmSampleCount = ((wavBytes.size - 44) / 2).coerceAtLeast(0).toLong(),
+            dataByteCount = (wavBytes.size - 44).coerceAtLeast(0).toLong(),
+            fileByteCount = wavBytes.size.toLong(),
+            durationMs = 0L,
+        )
 }
 
 private class CodecFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {

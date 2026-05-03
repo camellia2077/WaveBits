@@ -6,6 +6,7 @@
 - 修改 `libs/` 下的共享库代码前，优先阅读：
   - `docs/architecture/repo-map.md`
   - `docs/design/transports.md`
+  - `docs/design/modes/README.md`
   - `docs/testing.md`
 - 若只想快速定位文件，不要先全量扫描 `libs/`，先按上面的索引文档跳到对应模块。
 - 模式字符集速记：
@@ -56,8 +57,9 @@
   - 重点入口通常是 `libs/audio_core/src/transport/follow.cpp`、`libs/audio_api/tests/api_sync_tests.cpp` 和 Android follow/visual 组件。
 - 改 `mini / flash / pro / ultra` 模式实现
   - 先看 `docs/design/transports.md`
-  - flash 情绪音色总览看 `docs/design/flash-voicing-emotions.md`
-  - 具体 `Steady / Hostile / Litany / Collapse / Zeal / Void` 设计看 `docs/design/flash-voicing/<preset>.md`
+  - 再看 `docs/design/modes/README.md`
+  - flash 情绪音色总览看 `docs/design/modes/flash/voicing-emotions.md`
+  - 具体 `Steady / Hostile / Litany / Collapse / Zeal / Void` 设计看 `docs/design/modes/flash/<preset>.md`
   - 再看 `docs/architecture/repo-map.md`
 - 改 `bag_api`
   - 先看 `docs/architecture/repo-map.md`
