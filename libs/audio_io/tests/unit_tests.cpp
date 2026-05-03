@@ -78,7 +78,7 @@ ApiMetadataFixture MakeApiMetadataView(std::uint32_t pcm_sample_count) {
         6u,
         AUDIO_IO_METADATA_MODE_FLASH,
         1u,
-        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_HOSTILE,
+        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_VOID,
         MakeStringView("2026-03-17T09:45:00Z"),
         4321u,
         44100u,
@@ -114,6 +114,37 @@ void TestWavIoHeaderBytesRoundTripContract() {
             audio_io::WavPcm16Status::kOk,
             "Header bytes route should parse canonical mono PCM16 WAV bytes.");
         test::AssertAudioIoRoundTripResult(parsed.wav, test_case, "Header audio_io bytes boundary");
+    }
+}
+
+void TestWavIoHeaderProbeRoundTripContract() {
+    for (const auto& test_case : test::AudioIoRoundTripCases()) {
+        const auto wav_bytes = audio_io::SerializeMonoPcm16Wav(test_case.sample_rate_hz, test_case.mono_pcm);
+        const auto probed = audio_io::ProbeMonoPcm16Wav(wav_bytes);
+        test::AssertEq(
+            probed.status,
+            audio_io::WavPcm16Status::kOk,
+            "Header probe should accept canonical mono PCM16 WAV bytes.");
+        test::AssertEq(probed.info.sample_rate_hz, test_case.sample_rate_hz, "Header probe sample rate should match.");
+        test::AssertEq(probed.info.channels, 1, "Header probe channel count should match.");
+        test::AssertEq(probed.info.bits_per_sample, 16, "Header probe bit depth should match.");
+        test::AssertEq(
+            probed.info.pcm_sample_count,
+            static_cast<std::uint64_t>(test_case.mono_pcm.size()),
+            "Header probe sample count should match.");
+        test::AssertEq(
+            probed.info.data_byte_count,
+            static_cast<std::uint64_t>(test_case.mono_pcm.size() * sizeof(std::int16_t)),
+            "Header probe data byte count should match.");
+        test::AssertEq(
+            probed.info.file_byte_count,
+            static_cast<std::uint64_t>(wav_bytes.size()),
+            "Header probe file byte count should match.");
+        test::AssertEq(
+            probed.info.duration_ms,
+            (static_cast<std::uint64_t>(test_case.mono_pcm.size()) * 1000u) /
+                static_cast<std::uint64_t>(test_case.sample_rate_hz),
+            "Header probe duration should derive from sample count and rate.");
     }
 }
 
@@ -227,6 +258,33 @@ void TestWavIoCApiRejectsInvalidBytes() {
     audio_io_free_decoded_wav(&decoded);
 }
 
+void TestWavIoCApiProbeRoundTripContract() {
+    const auto& test_case = MetadataRoundTripCase();
+    const auto wav_bytes = audio_io::SerializeMonoPcm16WavWithMetadata(
+        test_case.sample_rate_hz,
+        test_case.mono_pcm,
+        MakeValidMetadata(static_cast<std::uint32_t>(test_case.mono_pcm.size())));
+    audio_io_wav_info info{};
+    const audio_io_wav_status status =
+        audio_io_probe_mono_pcm16_wav(wav_bytes.data(), wav_bytes.size(), &info);
+    test::AssertEq(status, AUDIO_IO_WAV_OK, "C ABI probe should accept metadata WAV bytes.");
+    test::AssertEq(info.sample_rate_hz, test_case.sample_rate_hz, "C ABI probe sample rate should match.");
+    test::AssertEq(info.channels, 1, "C ABI probe channel count should match.");
+    test::AssertEq(info.bits_per_sample, 16, "C ABI probe bit depth should match.");
+    test::AssertEq(
+        info.pcm_sample_count,
+        static_cast<std::uint64_t>(test_case.mono_pcm.size()),
+        "C ABI probe sample count should match.");
+    test::AssertEq(
+        info.data_byte_count,
+        static_cast<std::uint64_t>(test_case.mono_pcm.size() * sizeof(std::int16_t)),
+        "C ABI probe data byte count should match.");
+    test::AssertEq(
+        info.file_byte_count,
+        static_cast<std::uint64_t>(wav_bytes.size()),
+        "C ABI probe file byte count should include metadata chunks.");
+}
+
 void TestWavIoCApiMetadataRoundTripContract() {
     const auto& test_case = MetadataRoundTripCase();
     auto metadata = MakeApiMetadataView(static_cast<std::uint32_t>(test_case.mono_pcm.size()));
@@ -258,7 +316,7 @@ void TestWavIoCApiMetadataRoundTripContract() {
                    static_cast<std::uint8_t>(1u),
                    "C ABI metadata flash-style presence should round-trip.");
     test::AssertEq(decoded.metadata.flash_voicing_style,
-                   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_HOSTILE,
+                   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_VOID,
                    "C ABI metadata flash-style value should round-trip.");
     test::AssertEq(std::string(decoded.metadata.created_at_iso_utc.data, decoded.metadata.created_at_iso_utc.size),
                    std::string("2026-03-17T09:45:00Z"),
@@ -568,6 +626,8 @@ void TestWavIoMetadataFlashEmotionValuesRoundTrip() {
         audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kLitany,
         audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kHostile,
         audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kCollapse,
+        audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kZeal,
+        audio_io::FlipBitsAudioMetadataFlashVoicingStyle::kVoid,
     };
     const auto& test_case = MetadataRoundTripCase();
 
@@ -617,12 +677,14 @@ int main() {
     test::Runner runner;
     runner.Add("Unit.WavIoHeaderRoundTripContract", TestWavIoHeaderRoundTripContract);
     runner.Add("Unit.WavIoHeaderBytesRoundTripContract", TestWavIoHeaderBytesRoundTripContract);
+    runner.Add("Unit.WavIoHeaderProbeRoundTripContract", TestWavIoHeaderProbeRoundTripContract);
     runner.Add("Unit.WavIoHeaderReadMissingFileFails", TestWavIoHeaderReadMissingFileFails);
     runner.Add("Unit.WavIoHeaderRejectsInvalidBytes", TestWavIoHeaderRejectsInvalidBytes);
     runner.Add("Unit.WavIoHeaderRejectsUnsupportedStereoBytes", TestWavIoHeaderRejectsUnsupportedStereoBytes);
     runner.Add("Unit.WavIoHeaderRejectsTruncatedDataBytes", TestWavIoHeaderRejectsTruncatedDataBytes);
     runner.Add("Unit.WavIoCApiRoundTripContract", TestWavIoCApiRoundTripContract);
     runner.Add("Unit.WavIoCApiRejectsInvalidBytes", TestWavIoCApiRejectsInvalidBytes);
+    runner.Add("Unit.WavIoCApiProbeRoundTripContract", TestWavIoCApiProbeRoundTripContract);
     runner.Add("Unit.WavIoCApiMetadataRoundTripContract", TestWavIoCApiMetadataRoundTripContract);
     runner.Add("Unit.WavIoCApiMetadataMissingOnCanonicalWav", TestWavIoCApiMetadataMissingOnCanonicalWav);
     runner.Add("Unit.WavIoCApiTruncatedWavPreservesMetadataStatus", TestWavIoCApiTruncatedWavPreservesMetadataStatus);

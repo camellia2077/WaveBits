@@ -26,6 +26,16 @@ WavPcm16ParseResult ParseMonoPcm16Wav(
   return ParseMonoPcm16Wav(wav_bytes.data(), wav_bytes.size());
 }
 
+WavPcm16InfoParseResult ProbeMonoPcm16Wav(const std::uint8_t* wav_bytes,
+                                          std::size_t wav_byte_count) {
+  return detail::ProbeMonoPcm16WavBackend(wav_bytes, wav_byte_count);
+}
+
+WavPcm16InfoParseResult ProbeMonoPcm16Wav(
+    const std::vector<std::uint8_t>& wav_bytes) {
+  return ProbeMonoPcm16Wav(wav_bytes.data(), wav_bytes.size());
+}
+
 FlipBitsAudioMetadataParseResult ParseFlipBitsAudioMetadata(
     const std::uint8_t* wav_bytes, std::size_t wav_byte_count) {
   return detail::ParseFlipBitsAudioMetadataBackend(wav_bytes, wav_byte_count);

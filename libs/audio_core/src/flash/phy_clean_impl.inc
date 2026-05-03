@@ -21,6 +21,8 @@ FlashSignalProfile NormalizeFormalSignalProfile(
     case FlashSignalProfile::kLitany:
     case FlashSignalProfile::kHostile:
     case FlashSignalProfile::kCollapse:
+    case FlashSignalProfile::kZeal:
+    case FlashSignalProfile::kVoid:
       return signal_profile;
     default:
       return FlashSignalProfile::kSteady;
@@ -33,6 +35,8 @@ FlashVoicingFlavor NormalizeFormalVoicingFlavor(FlashVoicingFlavor flavor) {
     case FlashVoicingFlavor::kLitany:
     case FlashVoicingFlavor::kHostile:
     case FlashVoicingFlavor::kCollapse:
+    case FlashVoicingFlavor::kZeal:
+    case FlashVoicingFlavor::kVoid:
       return flavor;
     default:
       return FlashVoicingFlavor::kSteady;
@@ -124,8 +128,11 @@ std::vector<uint8_t> DecodeFormalPayloadBytes(
     case FlashVoicingFlavor::kCollapse:
       return DecodePcm16ToBytesSkippingSilence(trimmed_payload_pcm,
                                                signal_config);
+    case FlashVoicingFlavor::kZeal:
+      return DecodeZealPcm16ToBytes(trimmed_payload_pcm, signal_config);
     case FlashVoicingFlavor::kSteady:
     case FlashVoicingFlavor::kHostile:
+    case FlashVoicingFlavor::kVoid:
     default:
       return DecodePcm16ToBytes(trimmed_payload_pcm, signal_config);
   }

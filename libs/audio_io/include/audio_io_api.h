@@ -40,7 +40,9 @@ typedef enum audio_io_metadata_flash_voicing_style {
   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_STEADY = 1,
   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_LITANY = 2,
   AUDIO_IO_METADATA_FLASH_VOICING_STYLE_HOSTILE = 4,
-  AUDIO_IO_METADATA_FLASH_VOICING_STYLE_COLLAPSE = 5
+  AUDIO_IO_METADATA_FLASH_VOICING_STYLE_COLLAPSE = 5,
+  AUDIO_IO_METADATA_FLASH_VOICING_STYLE_ZEAL = 6,
+  AUDIO_IO_METADATA_FLASH_VOICING_STYLE_VOID = 7
 } audio_io_metadata_flash_voicing_style;
 
 typedef enum audio_io_metadata_input_source_kind {
@@ -111,6 +113,16 @@ typedef struct audio_io_decoded_wav {
   audio_io_metadata metadata;
 } audio_io_decoded_wav;
 
+typedef struct audio_io_wav_info {
+  int sample_rate_hz;
+  int channels;
+  int bits_per_sample;
+  uint64_t pcm_sample_count;
+  uint64_t data_byte_count;
+  uint64_t file_byte_count;
+  uint64_t duration_ms;
+} audio_io_wav_info;
+
 audio_io_wav_status audio_io_encode_mono_pcm16_wav(
     int sample_rate_hz,
     const int16_t* pcm,
@@ -128,6 +140,11 @@ audio_io_wav_status audio_io_decode_mono_pcm16_wav(
     const uint8_t* wav_bytes,
     size_t wav_byte_count,
     audio_io_decoded_wav* out_result);
+
+audio_io_wav_status audio_io_probe_mono_pcm16_wav(
+    const uint8_t* wav_bytes,
+    size_t wav_byte_count,
+    audio_io_wav_info* out_info);
 
 const char* audio_io_wav_status_message(audio_io_wav_status status);
 const char* audio_io_metadata_status_message(audio_io_metadata_status status);

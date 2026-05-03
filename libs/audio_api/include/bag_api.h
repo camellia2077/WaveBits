@@ -27,14 +27,18 @@ typedef enum bag_flash_signal_profile {
   BAG_FLASH_SIGNAL_PROFILE_STEADY = 0,
   BAG_FLASH_SIGNAL_PROFILE_LITANY = 1,
   BAG_FLASH_SIGNAL_PROFILE_HOSTILE = 3,
-  BAG_FLASH_SIGNAL_PROFILE_COLLAPSE = 4
+  BAG_FLASH_SIGNAL_PROFILE_COLLAPSE = 4,
+  BAG_FLASH_SIGNAL_PROFILE_ZEAL = 5,
+  BAG_FLASH_SIGNAL_PROFILE_VOID = 6
 } bag_flash_signal_profile;
 
 typedef enum bag_flash_voicing_flavor {
   BAG_FLASH_VOICING_FLAVOR_STEADY = 0,
   BAG_FLASH_VOICING_FLAVOR_LITANY = 1,
   BAG_FLASH_VOICING_FLAVOR_HOSTILE = 3,
-  BAG_FLASH_VOICING_FLAVOR_COLLAPSE = 4
+  BAG_FLASH_VOICING_FLAVOR_COLLAPSE = 4,
+  BAG_FLASH_VOICING_FLAVOR_ZEAL = 5,
+  BAG_FLASH_VOICING_FLAVOR_VOID = 6
 } bag_flash_voicing_flavor;
 
 typedef enum bag_validation_issue {
@@ -244,6 +248,30 @@ typedef struct bag_encode_result {
   bag_text_follow_data text_follow_data;
 } bag_encode_result;
 
+typedef struct bag_flash_signal_info {
+  char* low_carrier_hz_buffer;
+  size_t low_carrier_hz_buffer_size;
+  size_t low_carrier_hz_size;
+  bag_decode_content_status low_carrier_hz_status;
+  char* high_carrier_hz_buffer;
+  size_t high_carrier_hz_buffer_size;
+  size_t high_carrier_hz_size;
+  bag_decode_content_status high_carrier_hz_status;
+  char* bit_duration_samples_buffer;
+  size_t bit_duration_samples_buffer_size;
+  size_t bit_duration_samples_size;
+  bag_decode_content_status bit_duration_samples_status;
+  char* payload_silence_buffer;
+  size_t payload_silence_buffer_size;
+  size_t payload_silence_size;
+  bag_decode_content_status payload_silence_status;
+  char* decode_path_buffer;
+  size_t decode_path_buffer_size;
+  size_t decode_path_size;
+  bag_decode_content_status decode_path_status;
+  int available;
+} bag_flash_signal_info;
+
 typedef struct bag_encode_result_layout {
   size_t sample_count;
   size_t raw_bytes_hex_size;
@@ -303,6 +331,9 @@ bag_error_code bag_encode_text_with_follow(const bag_encoder_config* config,
 bag_error_code bag_build_encode_follow_data(
     const bag_encoder_config* config, const char* text,
     bag_encode_result* out_result);
+bag_error_code bag_describe_flash_signal(const bag_encoder_config* config,
+                                         const char* text,
+                                         bag_flash_signal_info* out_info);
 bag_error_code bag_start_encode_text_job(const bag_encoder_config* config,
                                          const char* text,
                                          bag_encode_job** out_job);

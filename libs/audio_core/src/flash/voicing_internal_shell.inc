@@ -117,6 +117,21 @@ double ComputePreamblePhraseMask(size_t local_index, size_t sample_count,
                                                       CadenceWindow{0.50, 0.60},
                                                   });
       break;
+    case FixedShellCadenceProfile::kZealRising:
+      phrased_mask = ComputeCadenceMask(progress, std::array<CadenceWindow, 4>{
+                                                      CadenceWindow{0.04, 0.13},
+                                                      CadenceWindow{0.20, 0.30},
+                                                      CadenceWindow{0.38, 0.50},
+                                                      CadenceWindow{0.62, 0.76},
+                                                  });
+      break;
+    case FixedShellCadenceProfile::kVoidDescent:
+      phrased_mask = ComputeCadenceMask(progress, std::array<CadenceWindow, 3>{
+                                                      CadenceWindow{0.06, 0.22},
+                                                      CadenceWindow{0.38, 0.52},
+                                                      CadenceWindow{0.70, 0.88},
+                                                  });
+      break;
     case FixedShellCadenceProfile::kSteadyProtocol:
       phrased_mask = ComputeCadenceMask(progress, std::array<CadenceWindow, 3>{
                                                       CadenceWindow{0.06, 0.17},
@@ -164,6 +179,19 @@ double ComputeEpiloguePhraseMask(size_t local_index, size_t sample_count,
                                                       CadenceWindow{0.04, 0.15},
                                                       CadenceWindow{0.20, 0.30},
                                                       CadenceWindow{0.36, 0.47},
+                                                  });
+      break;
+    case FixedShellCadenceProfile::kZealRising:
+      phrased_mask = ComputeCadenceMask(progress, std::array<CadenceWindow, 3>{
+                                                      CadenceWindow{0.08, 0.20},
+                                                      CadenceWindow{0.32, 0.45},
+                                                      CadenceWindow{0.58, 0.72},
+                                                  });
+      break;
+    case FixedShellCadenceProfile::kVoidDescent:
+      phrased_mask = ComputeCadenceMask(progress, std::array<CadenceWindow, 2>{
+                                                      CadenceWindow{0.10, 0.36},
+                                                      CadenceWindow{0.56, 0.90},
                                                   });
       break;
     case FixedShellCadenceProfile::kSteadyProtocol:
@@ -248,6 +276,35 @@ double RenderFixedPreambleSample(size_t local_index, size_t sample_count,
               ComputeLitanyPreambleBellSequence(local_index, sample_count,
                                                 sample_rate_hz);
       break;
+    case FixedShellTimbreProfile::kZealRising: {
+      const double rise = std::pow(progress, 0.62);
+      const double carrier_hz = 520.0 + (1120.0 - 520.0) * rise;
+      carrier = 0.34 * std::sin(2.0 * kPi * carrier_hz * time) +
+                0.13 * std::sin(2.0 * kPi * carrier_hz * 2.0 * time + 0.18) +
+                0.05 * std::sin(2.0 * kPi * carrier_hz * 3.0 * time + 0.31);
+      shell =
+          style_traits.preamble_invocation_shell_mix * 0.72 *
+          (ComputeProtocolLeadSweep(local_index, sample_count, sample_rate_hz) +
+           0.84 * ComputeProtocolLeadLockPulse(local_index, sample_count,
+                                               sample_rate_hz));
+      break;
+    }
+    case FixedShellTimbreProfile::kVoidDescent: {
+      const double sag = std::pow(progress, 0.70);
+      const double carrier_hz = 260.0 + (120.0 - 260.0) * sag;
+      const double slow_gate =
+          0.76 + 0.24 * std::sin(2.0 * kPi * 3.4 * time + 0.20);
+      carrier =
+          slow_gate * (0.26 * std::sin(2.0 * kPi * carrier_hz * time) +
+                       0.08 * std::sin(2.0 * kPi * carrier_hz * 2.0 * time +
+                                        0.24));
+      shell =
+          style_traits.preamble_invocation_shell_mix * 0.48 *
+          (0.60 * ComputeProtocolLeadSweep(local_index, sample_count,
+                                           sample_rate_hz) +
+           ComputeClosureTail(local_index, sample_count, sample_rate_hz));
+      break;
+    }
     case FixedShellTimbreProfile::kCollapseFailure: {
       const double sag = std::pow(progress, 0.72);
       const double carrier_hz = 360.0 + (160.0 - 360.0) * sag;
@@ -371,6 +428,35 @@ double RenderFixedEpilogueSample(size_t local_index, size_t sample_count,
               ComputeLitanyEpilogueBellSequence(local_index, sample_count,
                                                 sample_rate_hz);
       break;
+    case FixedShellTimbreProfile::kZealRising: {
+      const double rise = std::pow(progress, 0.48);
+      const double carrier_hz = 660.0 + (1240.0 - 660.0) * rise;
+      carrier = 0.34 * std::sin(2.0 * kPi * carrier_hz * time) +
+                0.12 * std::sin(2.0 * kPi * carrier_hz * 2.0 * time + 0.22);
+      shell =
+          style_traits.epilogue_closure_shell_mix * 0.64 *
+          (0.86 * ComputeProtocolClosePulse(local_index, sample_count,
+                                            sample_rate_hz) +
+           ComputeProtocolAckChirp(local_index, sample_count, sample_rate_hz));
+      break;
+    }
+    case FixedShellTimbreProfile::kVoidDescent: {
+      const double sag = std::pow(progress, 0.52);
+      const double carrier_hz = 220.0 + (68.0 - 220.0) * sag;
+      const double slow_gate =
+          0.78 + 0.18 * std::sin(2.0 * kPi * 2.8 * time + 0.40) +
+          0.04 * std::sin(2.0 * kPi * 5.6 * time + 0.10);
+      carrier =
+          slow_gate * (0.32 * std::sin(2.0 * kPi * carrier_hz * time) +
+                       0.08 * std::sin(2.0 * kPi * carrier_hz * 2.0 * time +
+                                        0.16));
+      shell =
+          style_traits.epilogue_closure_shell_mix * 0.58 *
+          (0.42 * ComputeProtocolClosePulse(local_index, sample_count,
+                                            sample_rate_hz) +
+           ComputeClosureTail(local_index, sample_count, sample_rate_hz));
+      break;
+    }
     case FixedShellTimbreProfile::kProtocolBoundary:
       carrier = 0.42 * std::sin(2.0 * kPi * 310.0 * time) +
                 0.16 * std::sin(2.0 * kPi * 620.0 * time) +

@@ -86,6 +86,8 @@ enum class FixedShellCadenceProfile {
   kHostileChallenge = 4,
   kCollapseFailure = 5,
   kLitanyInvocation = 6,
+  kZealRising = 7,
+  kVoidDescent = 8,
 };
 
 enum class FixedShellTimbreProfile {
@@ -95,6 +97,8 @@ enum class FixedShellTimbreProfile {
   kHostileEdge = 3,
   kCollapseFailure = 4,
   kLitanyInvocation = 5,
+  kZealRising = 6,
+  kVoidDescent = 7,
 };
 
 struct CadenceWindow {
@@ -160,6 +164,8 @@ FlashVoicingFlavor NormalizeVoicingFlavor(FlashVoicingFlavor flavor) {
     case FlashVoicingFlavor::kLitany:
     case FlashVoicingFlavor::kHostile:
     case FlashVoicingFlavor::kCollapse:
+    case FlashVoicingFlavor::kZeal:
+    case FlashVoicingFlavor::kVoid:
       return flavor;
     default:
       return FlashVoicingFlavor::kSteady;
@@ -636,27 +642,27 @@ VoicingStyleTraits MakeFlavorTraits(FlashVoicingFlavor flavor) {
       };
     case FlashVoicingFlavor::kHostile:
       return VoicingStyleTraits{
-          .nibble_boundary_accent_factor = 0.28,
-          .byte_boundary_click_scale = 1.18,
-          .preamble_grouped_burst_mix = 0.82,
-          .preamble_invocation_shell_mix = 1.22,
-          .epilogue_grouped_burst_mix = 0.74,
-          .epilogue_closure_shell_mix = 1.16,
-          .preamble_rise_ratio = 0.025,
-          .preamble_fall_ratio = 0.16,
-          .epilogue_rise_ratio = 0.025,
-          .epilogue_fall_ratio = 0.17,
-          .epilogue_decay_exponent = 4.7,
-          .payload_release_scale = 0.74,
+          .nibble_boundary_accent_factor = 0.34,
+          .byte_boundary_click_scale = 1.36,
+          .preamble_grouped_burst_mix = 0.90,
+          .preamble_invocation_shell_mix = 1.28,
+          .epilogue_grouped_burst_mix = 0.82,
+          .epilogue_closure_shell_mix = 1.22,
+          .preamble_rise_ratio = 0.020,
+          .preamble_fall_ratio = 0.14,
+          .epilogue_rise_ratio = 0.020,
+          .epilogue_fall_ratio = 0.14,
+          .epilogue_decay_exponent = 5.2,
+          .payload_release_scale = 0.62,
           .payload_envelope_floor = 0.03,
-          .metallic_layer_gain_scale = 0.48,
-          .hostile_edge_gain = 0.044,
-          .payload_softclip_drive = 1.42,
-          .payload_softclip_mix = 0.28,
-          .tremolo_depth_scale = 0.18,
-          .tremolo_freq_hz = 9.8,
-          .spectral_band_mix_scale = 0.62,
-          .spectral_softclip_mix_scale = 0.54,
+          .metallic_layer_gain_scale = 0.54,
+          .hostile_edge_gain = 0.052,
+          .payload_softclip_drive = 1.52,
+          .payload_softclip_mix = 0.34,
+          .tremolo_depth_scale = 0.20,
+          .tremolo_freq_hz = 10.4,
+          .spectral_band_mix_scale = 0.68,
+          .spectral_softclip_mix_scale = 0.60,
           .preamble_cadence_profile =
               FixedShellCadenceProfile::kHostileChallenge,
           .epilogue_cadence_profile =
@@ -665,9 +671,9 @@ VoicingStyleTraits MakeFlavorTraits(FlashVoicingFlavor flavor) {
           .epilogue_timbre_profile = FixedShellTimbreProfile::kHostileEdge,
           .preamble_phrase_mask_mix = 1.0,
           .epilogue_phrase_mask_mix = 1.0,
-          .preamble_terminal_mute_begin = 0.72,
+          .preamble_terminal_mute_begin = 0.68,
           .preamble_terminal_mute_end = 1.0,
-          .epilogue_terminal_mute_begin = 0.68,
+          .epilogue_terminal_mute_begin = 0.60,
           .epilogue_terminal_mute_end = 1.0,
       };
     case FlashVoicingFlavor::kCollapse:
@@ -707,6 +713,83 @@ VoicingStyleTraits MakeFlavorTraits(FlashVoicingFlavor flavor) {
           .preamble_terminal_mute_begin = 0.70,
           .preamble_terminal_mute_end = 1.0,
           .epilogue_terminal_mute_begin = 0.58,
+          .epilogue_terminal_mute_end = 1.0,
+      };
+    case FlashVoicingFlavor::kZeal:
+      return VoicingStyleTraits{
+          .nibble_boundary_accent_factor = 0.22,
+          .byte_boundary_click_scale = 0.92,
+          .preamble_grouped_burst_mix = 0.68,
+          .preamble_invocation_shell_mix = 1.10,
+          .epilogue_grouped_burst_mix = 0.60,
+          .epilogue_closure_shell_mix = 1.08,
+          .preamble_rise_ratio = 0.030,
+          .preamble_fall_ratio = 0.18,
+          .epilogue_rise_ratio = 0.030,
+          .epilogue_fall_ratio = 0.18,
+          .epilogue_decay_exponent = 4.2,
+          .payload_release_scale = 0.70,
+          .payload_envelope_floor = 0.02,
+          .metallic_layer_gain_scale = 0.34,
+          .hostile_edge_gain = 0.018,
+          .payload_softclip_drive = 1.20,
+          .payload_softclip_mix = 0.16,
+          .tremolo_depth_scale = 0.16,
+          .tremolo_freq_hz = 12.6,
+          .spectral_band_mix_scale = 0.46,
+          .spectral_softclip_mix_scale = 0.32,
+          .preamble_cadence_profile =
+              FixedShellCadenceProfile::kZealRising,
+          .epilogue_cadence_profile =
+              FixedShellCadenceProfile::kZealRising,
+          .preamble_timbre_profile = FixedShellTimbreProfile::kZealRising,
+          .epilogue_timbre_profile = FixedShellTimbreProfile::kZealRising,
+          .preamble_phrase_mask_mix = 1.0,
+          .epilogue_phrase_mask_mix = 1.0,
+          .preamble_terminal_mute_begin = 0.76,
+          .preamble_terminal_mute_end = 1.0,
+          .epilogue_terminal_mute_begin = 0.72,
+          .epilogue_terminal_mute_end = 1.0,
+      };
+    case FlashVoicingFlavor::kVoid:
+      return VoicingStyleTraits{
+          .nibble_boundary_accent_factor = 0.035,
+          .byte_boundary_click_scale = 0.12,
+          .preamble_grouped_burst_mix = 0.14,
+          .preamble_invocation_shell_mix = 0.76,
+          .epilogue_grouped_burst_mix = 0.07,
+          .epilogue_closure_shell_mix = 1.04,
+          .preamble_rise_ratio = 0.18,
+          .preamble_fall_ratio = 0.34,
+          .epilogue_rise_ratio = 0.04,
+          .epilogue_fall_ratio = 0.52,
+          .epilogue_decay_exponent = 1.35,
+          .payload_release_scale = 1.72,
+          .payload_envelope_floor = 0.13,
+          .metallic_layer_gain_scale = 0.02,
+          .chant_resonance_gain = 0.004,
+          .chant_drone_gain = 0.040,
+          .chant_swell_depth = 0.08,
+          .chant_swell_freq_hz = 0.28,
+          .steady_low_voice_gain = 0.032,
+          .steady_low_voice_freq_hz = 58.0,
+          .payload_softclip_drive = 1.05,
+          .payload_softclip_mix = 0.05,
+          .tremolo_depth_scale = 0.075,
+          .tremolo_freq_hz = 2.4,
+          .spectral_band_mix_scale = 0.07,
+          .spectral_softclip_mix_scale = 0.05,
+          .preamble_cadence_profile =
+              FixedShellCadenceProfile::kVoidDescent,
+          .epilogue_cadence_profile =
+              FixedShellCadenceProfile::kVoidDescent,
+          .preamble_timbre_profile = FixedShellTimbreProfile::kVoidDescent,
+          .epilogue_timbre_profile = FixedShellTimbreProfile::kVoidDescent,
+          .preamble_phrase_mask_mix = 1.0,
+          .epilogue_phrase_mask_mix = 1.0,
+          .preamble_terminal_mute_begin = 0.86,
+          .preamble_terminal_mute_end = 1.0,
+          .epilogue_terminal_mute_begin = 0.64,
           .epilogue_terminal_mute_end = 1.0,
       };
     case FlashVoicingFlavor::kSteady:

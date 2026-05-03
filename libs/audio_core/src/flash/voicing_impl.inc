@@ -29,11 +29,11 @@ FlashVoicingConfig MakeFormalVoicingConfigForFlavor(const CoreConfig& config,
           SecondsToSampleCount(config.sample_rate_hz, kLitanyEpilogueSeconds);
       break;
     case FlashVoicingFlavor::kHostile:
-      voicing.attack_ratio = 0.035;
-      voicing.release_ratio = 0.045;
-      voicing.second_harmonic_gain = 0.095;
-      voicing.third_harmonic_gain = 0.045;
-      voicing.boundary_click_gain = 0.022;
+      voicing.attack_ratio = 0.022;
+      voicing.release_ratio = 0.030;
+      voicing.second_harmonic_gain = 0.105;
+      voicing.third_harmonic_gain = 0.052;
+      voicing.boundary_click_gain = 0.028;
       voicing.enable_preamble = true;
       voicing.enable_epilogue = true;
       voicing.preamble_sample_count =
@@ -53,6 +53,44 @@ FlashVoicingConfig MakeFormalVoicingConfigForFlavor(const CoreConfig& config,
       voicing.second_harmonic_gain = 0.035;
       voicing.third_harmonic_gain = 0.006;
       voicing.boundary_click_gain = 0.010;
+      voicing.enable_preamble = true;
+      voicing.enable_epilogue = true;
+      voicing.preamble_sample_count =
+          config.frame_samples > 0
+              ? static_cast<std::size_t>(config.frame_samples) *
+                    static_cast<std::size_t>(3)
+              : static_cast<std::size_t>(0);
+      voicing.epilogue_sample_count =
+          config.frame_samples > 0
+              ? static_cast<std::size_t>(config.frame_samples) *
+                    static_cast<std::size_t>(3)
+              : static_cast<std::size_t>(0);
+      break;
+    case FlashVoicingFlavor::kZeal:
+      voicing.attack_ratio = 0.026;
+      voicing.release_ratio = 0.032;
+      voicing.second_harmonic_gain = 0.070;
+      voicing.third_harmonic_gain = 0.026;
+      voicing.boundary_click_gain = 0.016;
+      voicing.enable_preamble = true;
+      voicing.enable_epilogue = true;
+      voicing.preamble_sample_count =
+          config.frame_samples > 0
+              ? static_cast<std::size_t>(config.frame_samples) *
+                    static_cast<std::size_t>(3)
+              : static_cast<std::size_t>(0);
+      voicing.epilogue_sample_count =
+          config.frame_samples > 0
+              ? static_cast<std::size_t>(config.frame_samples) *
+                    static_cast<std::size_t>(3)
+              : static_cast<std::size_t>(0);
+      break;
+    case FlashVoicingFlavor::kVoid:
+      voicing.attack_ratio = 0.085;
+      voicing.release_ratio = 0.170;
+      voicing.second_harmonic_gain = 0.014;
+      voicing.third_harmonic_gain = 0.002;
+      voicing.boundary_click_gain = 0.002;
       voicing.enable_preamble = true;
       voicing.enable_epilogue = true;
       voicing.preamble_sample_count =

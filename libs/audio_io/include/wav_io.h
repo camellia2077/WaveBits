@@ -30,6 +30,8 @@ enum class FlipBitsAudioMetadataFlashVoicingStyle : std::uint8_t {
   kLitany = 2,
   kHostile = 4,
   kCollapse = 5,
+  kZeal = 6,
+  kVoid = 7,
 };
 
 enum class FlipBitsAudioMetadataInputSourceKind : std::uint8_t {
@@ -42,6 +44,16 @@ struct WavPcm16 {
   int sample_rate_hz = 0;
   int channels = 1;
   std::vector<std::int16_t> mono_pcm;
+};
+
+struct WavPcm16Info {
+  int sample_rate_hz = 0;
+  int channels = 0;
+  int bits_per_sample = 0;
+  std::uint64_t pcm_sample_count = 0;
+  std::uint64_t data_byte_count = 0;
+  std::uint64_t file_byte_count = 0;
+  std::uint64_t duration_ms = 0;
 };
 
 struct FlipBitsAudioMetadata {
@@ -89,6 +101,11 @@ struct WavPcm16ParseResult {
   WavPcm16 wav{};
 };
 
+struct WavPcm16InfoParseResult {
+  WavPcm16Status status = WavPcm16Status::kOk;
+  WavPcm16Info info{};
+};
+
 std::vector<std::uint8_t> SerializeMonoPcm16Wav(
     int sample_rate_hz, const std::vector<std::int16_t>& pcm);
 std::vector<std::uint8_t> SerializeMonoPcm16WavWithMetadata(
@@ -97,6 +114,10 @@ std::vector<std::uint8_t> SerializeMonoPcm16WavWithMetadata(
 WavPcm16ParseResult ParseMonoPcm16Wav(const std::uint8_t* wav_bytes,
                                       std::size_t wav_byte_count);
 WavPcm16ParseResult ParseMonoPcm16Wav(
+    const std::vector<std::uint8_t>& wav_bytes);
+WavPcm16InfoParseResult ProbeMonoPcm16Wav(const std::uint8_t* wav_bytes,
+                                          std::size_t wav_byte_count);
+WavPcm16InfoParseResult ProbeMonoPcm16Wav(
     const std::vector<std::uint8_t>& wav_bytes);
 FlipBitsAudioMetadataParseResult ParseFlipBitsAudioMetadata(
     const std::uint8_t* wav_bytes, std::size_t wav_byte_count);

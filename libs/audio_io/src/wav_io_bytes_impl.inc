@@ -74,7 +74,9 @@ bool IsSupportedFlashVoicingStyle(
   return style == FlipBitsAudioMetadataFlashVoicingStyle::kSteady ||
          style == FlipBitsAudioMetadataFlashVoicingStyle::kLitany ||
          style == FlipBitsAudioMetadataFlashVoicingStyle::kHostile ||
-         style == FlipBitsAudioMetadataFlashVoicingStyle::kCollapse;
+         style == FlipBitsAudioMetadataFlashVoicingStyle::kCollapse ||
+         style == FlipBitsAudioMetadataFlashVoicingStyle::kZeal ||
+         style == FlipBitsAudioMetadataFlashVoicingStyle::kVoid;
 }
 
 bool IsIsoUtcTimestampChar(char value, std::size_t index) {
@@ -531,6 +533,85 @@ std::vector<std::uint8_t> SerializeMonoPcm16WavBytesWithMetadata(
     write_offset += kBytesPerSample;
   }
   return wav_bytes;
+}
+
+WavPcm16InfoParseResult ProbeMonoPcm16WavBytes(const std::uint8_t* wav_bytes,
+                                               std::size_t wav_byte_count) {
+  if (wav_bytes == nullptr && wav_byte_count > 0) {
+    return {WavPcm16Status::kInvalidArgument, {}};
+  }
+  if (wav_byte_count < kRiffHeaderSize) {
+    return {WavPcm16Status::kInvalidHeader, {}};
+  }
+  if (!MatchesTag(wav_bytes, "RIFF") || !MatchesTag(wav_bytes + 8, "WAVE")) {
+    return {WavPcm16Status::kInvalidHeader, {}};
+  }
+
+  bool saw_fmt_chunk = false;
+  bool saw_data_chunk = false;
+  int sample_rate_hz = 0;
+  int channels = 0;
+  int bits_per_sample = 0;
+  std::size_t data_byte_count = 0;
+
+  std::size_t chunk_offset = kRiffHeaderSize;
+  while (HasRange(wav_byte_count, chunk_offset, kChunkHeaderSize)) {
+    const std::uint8_t* chunk_header = wav_bytes + chunk_offset;
+    const std::uint32_t chunk_size = ReadU32Le(chunk_header + 4);
+    const std::size_t chunk_data_offset = chunk_offset + kChunkHeaderSize;
+    if (!HasRange(wav_byte_count, chunk_data_offset, chunk_size)) {
+      return {WavPcm16Status::kTruncatedData, {}};
+    }
+
+    if (MatchesTag(chunk_header, "fmt ")) {
+      if (chunk_size < kFmtChunkSize) {
+        return {WavPcm16Status::kInvalidHeader, {}};
+      }
+      const std::uint8_t* fmt = wav_bytes + chunk_data_offset;
+      const std::uint16_t format_code = ReadU16Le(fmt);
+      const std::uint16_t fmt_channels = ReadU16Le(fmt + 2);
+      const std::uint32_t fmt_sample_rate_hz = ReadU32Le(fmt + 4);
+      const std::uint16_t block_align = ReadU16Le(fmt + 12);
+      const std::uint16_t fmt_bits_per_sample = ReadU16Le(fmt + 14);
+
+      if (format_code != kPcmFormatCode || fmt_channels != kMonoChannelCount ||
+          fmt_bits_per_sample != kBitsPerSample ||
+          block_align != (kMonoChannelCount * kBytesPerSample) ||
+          fmt_sample_rate_hz == 0u) {
+        return {WavPcm16Status::kUnsupportedFormat, {}};
+      }
+
+      saw_fmt_chunk = true;
+      sample_rate_hz = static_cast<int>(fmt_sample_rate_hz);
+      channels = static_cast<int>(fmt_channels);
+      bits_per_sample = static_cast<int>(fmt_bits_per_sample);
+    } else if (MatchesTag(chunk_header, "data")) {
+      if ((chunk_size % kBytesPerSample) != 0u) {
+        return {WavPcm16Status::kTruncatedData, {}};
+      }
+      saw_data_chunk = true;
+      data_byte_count = chunk_size;
+    }
+
+    chunk_offset = chunk_data_offset + chunk_size + (chunk_size % 2u);
+  }
+
+  if (!saw_fmt_chunk || !saw_data_chunk) {
+    return {WavPcm16Status::kInvalidHeader, {}};
+  }
+
+  WavPcm16Info info{};
+  info.sample_rate_hz = sample_rate_hz;
+  info.channels = channels;
+  info.bits_per_sample = bits_per_sample;
+  info.data_byte_count = static_cast<std::uint64_t>(data_byte_count);
+  info.file_byte_count = static_cast<std::uint64_t>(wav_byte_count);
+  info.pcm_sample_count = static_cast<std::uint64_t>(data_byte_count / kBytesPerSample);
+  info.duration_ms =
+      sample_rate_hz > 0
+          ? (info.pcm_sample_count * 1000u) / static_cast<std::uint64_t>(sample_rate_hz)
+          : 0u;
+  return {WavPcm16Status::kOk, info};
 }
 
 WavPcm16ParseResult ParseMonoPcm16WavBytes(const std::uint8_t* wav_bytes,

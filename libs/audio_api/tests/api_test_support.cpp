@@ -128,16 +128,132 @@ std::size_t LitanyPauseSampleCount(const std::string& text, std::size_t silence_
     return LitanyPauseSlotCount(text) * silence_slot_samples;
 }
 
+std::size_t ZealBitSampleCount(std::size_t frame_samples, std::size_t bit_position, bool force_burst_after_pause) {
+    if (frame_samples == 0) {
+        return 0;
+    }
+    if (force_burst_after_pause) {
+        return std::max(static_cast<std::size_t>(1), frame_samples / static_cast<std::size_t>(2));
+    }
+    switch (bit_position % static_cast<std::size_t>(16)) {
+    case 0:
+    case 1:
+    case 3:
+    case 5:
+    case 8:
+    case 9:
+    case 11:
+    case 14:
+        return std::max(static_cast<std::size_t>(1), frame_samples / static_cast<std::size_t>(2));
+    case 2:
+    case 6:
+    case 10:
+    case 13:
+        return std::max(static_cast<std::size_t>(1),
+                        frame_samples * static_cast<std::size_t>(5) / static_cast<std::size_t>(8));
+    case 4:
+    case 15:
+        return std::max(static_cast<std::size_t>(1),
+                        frame_samples * static_cast<std::size_t>(3) / static_cast<std::size_t>(4));
+    case 7:
+    case 12:
+    default:
+        return std::max(static_cast<std::size_t>(1), frame_samples);
+    }
+}
+
+bool IsZealStrongPauseByte(const std::string& text, std::size_t byte_index) {
+    const unsigned char value = static_cast<unsigned char>(text[byte_index]);
+    switch (value) {
+    case static_cast<unsigned char>('\n'):
+    case static_cast<unsigned char>('\r'):
+    case static_cast<unsigned char>('.'):
+    case static_cast<unsigned char>('!'):
+    case static_cast<unsigned char>('?'):
+        return true;
+    default:
+        break;
+    }
+    return EndsWithUtf8Bytes(text, byte_index, 0xE3, 0x80, 0x82) ||
+           EndsWithUtf8Bytes(text, byte_index, 0xEF, 0xBC, 0x81) ||
+           EndsWithUtf8Bytes(text, byte_index, 0xEF, 0xBC, 0x9F);
+}
+
+std::size_t ZealPauseSlotCountAfterByte(const std::string& text, std::size_t byte_index) {
+    if (!IsLikelyUtf8CodePointBoundaryAfter(text, byte_index)) {
+        return 0;
+    }
+    const unsigned char value = static_cast<unsigned char>(text[byte_index]);
+    switch (value) {
+    case static_cast<unsigned char>('\n'):
+    case static_cast<unsigned char>('\r'):
+        return 5;
+    case static_cast<unsigned char>('.'):
+    case static_cast<unsigned char>('!'):
+    case static_cast<unsigned char>('?'):
+        return 4;
+    case static_cast<unsigned char>(','):
+    case static_cast<unsigned char>(';'):
+    case static_cast<unsigned char>(':'):
+        return 1;
+    default:
+        break;
+    }
+    if (EndsWithUtf8Bytes(text, byte_index, 0xEF, 0xBC, 0x8C) ||
+        EndsWithUtf8Bytes(text, byte_index, 0xEF, 0xBC, 0x9B) ||
+        EndsWithUtf8Bytes(text, byte_index, 0xEF, 0xBC, 0x9A)) {
+        return 1;
+    }
+    if (IsZealStrongPauseByte(text, byte_index)) {
+        return 4;
+    }
+    return 0;
+}
+
+std::size_t ZealPayloadSampleCount(const std::string& text, std::size_t frame_samples) {
+    std::size_t sample_count = 0;
+    bool force_burst_after_pause = false;
+    for (std::size_t byte_index = 0; byte_index < text.size(); ++byte_index) {
+        for (int bit_index = 0; bit_index < 8; ++bit_index) {
+            const std::size_t bit_position =
+                byte_index * static_cast<std::size_t>(8) + static_cast<std::size_t>(bit_index);
+            sample_count += ZealBitSampleCount(frame_samples, bit_position, force_burst_after_pause);
+            force_burst_after_pause = false;
+        }
+        const std::size_t pause_slots = ZealPauseSlotCountAfterByte(text, byte_index);
+        sample_count += pause_slots * frame_samples;
+        if (pause_slots > 0) {
+            force_burst_after_pause = true;
+        }
+    }
+    return sample_count;
+}
+
 std::size_t ExpectedFlashSampleCount(const std::string& text,
                                      const test::ConfigCase& config_case,
                                      bag_flash_signal_profile flash_signal_profile,
                                      bag_flash_voicing_flavor flash_voicing_flavor) {
     const std::size_t frame_samples =
         config_case.frame_samples > 0 ? static_cast<std::size_t>(config_case.frame_samples) : static_cast<std::size_t>(0);
-    const std::size_t payload_samples_per_bit =
-        flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_LITANY
-            ? RoundHalfUpFrameScale(config_case.frame_samples, 6, 1)
-            : frame_samples;
+    std::size_t payload_samples_per_bit = frame_samples;
+    if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_STEADY) {
+        payload_samples_per_bit = std::max(static_cast<std::size_t>(1),
+                                           frame_samples * static_cast<std::size_t>(15) /
+                                               static_cast<std::size_t>(16));
+    } else if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_LITANY) {
+        payload_samples_per_bit = RoundHalfUpFrameScale(config_case.frame_samples, 6, 1);
+    } else if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_HOSTILE) {
+        payload_samples_per_bit = std::max(static_cast<std::size_t>(1),
+                                           frame_samples * static_cast<std::size_t>(7) /
+                                               static_cast<std::size_t>(8));
+    } else if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_ZEAL) {
+        payload_samples_per_bit = std::max(static_cast<std::size_t>(1),
+                                           frame_samples / static_cast<std::size_t>(2));
+    } else if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_VOID) {
+        payload_samples_per_bit = std::max(static_cast<std::size_t>(1),
+                                           frame_samples * static_cast<std::size_t>(5) /
+                                               static_cast<std::size_t>(2));
+    }
     const std::size_t payload_samples_per_litany_silence_slot =
         flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_LITANY
             ? frame_samples
@@ -151,7 +267,10 @@ std::size_t ExpectedFlashSampleCount(const std::string& text,
             ? SecondsToSampleCount(config_case.sample_rate_hz, 1.15)
             : frame_samples * static_cast<std::size_t>(3);
     const bool uses_litany_pauses = flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_LITANY;
-    return text.size() * static_cast<std::size_t>(8) * payload_samples_per_bit +
+    const bool uses_zeal_layout = flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_ZEAL;
+    return (uses_zeal_layout
+                ? ZealPayloadSampleCount(text, frame_samples)
+                : text.size() * static_cast<std::size_t>(8) * payload_samples_per_bit) +
            (uses_litany_pauses
                 ? LitanyPauseSampleCount(text, payload_samples_per_litany_silence_slot)
                 : static_cast<std::size_t>(0)) +

@@ -496,7 +496,7 @@ void TestApiDecodeResultPublishesRawPayloadAcrossModes() {
         bag_flash_signal_profile signal_profile = BAG_FLASH_SIGNAL_PROFILE_STEADY;
         bag_flash_voicing_flavor voicing_flavor = BAG_FLASH_VOICING_FLAVOR_STEADY;
     };
-    const std::array<RawCase, 7> cases = {{
+    const std::array<RawCase, 9> cases = {{
         {BAG_TRANSPORT_FLASH, "FlashRaw"},
         {BAG_TRANSPORT_FLASH,
          test::Utf8Literal(u8"Flash深仪"),
@@ -506,6 +506,8 @@ void TestApiDecodeResultPublishesRawPayloadAcrossModes() {
          "MidRitual",
          BAG_FLASH_SIGNAL_PROFILE_LITANY,
          BAG_FLASH_VOICING_FLAVOR_LITANY},
+        {BAG_TRANSPORT_FLASH, "ZealRaw", BAG_FLASH_SIGNAL_PROFILE_ZEAL, BAG_FLASH_VOICING_FLAVOR_ZEAL},
+        {BAG_TRANSPORT_FLASH, "VoidRaw", BAG_FLASH_SIGNAL_PROFILE_VOID, BAG_FLASH_VOICING_FLAVOR_VOID},
         {BAG_TRANSPORT_PRO, "PRO-ASCII-123"},
         {BAG_TRANSPORT_ULTRA, "UltraRaw"},
         {BAG_TRANSPORT_ULTRA, test::Utf8Literal(u8"Ultra原始")},
@@ -612,10 +614,12 @@ void TestApiStructuredEncodePublishesFollowAcrossModes() {
         bag_flash_signal_profile signal_profile = BAG_FLASH_SIGNAL_PROFILE_STEADY;
         bag_flash_voicing_flavor voicing_flavor = BAG_FLASH_VOICING_FLAVOR_STEADY;
     };
-    const std::array<FollowCase, 7> cases = {{
+    const std::array<FollowCase, 9> cases = {{
         {BAG_TRANSPORT_FLASH, "Flash"},
         {BAG_TRANSPORT_FLASH, "Deep", BAG_FLASH_SIGNAL_PROFILE_LITANY, BAG_FLASH_VOICING_FLAVOR_LITANY},
         {BAG_TRANSPORT_FLASH, "Collapse", BAG_FLASH_SIGNAL_PROFILE_COLLAPSE, BAG_FLASH_VOICING_FLAVOR_COLLAPSE},
+        {BAG_TRANSPORT_FLASH, "Zeal", BAG_FLASH_SIGNAL_PROFILE_ZEAL, BAG_FLASH_VOICING_FLAVOR_ZEAL},
+        {BAG_TRANSPORT_FLASH, "Void", BAG_FLASH_SIGNAL_PROFILE_VOID, BAG_FLASH_VOICING_FLAVOR_VOID},
         {BAG_TRANSPORT_PRO, "PRO-123"},
         {BAG_TRANSPORT_ULTRA, "Ultra"},
         {BAG_TRANSPORT_ULTRA, test::Utf8Literal(u8"超频")},
@@ -913,15 +917,18 @@ void TestApiFlashFollowTimingRespectsStyleRules() {
     struct StyleCase {
         bag_flash_signal_profile signal_profile;
         bag_flash_voicing_flavor voicing_flavor;
-        std::size_t expected_payload_multiplier;
+        std::size_t expected_payload_sample_numerator;
+        std::size_t expected_payload_sample_denominator;
         std::size_t expected_payload_begin_frame_multiplier;
         double expected_payload_begin_seconds;
     };
-    const std::array<StyleCase, 4> cases = {{
-        {BAG_FLASH_SIGNAL_PROFILE_STEADY, BAG_FLASH_VOICING_FLAVOR_STEADY, 1, 3, 0.0},
-        {BAG_FLASH_SIGNAL_PROFILE_LITANY, BAG_FLASH_VOICING_FLAVOR_LITANY, 6, 0, 1.35},
-        {BAG_FLASH_SIGNAL_PROFILE_HOSTILE, BAG_FLASH_VOICING_FLAVOR_HOSTILE, 1, 3, 0.0},
-        {BAG_FLASH_SIGNAL_PROFILE_COLLAPSE, BAG_FLASH_VOICING_FLAVOR_COLLAPSE, 1, 3, 0.0},
+    const std::array<StyleCase, 6> cases = {{
+        {BAG_FLASH_SIGNAL_PROFILE_STEADY, BAG_FLASH_VOICING_FLAVOR_STEADY, 15, 16, 3, 0.0},
+        {BAG_FLASH_SIGNAL_PROFILE_LITANY, BAG_FLASH_VOICING_FLAVOR_LITANY, 6, 1, 0, 1.35},
+        {BAG_FLASH_SIGNAL_PROFILE_HOSTILE, BAG_FLASH_VOICING_FLAVOR_HOSTILE, 7, 8, 3, 0.0},
+        {BAG_FLASH_SIGNAL_PROFILE_COLLAPSE, BAG_FLASH_VOICING_FLAVOR_COLLAPSE, 1, 1, 3, 0.0},
+        {BAG_FLASH_SIGNAL_PROFILE_ZEAL, BAG_FLASH_VOICING_FLAVOR_ZEAL, 1, 2, 3, 0.0},
+        {BAG_FLASH_SIGNAL_PROFILE_VOID, BAG_FLASH_VOICING_FLAVOR_VOID, 5, 2, 3, 0.0},
     }};
     const auto config_case = test::ConfigCases().front();
 
@@ -960,8 +967,67 @@ void TestApiFlashFollowTimingRespectsStyleRules() {
             "Flash follow data should contain binary groups.");
         test::AssertEq(
             binary_entries.front().sample_count,
-            static_cast<std::size_t>(config_case.frame_samples) * item.expected_payload_multiplier,
+            std::max(static_cast<std::size_t>(1),
+                     (static_cast<std::size_t>(config_case.frame_samples) *
+                      item.expected_payload_sample_numerator) /
+                         item.expected_payload_sample_denominator),
             "Flash follow bit duration should match the style signal multiplier.");
+
+        bag_free_encode_result(&result);
+    }
+
+    {
+        const auto encoder_config =
+            MakeEncoderConfig(config_case, BAG_TRANSPORT_FLASH, BAG_FLASH_SIGNAL_PROFILE_ZEAL,
+                              BAG_FLASH_VOICING_FLAVOR_ZEAL);
+        std::array<char, 1024> raw_hex_buffer{};
+        std::array<char, 8192> raw_bits_buffer{};
+        std::array<bag_payload_follow_byte_entry, 512> byte_entries{};
+        std::array<bag_payload_follow_binary_group_entry, 4096> binary_entries{};
+        bag_encode_result result{};
+        result.raw_bytes_hex_buffer = raw_hex_buffer.data();
+        result.raw_bytes_hex_buffer_size = raw_hex_buffer.size();
+        result.raw_bits_binary_buffer = raw_bits_buffer.data();
+        result.raw_bits_binary_buffer_size = raw_bits_buffer.size();
+        result.follow_data.byte_timeline_buffer = byte_entries.data();
+        result.follow_data.byte_timeline_buffer_count = byte_entries.size();
+        result.follow_data.binary_group_timeline_buffer = binary_entries.data();
+        result.follow_data.binary_group_timeline_buffer_count = binary_entries.size();
+
+        test::AssertEq(
+            bag_encode_text_with_follow(&encoder_config, "A!B", &result),
+            BAG_OK,
+            "Zeal follow encode should support variable timing and punctuation pauses.");
+        test::AssertEq(
+            result.follow_data.binary_group_timeline_count,
+            static_cast<std::size_t>(24),
+            "Zeal follow data should still publish one binary group per payload bit.");
+        test::AssertEq(
+            binary_entries[0].sample_count,
+            static_cast<std::size_t>(config_case.frame_samples) / static_cast<std::size_t>(2),
+            "Zeal first bit should use burst timing.");
+        test::AssertEq(
+            binary_entries[2].sample_count,
+            static_cast<std::size_t>(config_case.frame_samples) * static_cast<std::size_t>(5) /
+                static_cast<std::size_t>(8),
+            "Zeal should vary bit duration inside the deterministic burst pattern.");
+        const std::size_t gap_after_exclamation =
+            binary_entries[16].start_sample -
+            (binary_entries[15].start_sample + binary_entries[15].sample_count);
+        test::AssertEq(
+            gap_after_exclamation,
+            static_cast<std::size_t>(config_case.frame_samples) * static_cast<std::size_t>(4),
+            "Zeal strong punctuation should add a long payload pause before the next burst.");
+        test::AssertEq(
+            binary_entries[16].sample_count,
+            static_cast<std::size_t>(config_case.frame_samples) / static_cast<std::size_t>(2),
+            "Zeal should restart with a burst bit immediately after a punctuation pause.");
+        AssertFollowTimelineIsContinuous(
+            result.follow_data,
+            std::vector<bag_payload_follow_binary_group_entry>(
+                binary_entries.begin(),
+                binary_entries.begin() + result.follow_data.binary_group_timeline_count),
+            true);
 
         bag_free_encode_result(&result);
     }
