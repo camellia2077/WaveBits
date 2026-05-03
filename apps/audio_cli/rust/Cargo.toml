@@ -1,6 +1,7 @@
 [package]
 name = "flipbits"
-version = "0.2.2"
+# CLI presentation version; libs/core version is defined by the root CMake config.
+version = "0.2.4"
 edition = "2021"
 
 [[bin]]

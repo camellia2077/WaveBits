@@ -16,6 +16,6 @@ pub use commands::{run, version_output, RunOutput};
 pub use error::CliError;
 
 pub const CLI_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const CLI_PRESENTATION_VERSION: &str = "0.2.1";
+pub const CLI_PRESENTATION_VERSION: &str = CLI_VERSION;
 pub(crate) const DEFAULT_SAMPLE_RATE_HZ: i32 = 44_100;
 pub(crate) const DEFAULT_FRAME_RATE_DIVISOR: i32 = 20;
