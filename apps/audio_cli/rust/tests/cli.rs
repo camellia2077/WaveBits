@@ -235,5 +235,7 @@ fn encode_help_mentions_android_aligned_flash_styles() {
         .stdout(predicate::str::contains("steady"))
         .stdout(predicate::str::contains("hostile"))
         .stdout(predicate::str::contains("litany"))
-        .stdout(predicate::str::contains("collapse"));
+        .stdout(predicate::str::contains("collapse"))
+        .stdout(predicate::str::contains("zeal"))
+        .stdout(predicate::str::contains("void"));
 }

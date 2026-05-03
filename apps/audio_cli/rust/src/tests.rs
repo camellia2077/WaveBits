@@ -47,6 +47,30 @@ fn parses_encode_command_with_text() {
 }
 
 #[test]
+fn parses_new_flash_styles() {
+    for (raw_style, expected_style) in [("zeal", FlashStyle::Zeal), ("void", FlashStyle::Void)] {
+        let cli = Cli::try_parse_from([
+            "FlipBits",
+            "encode",
+            "--text",
+            "hello",
+            "--mode",
+            "flash",
+            "--flash-style",
+            raw_style,
+            "--out",
+            "out.wav",
+        ])
+        .unwrap();
+
+        let Command::Encode(args) = cli.command else {
+            panic!("expected encode command");
+        };
+        assert_eq!(args.flash_style, expected_style);
+    }
+}
+
+#[test]
 fn parses_decode_command() {
     let cli = Cli::try_parse_from(["FlipBits", "decode", "--in", "out.wav"]).unwrap();
 
@@ -111,6 +135,34 @@ fn wav_bytes_start_with_riff_header() {
 }
 
 #[test]
+fn wav_metadata_roundtrips_new_flash_styles() {
+    for style in [FlashStyle::Zeal, FlashStyle::Void] {
+        let metadata = audio_io_api::FlipBitsMetadata {
+            version: 6,
+            mode: TransportMode::Flash,
+            flash_voicing_style: Some(style),
+            created_at_iso_utc: "1970-01-01T00:00:00Z".to_string(),
+            duration_ms: 0,
+            sample_rate_hz: DEFAULT_SAMPLE_RATE_HZ,
+            frame_samples: DEFAULT_SAMPLE_RATE_HZ / DEFAULT_FRAME_RATE_DIVISOR,
+            pcm_sample_count: 4,
+            payload_byte_count: 1,
+            app_version: "FlipBits/test".to_string(),
+            core_version: "test-core".to_string(),
+        };
+        let wav_bytes = audio_io_api::encode_mono_pcm16_wav_with_metadata(
+            DEFAULT_SAMPLE_RATE_HZ,
+            &[0, 1, -1, 0],
+            &metadata,
+        )
+        .unwrap();
+        let decoded = audio_io_api::decode_mono_pcm16_wav(&wav_bytes).unwrap();
+
+        assert_eq!(decoded.metadata.unwrap().flash_voicing_style, Some(style));
+    }
+}
+
+#[test]
 fn decode_rejects_invalid_wav_header() {
     let error = audio_io_api::decode_mono_pcm16_wav(b"NOTWAVE").unwrap_err();
     assert!(format!("{error}").contains("Invalid WAV header"));
@@ -155,4 +207,6 @@ fn encode_help_mentions_flash_style() {
     assert!(help.contains("hostile"));
     assert!(help.contains("litany"));
     assert!(help.contains("collapse"));
+    assert!(help.contains("zeal"));
+    assert!(help.contains("void"));
 }

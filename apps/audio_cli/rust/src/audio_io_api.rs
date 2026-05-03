@@ -19,6 +19,8 @@ const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_STEADY: AudioIoMetadataFlashVoicingS
 const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_LITANY: AudioIoMetadataFlashVoicingStyle = 2;
 const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_HOSTILE: AudioIoMetadataFlashVoicingStyle = 4;
 const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_COLLAPSE: AudioIoMetadataFlashVoicingStyle = 5;
+const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_ZEAL: AudioIoMetadataFlashVoicingStyle = 6;
+const AUDIO_IO_METADATA_FLASH_VOICING_STYLE_VOID: AudioIoMetadataFlashVoicingStyle = 7;
 const AUDIO_IO_METADATA_INPUT_SOURCE_KIND_MANUAL: AudioIoMetadataInputSourceKind = 1;
 
 #[repr(C)]
@@ -355,6 +357,8 @@ fn to_flash_voicing_style(style: FlashStyle) -> AudioIoMetadataFlashVoicingStyle
         FlashStyle::Hostile => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_HOSTILE,
         FlashStyle::Litany => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_LITANY,
         FlashStyle::Collapse => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_COLLAPSE,
+        FlashStyle::Zeal => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_ZEAL,
+        FlashStyle::Void => AUDIO_IO_METADATA_FLASH_VOICING_STYLE_VOID,
     }
 }
 
@@ -366,6 +370,8 @@ fn from_flash_voicing_style(
         AUDIO_IO_METADATA_FLASH_VOICING_STYLE_HOSTILE => Ok(FlashStyle::Hostile),
         AUDIO_IO_METADATA_FLASH_VOICING_STYLE_LITANY => Ok(FlashStyle::Litany),
         AUDIO_IO_METADATA_FLASH_VOICING_STYLE_COLLAPSE => Ok(FlashStyle::Collapse),
+        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_ZEAL => Ok(FlashStyle::Zeal),
+        AUDIO_IO_METADATA_FLASH_VOICING_STYLE_VOID => Ok(FlashStyle::Void),
         _ => Err(CliError::Api(
             "WAV metadata contained an unknown flash voicing style".to_string(),
         )),

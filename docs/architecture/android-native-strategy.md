@@ -7,7 +7,7 @@
   - `externalNativeBuild + CMake 4.1.2 + C++23 + bag_api.h + audio_runtime.h + package-private audio_io wrapper`
   - app `CMake` 通过 `apps/audio_android/native_package/` 消费 `bag_android_native`
 - `native_package` 当前只编译 `audio_core` package-owned implementation sources、`bag_api` / `audio_runtime` package-owned boundary implementation、`audio_io` package-private wrapper 与 `android_bag/**` / `android_audio_io/**` 私有声明层，不再直接 source-own 主仓原始实现文件
-- 当前 `flash` 路径下，Android package lane 已补齐 `signal + voicing + phy_clean` 的 package-owned source owner；Android 继续通过 `bag_api.h` 复用 formal `flash` 的 signal profile + voicing emotion 语义，并通过同一份稳定 config 选择 `Steady / Hostile / Litany / Collapse` preset。
+- 当前 `flash` 路径下，Android package lane 已补齐 `signal + voicing + phy_clean` 的 package-owned source owner；Android 继续通过 `bag_api.h` 复用 formal `flash` 的 signal profile + voicing emotion 语义，并通过同一份稳定 config 选择 `Steady / Hostile / Litany / Collapse / Zeal / Void` preset。
 - 当前 `mini` 路径下，Android package lane 已补齐 `codec + phy_clean` 的 package-owned source owner；Android 继续通过同一 `bag_api.h` encode/decode/validate 入口访问 Morse code 模式，并用稳定的 `frame_samples` 字段承接 `Slow / Standard / Fast` speed preset。
 - 这条路线是当前长期例外路径，不属于 host modules 主路径的一部分。
 - 当前不把 Android native 直接并入 named modules 迁移主线。

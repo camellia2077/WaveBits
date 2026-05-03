@@ -44,7 +44,21 @@ def collect_changed_paths() -> list[ChangedPath]:
 
 
 def normalize_scope(raw_scope: str) -> str:
-    scope = raw_scope.strip().replace("\\", "/").strip("/")
+    scope_text = raw_scope.strip()
+    if not scope_text:
+        raise ToolError("History scope cannot be empty.")
+
+    scope_path = Path(scope_text)
+    if scope_path.is_absolute():
+        resolved_scope = scope_path.resolve()
+        try:
+            scope_text = resolved_scope.relative_to(ROOT_DIR).as_posix()
+        except ValueError as exc:
+            raise ToolError(
+                f"History scope must be inside the repository: {resolved_scope}"
+            ) from exc
+
+    scope = scope_text.replace("\\", "/").strip("/")
     if not scope:
         raise ToolError("History scope cannot be empty.")
     return scope

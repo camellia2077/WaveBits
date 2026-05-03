@@ -36,14 +36,16 @@ Mode summary:
 
 `flash` is intentionally the least efficient mode. The same input text may produce audio close to a minute long in `flash`, while `ultra` may finish in only a few seconds. That gap is intentional: the project values the feeling of "being played like a ritual signal" more than raw throughput.
 
-`flash` currently provides four styles. Each style defines both the base low/high carrier pair and the emotional voicing layer:
+`flash` currently provides six styles. Each style defines both the base low/high carrier pair and the emotional voicing layer:
 
 | Style | Low / High | Listening target |
 | --- | --- | --- |
 | Litany | `220 / 440 Hz` | low, solemn, chant-like |
 | Collapse | `280 / 560 Hz` | hushed, panicked, stuttering |
 | Steady | `300 / 600 Hz` | everyday, precise, stable |
-| Hostile | `450 / 900 Hz` | sharp, hostile, aggressive |
+| Hostile | `450 / 900 Hz` | sharp, urgent, aggressive |
+| Zeal | variable `560-900 / 1120-1800 Hz` | bright, variable-speed, dense |
+| Void | `240 / 480 Hz` | low, trailing, sparse |
 
 `mini` is the Morse code mode. Input is normalized through Morse-compatible text rules, and the current speed presets are:
 

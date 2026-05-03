@@ -56,7 +56,8 @@
   - 重点入口通常是 `libs/audio_core/src/transport/follow.cpp`、`libs/audio_api/tests/api_sync_tests.cpp` 和 Android follow/visual 组件。
 - 改 `mini / flash / pro / ultra` 模式实现
   - 先看 `docs/design/transports.md`
-  - flash 情绪音色与 `Steady / Hostile / Litany / Collapse` 设计看 `docs/design/flash-voicing-emotions.md`
+  - flash 情绪音色总览看 `docs/design/flash-voicing-emotions.md`
+  - 具体 `Steady / Hostile / Litany / Collapse / Zeal / Void` 设计看 `docs/design/flash-voicing/<preset>.md`
   - 再看 `docs/architecture/repo-map.md`
 - 改 `bag_api`
   - 先看 `docs/architecture/repo-map.md`

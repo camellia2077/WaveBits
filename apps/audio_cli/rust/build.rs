@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=../../../cmake/flipbits_core_version.cmake");
     println!("cargo:rerun-if-changed=../../../libs/audio_api/include/bag_api.h");
     println!("cargo:rerun-if-changed=../../../libs/audio_io/include/audio_io_api.h");
     println!("cargo:rerun-if-env-changed=FLIPBITS_CMAKE_BUILD_DIR");

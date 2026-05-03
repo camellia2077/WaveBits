@@ -12,6 +12,7 @@ bag::CoreConfig MakeFlashCoreConfig();
 bag::CoreConfig MakeLitanyFlashCoreConfig();
 bag::CoreConfig MakeHostileFlashCoreConfig();
 bag::CoreConfig MakeCollapseFlashCoreConfig();
+bag::CoreConfig MakeZealFlashCoreConfig();
 bag::CoreConfig MakeExplicitDecoupledFlashCoreConfig();
 
 std::size_t FormalFlashLeadingSamples(const bag::CoreConfig& config);

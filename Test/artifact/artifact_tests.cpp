@@ -171,10 +171,25 @@ size_t ExpectedPcmSampleCount(const std::string& text,
     if (mode == BAG_TRANSPORT_FLASH) {
         const auto frame_samples =
             config_case.frame_samples > 0 ? static_cast<size_t>(config_case.frame_samples) : static_cast<size_t>(0);
-        const auto payload_samples_per_bit =
-            flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_LITANY
-                ? frame_samples * static_cast<size_t>(6)
-                : frame_samples;
+        size_t payload_samples_per_bit = frame_samples;
+        if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_STEADY) {
+            payload_samples_per_bit =
+                std::max(static_cast<size_t>(1),
+                         frame_samples * static_cast<size_t>(15) / static_cast<size_t>(16));
+        } else if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_LITANY) {
+            payload_samples_per_bit = frame_samples * static_cast<size_t>(6);
+        } else if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_HOSTILE) {
+            payload_samples_per_bit =
+                std::max(static_cast<size_t>(1),
+                         frame_samples * static_cast<size_t>(7) / static_cast<size_t>(8));
+        } else if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_ZEAL) {
+            payload_samples_per_bit =
+                std::max(static_cast<size_t>(1), frame_samples / static_cast<size_t>(2));
+        } else if (flash_signal_profile == BAG_FLASH_SIGNAL_PROFILE_VOID) {
+            payload_samples_per_bit =
+                std::max(static_cast<size_t>(1),
+                         frame_samples * static_cast<size_t>(5) / static_cast<size_t>(2));
+        }
         const bool uses_litany_pauses = flash_voicing_flavor == BAG_FLASH_VOICING_FLAVOR_LITANY;
         const auto payload_samples =
             text.size() * 8 * payload_samples_per_bit +

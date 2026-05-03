@@ -9,7 +9,7 @@ description: Agent 专用发布历史工作流
 ## Default Workflow
 
 1. 运行 `python tools/run.py history prep --format markdown`。
-2. 若目标文件已知，优先加 `--target <history-file.md>`。
+2. 若目标文件已知，优先同时加 `--scope <repo-path>` 和 `--target <history-file.md>`，例如 `python tools/run.py history prep --format markdown --scope libs --target docs/libs/v0.6/0.6.1.md`。
 3. 读取 `Release Hints`、`Relevant Summary`、`Draft Entry`。
 4. 基于草稿重写，不直接原样落盘。
 5. 删除无关分类、合并噪音、清理 `TODO(agent)`。
@@ -20,6 +20,8 @@ description: Agent 专用发布历史工作流
 `history prep` 负责：收集 `git status`、归类变更、扫描现有版本口径、生成草稿（支持 `--scope`/`--target`/`--out-dir`/`--split-by bucket`，格式 `markdown|plain|json`）。
 
 `history prep` 不负责：价值判断、语义归类、最终文案。
+
+`--target` 只用于推断目标 history 版本号，不会自动过滤改动范围；`--scope` 才负责把 `git status` 限定到指定目录。`--scope` 支持 repo 相对路径和 repo 内绝对路径。
 
 `history validate` 负责：校验标题/分类/列表/顺序/`TODO(agent)`。
 
@@ -50,4 +52,4 @@ description: Agent 专用发布历史工作流
 
 ## Usage Note
 
-推荐链路：`history prep --format markdown -> agent 重写 -> history validate -> 落盘`。
+推荐链路：`history prep --format markdown --scope <repo-path> --target <history-file.md> -> agent 重写 -> history validate -> 落盘`。

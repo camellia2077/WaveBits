@@ -36,14 +36,16 @@
 
 其中，`flash` 是最偏风格化的模式：相同文本在 `flash` 下可能生成接近一分钟的音频，而在 `ultra` 下只需几秒。这种差异是有意设计的，目标是保留“像仪式一样被播放出来”的质感，而不是单纯压缩传输时间。
 
-`flash` 当前提供四种 style，每种 style 同时决定基础 low/high 载波和情绪化声效：
+`flash` 当前提供六种 style，每种 style 同时决定基础 low/high 载波和情绪化声效：
 
 | Style | Low / High | 听感目标 |
 | --- | --- | --- |
 | Litany | `220 / 440 Hz` | 低沉、肃穆、吟诵 |
 | Collapse | `280 / 560 Hz` | 低声、慌张、结巴 |
 | Steady | `300 / 600 Hz` | 日常、精确、平稳 |
-| Hostile | `450 / 900 Hz` | 尖锐、敌意、攻击 |
+| Hostile | `450 / 900 Hz` | 尖锐、急促、攻击 |
+| Zeal | variable `560-900 / 1120-1800 Hz` | 明亮、变速、密集 |
+| Void | `240 / 480 Hz` | 低沉、拖尾、稀疏 |
 
 `mini` 是 Morse code 模式，输入会按 Morse 规则规范化；当前提供三种 speed preset：
 

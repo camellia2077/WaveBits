@@ -79,15 +79,18 @@ void TestFlashSignalEncodeLengthMatchesExpected() {
 }
 
 void TestFlashSignalStyleAwareChunkSizeMatchesConfig() {
-    const auto steady_signal = bag::flash::MakeBfskConfig(MakeFlashCoreConfig());
+    const auto steady_config = MakeFlashCoreConfig();
+    const auto steady_signal = bag::flash::MakeBfskConfig(steady_config);
     const auto litany_signal = bag::flash::MakeBfskConfig(MakeLitanyFlashCoreConfig());
     const auto hostile_signal = bag::flash::MakeBfskConfig(MakeHostileFlashCoreConfig());
     const auto collapse_signal = bag::flash::MakeBfskConfig(MakeCollapseFlashCoreConfig());
+    const auto zeal_signal = bag::flash::MakeBfskConfig(MakeZealFlashCoreConfig());
+    const auto steady_frame_samples = static_cast<std::size_t>(steady_config.frame_samples);
 
     test::AssertEq(
         steady_signal.samples_per_bit,
-        static_cast<std::size_t>(2205),
-        "steady flash signal should keep one frame per bit.");
+        (steady_frame_samples * static_cast<std::size_t>(15)) / static_cast<std::size_t>(16),
+        "steady flash signal should use the conservative faster timing profile.");
     test::AssertEq(
         steady_signal.low_freq_hz,
         300.0,
@@ -113,8 +116,8 @@ void TestFlashSignalStyleAwareChunkSizeMatchesConfig() {
         "litany flash signal should use more samples per bit than steady.");
     test::AssertEq(
         hostile_signal.samples_per_bit,
-        static_cast<std::size_t>(2205),
-        "hostile flash signal should keep one frame per bit.");
+        static_cast<std::size_t>(1929),
+        "hostile flash signal should use the faster 7/8 bit timing profile.");
     test::AssertEq(
         hostile_signal.low_freq_hz,
         450.0,
@@ -135,6 +138,22 @@ void TestFlashSignalStyleAwareChunkSizeMatchesConfig() {
         collapse_signal.high_freq_hz,
         560.0,
         "collapse flash signal should use the lower frightened high carrier.");
+    test::AssertEq(
+        zeal_signal.samples_per_bit,
+        static_cast<std::size_t>(1102),
+        "zeal flash signal should expose its shortest burst timing as the nominal bit size.");
+    test::AssertEq(
+        zeal_signal.samples_per_silence_slot,
+        static_cast<std::size_t>(2205),
+        "zeal flash signal should keep one frame silence slots for punctuation pauses.");
+    test::AssertEq(
+        zeal_signal.low_freq_hz,
+        900.0,
+        "zeal flash signal should expose the burst low carrier.");
+    test::AssertEq(
+        zeal_signal.high_freq_hz,
+        1800.0,
+        "zeal flash signal should expose the burst high carrier.");
 }
 
 void TestFlashSignalExplicitProfileSelectsEmotionTiming() {
@@ -155,10 +174,15 @@ void TestFlashSignalExplicitProfileSelectsEmotionTiming() {
         bag::flash::MakeBfskConfigForSignalProfile(
             litany_config,
             bag::FlashSignalProfile::kCollapse);
+    const auto explicit_zeal_signal =
+        bag::flash::MakeBfskConfigForSignalProfile(
+            litany_config,
+            bag::FlashSignalProfile::kZeal);
 
     test::AssertEq(
         explicit_steady_signal.samples_per_bit,
-        static_cast<std::size_t>(2205),
+        (static_cast<std::size_t>(litany_config.frame_samples) * static_cast<std::size_t>(15)) /
+            static_cast<std::size_t>(16),
         "Explicit steady signal profile should keep steady timing even when litany config is in scope.");
     test::AssertEq(
         explicit_steady_signal.low_freq_hz,
@@ -174,8 +198,8 @@ void TestFlashSignalExplicitProfileSelectsEmotionTiming() {
         "Explicit litany signal profile should keep litany carrier tuning.");
     test::AssertEq(
         explicit_hostile_signal.samples_per_bit,
-        static_cast<std::size_t>(2205),
-        "Explicit hostile signal profile should keep baseline timing when requested.");
+        static_cast<std::size_t>(1929),
+        "Explicit hostile signal profile should keep the faster hostile timing when requested.");
     test::AssertEq(
         explicit_hostile_signal.low_freq_hz,
         450.0,
@@ -188,6 +212,14 @@ void TestFlashSignalExplicitProfileSelectsEmotionTiming() {
         explicit_collapse_signal.low_freq_hz,
         280.0,
         "Explicit collapse signal profile should keep collapse carrier tuning.");
+    test::AssertEq(
+        explicit_zeal_signal.samples_per_bit,
+        static_cast<std::size_t>(1102),
+        "Explicit zeal signal profile should use the burst timing when requested.");
+    test::AssertEq(
+        explicit_zeal_signal.low_freq_hz,
+        900.0,
+        "Explicit zeal signal profile should expose zeal burst carrier tuning.");
 }
 
 void TestFlashSignalAmplitudeInRange() {
@@ -265,7 +297,8 @@ void TestFlashPhyCleanFormalOutputIncludesPredictableNonpayloadSegments() {
         bag::ErrorCode::kOk,
         "Flash codec setup should encode UTF-8 bytes for formal flash output.");
 
-    const auto clean_payload_pcm = bag::flash::EncodeBytesToPcm16(bytes, MakeBfskConfig());
+    const auto signal_config = bag::flash::MakeBfskConfig(config);
+    const auto clean_payload_pcm = bag::flash::EncodeBytesToPcm16(bytes, signal_config);
 
     std::vector<std::int16_t> formal_pcm;
     test::AssertEq(

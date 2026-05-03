@@ -80,15 +80,17 @@
 - `1 byte = 8 bit symbol`
 - `bag.flash.signal` 负责 clean payload render / decode 与 payload layout
 - `bag.flash.signal` 当前通过 `flash_signal_profile` 派生 payload timing：
-  - `Steady`: `1x frame_samples`
-  - `Hostile`: `1x frame_samples`
+  - `Steady`: `0.9375x frame_samples`
+  - `Hostile`: `0.875x frame_samples`
   - `Litany`: `6x frame_samples`，可跳过 silence slot 为 `1x frame_samples`
   - `Collapse`: `1x frame_samples`
+  - `Zeal`: variable `0.5x` / `0.625x` / `0.75x` / `1x frame_samples` bit windows, with `1x frame_samples` silence slots for punctuation pauses
+  - `Void`: `2.5x frame_samples`
 - `bag.flash.voicing` 负责 emotion voicing、固定 preamble / epilogue、payload texture、可跳过 silence、trim descriptor 与 trim payload。
-- formal `flash` 当前对外暴露四个用户可见 emotion preset：`Steady / Hostile / Litany / Collapse`。
+- formal `flash` 当前对外暴露六个用户可见 emotion preset：`Steady / Hostile / Litany / Collapse / Zeal / Void`。
 - Android 仍使用一个 flash voicing 选择器，但每个 preset 内部同时指定 `signalProfileValue` 与 `voicingFlavorValue` 两轴。
-- decode 入口当前会先按 voicing trim descriptor 去掉非 payload 区域，再进入 `bag.flash.signal` 解调；`Litany` / `Collapse` 的变长 silence payload 使用 gap-aware decode 跳过静音。
-- 四种 flash emotion 的详细设计、当前声效方法与后续调音方向见 `docs/design/flash-voicing-emotions.md`。
+- decode 入口当前会先按 voicing trim descriptor 去掉非 payload 区域，再进入 `bag.flash.signal` 解调；`Litany` / `Collapse` 的变长 silence payload 使用 gap-aware decode 跳过静音，`Zeal` 使用自己的确定性变速 / 变频 gap-aware decode，`Void` 继续使用普通 low/high window 判定。
+- flash emotion 的总览见 `docs/design/flash-voicing-emotions.md`；具体 preset 的当前声效方法与后续调音方向见 `docs/design/flash-voicing/<preset>.md`。
 
 ### 主链路文件
 - `libs/audio_core/src/flash/codec.cpp`

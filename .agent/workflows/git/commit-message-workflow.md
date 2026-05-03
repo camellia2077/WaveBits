@@ -12,7 +12,7 @@ description: Agent 专用 Git commit message 生成工作流
 2. 若已指定或已明确 history，运行 `python tools/run.py message prep --history <history-file.md>`，并以该 history 为首要语义来源。
 3. 若仅有一个变更中的 history 文件，可直接运行 `python tools/run.py message prep`。
 4. 若无可唯一识别的 history，退回 `git diff / git status`（fallback）。
-5. 读取 `temp/message.txt`，按 `.agent/guides/git/git-message-styles.md` 重写：清理 `TODO(agent)`、去噪、补全 `[Summary]`/`[Verification]`、校正 `type`/`subject`/`Release-Version`。
+5. 读取 `temp/message.txt`，按 `.agent/guides/git/git-message-styles.md` 重写：清理 `TODO(agent)`、去噪，并校正标题、sections、验证信息和版本信息。
 6. 必要时用 `git status --short --untracked-files=all` 做一致性校对。
 7. 执行 `git commit`。
 
@@ -25,15 +25,14 @@ description: Agent 专用 Git commit message 生成工作流
 
 ## Hard Rules
 
-- 最终格式必须遵守 `.agent/guides/git/git-message-styles.md`。
+- 最终格式、标题格式、allowed types、section 规则和 type 选择规则统一以 `.agent/guides/git/git-message-styles.md` 为准。
+- 本 workflow 只规定 message 来源选择、草稿生成、staged scope 校对、验证补全和 commit 执行流程。
 - `temp/message.txt` 是草稿，不可直接提交。
 - 多个变更中的 history 文件时必须显式传 `--history`。
 - `git-fallback` 仅兜底，不覆盖明确 history 口径。
 - `[Verification]` 必须写本次真实执行过的验证。
 - `Release-Version` 必须唯一且最终确认，不得保留 `TODO(agent)`。
 - 若 staged 包含 `libs/...` 且 `libs` 版本状态不明确，必须先向用户确认 `具体版本`/`changed`/`unchanged`。
-- `docs` 仅用于纯文档提交；含代码改动时使用 `feat/fix/refactor/chore/perf`。
-- `type` 由实际提交内容决定；不能因为读取了 history md 就把含代码改动提交判为 `docs`。
 
 ## Judgment Rules
 
@@ -45,8 +44,7 @@ description: Agent 专用 Git commit message 生成工作流
 
 ## Minimal Checklist
 
-- `type` 正确。
-- `subject` 简短直接。
+- `type` 和 `subject` 符合 `.agent/guides/git/git-message-styles.md`。
 - `[Summary]` 无占位符。
 - `[Verification]` 真实可追溯。
 - `Release-Version` 唯一且正确。

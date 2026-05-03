@@ -27,7 +27,7 @@ pub enum Command {
     #[command(
         about = "Encode text into a FlipBits WAV file",
         long_about = "Encode text into a mono PCM16 WAV file with embedded FlipBits metadata.",
-        after_help = "Mode guide:\n  mini   Morse-code audio mode. Morse-compatible ASCII input.\n  flash  Flexible byte-oriented mode with FSK-like signaling. At the protocol level it is not restricted to ASCII.\n  pro    Telephone-tone-style high/low audio mode. ASCII-only input.\n  ultra  UTF-8 text mode for broader character coverage.\n\nCLI input boundary:\n  The current CLI accepts UTF-8 text only:\n  - --text is parsed as a Rust UTF-8 string.\n  - --text-file is read as a UTF-8 text file.\n  This means flash may be more permissive at the protocol level, but this CLI still accepts text through UTF-8 input only.\n\nFlash style guide:\n  steady    Restrained everyday machine speech.\n  hostile   Aggressive command tone.\n  litany    Slow ceremonial chant.\n  collapse  Fearful broken delivery.\n\nExamples:\n  FlipBits encode --text \"PRAISE THE OMNISSIAH\" --mode mini --out out.wav\n  FlipBits encode --text \"hello\" --out out.wav\n  FlipBits encode --text \"hello\" --mode flash --flash-style litany --out out.wav\n  FlipBits encode --text \"ASCII ONLY\" --mode pro --out out.wav\n  FlipBits encode --text-file input.txt --mode ultra --out out.wav"
+        after_help = "Mode guide:\n  mini   Morse-code audio mode. Morse-compatible ASCII input.\n  flash  Flexible byte-oriented mode with FSK-like signaling. At the protocol level it is not restricted to ASCII.\n  pro    Telephone-tone-style high/low audio mode. ASCII-only input.\n  ultra  UTF-8 text mode for broader character coverage.\n\nCLI input boundary:\n  The current CLI accepts UTF-8 text only:\n  - --text is parsed as a Rust UTF-8 string.\n  - --text-file is read as a UTF-8 text file.\n  This means flash may be more permissive at the protocol level, but this CLI still accepts text through UTF-8 input only.\n\nFlash style guide:\n  steady    Restrained everyday machine speech.\n  hostile   Aggressive command tone.\n  litany    Slow ceremonial chant.\n  collapse  Fearful broken delivery.\n  zeal      Bright, dense, variable-speed delivery.\n  void      Low, trailing, sparse delivery.\n\nExamples:\n  FlipBits encode --text \"calibrate\" --mode mini --out out.wav\n  FlipBits encode --text \"hello\" --out out.wav\n  FlipBits encode --text \"hello\" --mode flash --flash-style litany --out out.wav\n  FlipBits encode --text \"ASCII ONLY\" --mode pro --out out.wav\n  FlipBits encode --text-file input.txt --mode ultra --out out.wav"
     )]
     Encode(EncodeArgs),
     #[command(
@@ -70,6 +70,8 @@ pub enum FlashStyle {
     Hostile,
     Litany,
     Collapse,
+    Zeal,
+    Void,
 }
 
 impl FlashStyle {
@@ -79,6 +81,8 @@ impl FlashStyle {
             Self::Hostile => "hostile",
             Self::Litany => "litany",
             Self::Collapse => "collapse",
+            Self::Zeal => "zeal",
+            Self::Void => "void",
         }
     }
 }
@@ -111,7 +115,7 @@ pub struct EncodeArgs {
         long,
         value_enum,
         default_value_t = FlashStyle::Steady,
-        help = "Flash style for flash mode: steady, hostile, litany, or collapse"
+        help = "Flash style for flash mode: steady, hostile, litany, collapse, zeal, or void"
     )]
     pub flash_style: FlashStyle,
     #[arg(long, help = "Output WAV artifact path")]

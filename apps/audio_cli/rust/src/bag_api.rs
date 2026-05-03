@@ -1,5 +1,7 @@
 use crate::util::c_str_to_string;
-use crate::{CliError, FlashStyle, TransportMode, DEFAULT_FRAME_RATE_DIVISOR, DEFAULT_SAMPLE_RATE_HZ};
+use crate::{
+    CliError, FlashStyle, TransportMode, DEFAULT_FRAME_RATE_DIVISOR, DEFAULT_SAMPLE_RATE_HZ,
+};
 use std::ffi::CString;
 use std::os::raw::c_int;
 use std::ptr;
@@ -23,10 +25,14 @@ const BAG_FLASH_SIGNAL_PROFILE_STEADY: BagFlashSignalProfile = 0;
 const BAG_FLASH_SIGNAL_PROFILE_LITANY: BagFlashSignalProfile = 1;
 const BAG_FLASH_SIGNAL_PROFILE_HOSTILE: BagFlashSignalProfile = 3;
 const BAG_FLASH_SIGNAL_PROFILE_COLLAPSE: BagFlashSignalProfile = 4;
+const BAG_FLASH_SIGNAL_PROFILE_ZEAL: BagFlashSignalProfile = 5;
+const BAG_FLASH_SIGNAL_PROFILE_VOID: BagFlashSignalProfile = 6;
 const BAG_FLASH_VOICING_FLAVOR_STEADY: BagFlashVoicingFlavor = 0;
 const BAG_FLASH_VOICING_FLAVOR_LITANY: BagFlashVoicingFlavor = 1;
 const BAG_FLASH_VOICING_FLAVOR_HOSTILE: BagFlashVoicingFlavor = 3;
 const BAG_FLASH_VOICING_FLAVOR_COLLAPSE: BagFlashVoicingFlavor = 4;
+const BAG_FLASH_VOICING_FLAVOR_ZEAL: BagFlashVoicingFlavor = 5;
+const BAG_FLASH_VOICING_FLAVOR_VOID: BagFlashVoicingFlavor = 6;
 const BAG_VALIDATION_OK: BagValidationIssue = 0;
 const BAG_ENCODE_JOB_QUEUED: c_int = 0;
 const BAG_ENCODE_JOB_RUNNING: c_int = 1;
@@ -329,9 +335,7 @@ fn make_decoder_config(config: &CodecConfig) -> BagDecoderConfig {
     }
 }
 
-fn flash_style_pair(
-    style: FlashStyle,
-) -> (BagFlashSignalProfile, BagFlashVoicingFlavor) {
+fn flash_style_pair(style: FlashStyle) -> (BagFlashSignalProfile, BagFlashVoicingFlavor) {
     match style {
         FlashStyle::Steady => (
             BAG_FLASH_SIGNAL_PROFILE_STEADY,
@@ -349,6 +353,8 @@ fn flash_style_pair(
             BAG_FLASH_SIGNAL_PROFILE_COLLAPSE,
             BAG_FLASH_VOICING_FLAVOR_COLLAPSE,
         ),
+        FlashStyle::Zeal => (BAG_FLASH_SIGNAL_PROFILE_ZEAL, BAG_FLASH_VOICING_FLAVOR_ZEAL),
+        FlashStyle::Void => (BAG_FLASH_SIGNAL_PROFILE_VOID, BAG_FLASH_VOICING_FLAVOR_VOID),
     }
 }
 

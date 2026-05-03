@@ -51,6 +51,7 @@ description: Agent 专用 tools-history 工作流
 - 合并同类项，不抄文件清单。
 - 若仅内部搬家且入口不变，谨慎落盘。
 - 变更默认入口/输出路径/工作流/验证方式时，写清旧口径与新口径。
+- 变更 `history prep` 这类 agent workflow 命令时，写清推荐调用方式，例如 `history prep --format markdown --scope <repo-path> --target <history-file.md>`。
 - 同时改 `tools/` 与 `.agent`/`docs/notes/` 时，按“工具入口 -> 工作流 -> 规则口径”归纳。
 
 ## Usage Note

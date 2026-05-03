@@ -57,7 +57,7 @@
 ## 当前已实现能力
 1. `transport facade + mini/flash/pro/ultra` 的 mode-first 内部主线。
 2. `flash` 的原始文本/字节直通 + clean `BFSK` signal 层 + `phy_clean` facade。
-3. `flash` 当前已通过 `CoreConfig` / `bag_api.h` 正式公开四个用户可见 emotion preset：`Steady / Hostile / Litany / Collapse`。内部拆成 `flash_signal_profile` 与 `flash_voicing_flavor` 两轴：`bag.flash.signal` 负责按 signal profile 派生 payload `samples_per_bit` 与可跳过 silence layout，`bag.flash.voicing` 负责按 emotion 派生固定 preamble / epilogue、payload texture、句尾收束、结巴停顿与 trim descriptor。详细设计见 `docs/design/flash-voicing-emotions.md`。
+3. `flash` 当前已通过 `CoreConfig` / `bag_api.h` 正式公开六个用户可见 emotion preset：`Steady / Hostile / Litany / Collapse / Zeal / Void`。内部拆成 `flash_signal_profile` 与 `flash_voicing_flavor` 两轴：`bag.flash.signal` 负责按 signal profile 派生 payload `samples_per_bit` 与可跳过 silence layout，`bag.flash.voicing` 负责按 emotion 派生固定 preamble / epilogue、payload texture、句尾收束、结巴停顿与 trim descriptor。总览见 `docs/design/flash-voicing-emotions.md`，具体 preset 设计见 `docs/design/flash-voicing/<preset>.md`。
 4. `pro` 的 ASCII byte + `DTMF-like` 双音 clean PHY。
 5. `ultra` 的 UTF-8 byte + clean `16-FSK` PHY。
 6. `mini` 的 Morse-compatible text + clean Morse tone PHY：输入仅支持 `A-Z / 0-9 / space / 常见 Morse 标点`，小写和连续空格会先规范化，音频层按 dot / dash / silence units 渲染。
@@ -209,7 +209,7 @@
 - [ ] 自动拆帧、多帧重组、长文本流式会话管理不在当前 MVP 范围内。
 - [x] 用户可感知的最小 style layer 已在正式 `flash` 输出中启用，当前包括安全 payload voicing 与固定 preamble / epilogue。
 - [x] `bag.flash.voicing` 已接入正式 `flash` 输出，同时仍保留默认 no-op 口径供 clean 验证使用。
-- [x] formal `flash` 当前已通过 `CoreConfig` / `bag_api.h` 公开四个 emotion preset，并由同一配置同时驱动 signal timing、voicing、trim 与 decode；`Steady` 仍作为默认 emotion 和零值语义。
+- [x] formal `flash` 当前已通过 `CoreConfig` / `bag_api.h` 公开六个 emotion preset，并由同一配置同时驱动 signal timing、voicing、trim 与 decode；`Steady` 仍作为默认 emotion 和零值语义。
 - [x] `flash` 当前仍不做随机化、立体声、可变长度背景层或不可预测的风格处理。
 
 ## 对外集成建议

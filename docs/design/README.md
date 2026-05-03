@@ -10,3 +10,7 @@
 ## 当前文件
 - `docs/design/transports.md`
   - 三种模式的定位、编码方式、主链路文件归属与当前非目标范围。
+- `docs/design/flash-voicing-emotions.md`
+  - `flash` voicing emotion 总览、decode 边界和 preset 对比。
+- `docs/design/flash-voicing/`
+  - 按 preset 拆分的 `Steady / Hostile / Litany / Collapse / Zeal / Void` 详细设计。

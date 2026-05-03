@@ -68,6 +68,13 @@ bag::CoreConfig MakeCollapseFlashCoreConfig() {
     return config;
 }
 
+bag::CoreConfig MakeZealFlashCoreConfig() {
+    auto config = MakeFlashCoreConfig();
+    config.flash_signal_profile = bag::FlashSignalProfile::kZeal;
+    config.flash_voicing_flavor = bag::FlashVoicingFlavor::kZeal;
+    return config;
+}
+
 bag::CoreConfig MakeExplicitDecoupledFlashCoreConfig() {
     auto config = MakeFlashCoreConfig();
     config.flash_signal_profile = bag::FlashSignalProfile::kSteady;
