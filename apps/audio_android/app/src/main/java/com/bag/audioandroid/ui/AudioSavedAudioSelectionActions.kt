@@ -1,12 +1,19 @@
 package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.R
+import com.bag.audioandroid.data.readPcmSegmentsFromFile
+import com.bag.audioandroid.domain.AudioCodecGateway
+import com.bag.audioandroid.domain.BagDecodeContentCodes
+import com.bag.audioandroid.domain.FlashSignalInfo
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
+import com.bag.audioandroid.domain.SavedAudioContent
 import com.bag.audioandroid.domain.SavedAudioRepository
 import com.bag.audioandroid.ui.model.AppTab
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
+import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.PlaybackSpeedOption
+import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.model.UiText
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import com.bag.audioandroid.ui.state.LibrarySelectionUiState
@@ -16,6 +23,7 @@ import kotlinx.coroutines.flow.update
 
 internal class AudioSavedAudioSelectionActions(
     private val uiState: MutableStateFlow<AudioAppUiState>,
+    private val audioCodecGateway: AudioCodecGateway,
     private val playbackRuntimeGateway: PlaybackRuntimeGateway,
     private val savedAudioRepository: SavedAudioRepository,
     private val stopPlayback: () -> Unit,
@@ -51,6 +59,7 @@ internal class AudioSavedAudioSelectionActions(
     ): Boolean {
         val previousSelection = uiState.value.selectedSavedAudio
         val savedAudio = savedAudioRepository.loadSavedAudio(itemId) ?: return false
+        val flashSignalInfo = describeSavedFlashSignal(savedAudio)
         if (previousSelection?.item?.itemId != savedAudio.item.itemId) {
             generatedAudioCacheGateway.deleteCachedFile(previousSelection?.pcmFilePath)
         }
@@ -67,6 +76,7 @@ internal class AudioSavedAudioSelectionActions(
                         pcmFilePath = savedAudio.pcmFilePath,
                         sampleRateHz = savedAudio.sampleRateHz,
                         metadata = savedAudio.metadata,
+                        wavAudioInfo = savedAudio.wavAudioInfo,
                         playback =
                             playbackRuntimeGateway.load(
                                 savedAudio.metadata?.pcmSampleCount ?: savedAudio.pcm.size,
@@ -77,6 +87,7 @@ internal class AudioSavedAudioSelectionActions(
                                 ?.takeIf { it.item.itemId == savedAudio.item.itemId }
                                 ?.playbackSpeed
                                 ?: PlaybackSpeedOption.default.speed,
+                        flashSignalInfo = flashSignalInfo,
                     ),
                 librarySelection =
                     if (clearLibrarySelection) {
@@ -168,5 +179,60 @@ internal class AudioSavedAudioSelectionActions(
 
     fun onClearLibrarySelection() {
         uiState.update { it.copy(librarySelection = LibrarySelectionUiState()) }
+    }
+
+    private fun describeSavedFlashSignal(savedAudio: SavedAudioContent): FlashSignalInfo {
+        val metadata = savedAudio.metadata ?: return FlashSignalInfo.Empty
+        if (metadata.mode != TransportModeOption.Flash) {
+            return FlashSignalInfo.Empty
+        }
+        val style = savedAudio.item.flashVoicingStyle ?: metadata.flashVoicingStyle ?: return FlashSignalInfo.Empty
+        val decodedText = decodeSavedFlashText(savedAudio, style)?.takeIf { it.isNotBlank() } ?: return FlashSignalInfo.Empty
+        return audioCodecGateway.describeFlashSignal(
+            decodedText,
+            savedAudio.sampleRateHz,
+            metadata.frameSamples,
+            style.signalProfileValue,
+            style.voicingFlavorValue,
+        )
+    }
+
+    private fun decodeSavedFlashText(
+        savedAudio: SavedAudioContent,
+        style: FlashVoicingStyleOption,
+    ): String? {
+        val metadata = savedAudio.metadata ?: return null
+        val segments =
+            when {
+                savedAudio.pcm.isNotEmpty() ->
+                    metadata.segmentSampleCounts
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { splitPcmIntoSegments(savedAudio.pcm, it) }
+                        ?: listOf(savedAudio.pcm)
+                !savedAudio.pcmFilePath.isNullOrBlank() ->
+                    readPcmSegmentsFromFile(
+                        savedAudio.pcmFilePath,
+                        metadata.segmentSampleCounts.takeIf { it.isNotEmpty() } ?: listOf(metadata.pcmSampleCount),
+                    )
+                else -> emptyList()
+            }.takeIf { it.isNotEmpty() } ?: return null
+        val decodedSegments = mutableListOf<String>()
+        segments.forEach { segmentPcm ->
+            val decodedPayload =
+                audioCodecGateway
+                    .decodeGeneratedPcm(
+                        segmentPcm,
+                        savedAudio.sampleRateHz,
+                        metadata.frameSamples,
+                        TransportModeOption.Flash.nativeValue,
+                        style.signalProfileValue,
+                        style.voicingFlavorValue,
+                    ).decodedPayload
+            if (decodedPayload.textDecodeStatusCode != BagDecodeContentCodes.STATUS_OK) {
+                return null
+            }
+            decodedSegments += decodedPayload.text
+        }
+        return decodedSegments.joinToString(separator = "")
     }
 }

@@ -239,4 +239,11 @@
     <string name="audio_pro_unsupported_characters">지원되지 않는 pro 문자: %1$s</string>
     <string name="audio_input_encoding_valid_mini">Mini 입력을 사용할 수 있습니다. Morse 호환 텍스트로 인코딩됩니다.</string>
     <string name="audio_input_encoding_valid_pro">Pro 입력을 사용할 수 있습니다. 모든 문자가 ASCII입니다.</string>
+    <string name="audio_info_flash_low_carrier">낮은 캐리어</string>
+    <string name="audio_info_flash_high_carrier">높은 캐리어</string>
+    <string name="audio_info_flash_bit_duration">비트 길이</string>
+    <string name="audio_info_flash_payload_silence">페이로드 무음</string>
+    <string name="audio_info_flash_decode_path">디코드 경로</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s개 샘플</string>
 </resources>

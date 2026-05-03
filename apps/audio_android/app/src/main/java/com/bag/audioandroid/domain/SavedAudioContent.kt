@@ -7,4 +7,5 @@ data class SavedAudioContent(
     val pcmFilePath: String? = null,
     val sampleRateHz: Int,
     val metadata: GeneratedAudioMetadata? = null,
+    val wavAudioInfo: WavAudioInfo = WavAudioInfo.Empty,
 )

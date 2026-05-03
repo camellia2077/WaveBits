@@ -59,11 +59,15 @@
     <string name="config_flash_style_steady_label">靜滯</string>
     <string name="config_flash_style_steady_description">清晰穩定的機械訊號。</string>
     <string name="config_flash_style_hostile_label">敵意</string>
-    <string name="config_flash_style_hostile_description">憤怒的命令預設；目前先使用平穩訊號外殼。</string>
+    <string name="config_flash_style_hostile_description">憤怒的命令預設，使用更短、更硬的訊號時序。</string>
     <string name="config_flash_style_litany_label">崇敬</string>
     <string name="config_flash_style_litany_description">崇敬祈禱預設，使用較慢的儀式訊號節奏。</string>
     <string name="config_flash_style_collapse_label">恐懼</string>
     <string name="config_flash_style_collapse_description">恐懼與崩潰預設；目前先使用平穩訊號外殼。</string>
+    <string name="config_flash_style_zeal_label">熱忱</string>
+    <string name="config_flash_style_zeal_description">明亮、密集的預設，使用變速快節奏和標點停頓。</string>
+    <string name="config_flash_style_void_label">虛空</string>
+    <string name="config_flash_style_void_description">低沉、稀疏的預設，使用更慢的訊號節奏。</string>
     <string name="config_about_title">關於</string>
     <string name="config_about_subtitle">作者、專案連結與授權</string>
     <string name="palette_ruby_title">寶石紅</string>

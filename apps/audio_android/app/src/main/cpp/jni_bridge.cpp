@@ -97,6 +97,24 @@ Java_com_bag_audioandroid_NativeBagBridge_nativeBuildEncodeFollowData(
         flash_voicing_flavor);
 }
 
+extern "C" JNIEXPORT jobject JNICALL
+Java_com_bag_audioandroid_NativeBagBridge_nativeDescribeFlashSignal(
+    JNIEnv* env,
+    jobject /*thiz*/,
+    jstring text,
+    jint sample_rate_hz,
+    jint frame_samples,
+    jint flash_signal_profile,
+    jint flash_voicing_flavor) {
+    return jni_bridge::NativeDescribeFlashSignal(
+        env,
+        text,
+        sample_rate_hz,
+        frame_samples,
+        flash_signal_profile,
+        flash_voicing_flavor);
+}
+
 extern "C" JNIEXPORT jint JNICALL
 Java_com_bag_audioandroid_NativeBagBridge_nativeCancelEncodeTextJob(
     JNIEnv* env,

@@ -423,4 +423,11 @@
     <string name="audio_input_encoding_valid_mini">Mini input is ready. It will be encoded as Morse-compatible text.</string>
     <!-- CONTEXT: CONTEXT: Inline validation success message under the input field for pro mode. -->
     <string name="audio_input_encoding_valid_pro">Pro input is ready. All characters are ASCII.</string>
+    <string name="audio_info_flash_low_carrier">Low carrier</string>
+    <string name="audio_info_flash_high_carrier">High carrier</string>
+    <string name="audio_info_flash_bit_duration">Bit duration</string>
+    <string name="audio_info_flash_payload_silence">Payload silence</string>
+    <string name="audio_info_flash_decode_path">Decode path</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s samples</string>
 </resources>

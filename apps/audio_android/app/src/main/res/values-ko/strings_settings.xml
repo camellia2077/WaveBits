@@ -68,11 +68,15 @@
     <string name="config_flash_style_steady_label">정체</string>
     <string name="config_flash_style_steady_description">명확하고 안정적인 기계 신호.</string>
     <string name="config_flash_style_hostile_label">적의</string>
-    <string name="config_flash_style_hostile_description">분노한 명령 프리셋입니다. 현재는 평온 신호 셸을 사용합니다.</string>
+    <string name="config_flash_style_hostile_description">더 짧고 단단한 신호 타이밍을 사용하는 분노한 명령 프리셋입니다.</string>
     <string name="config_flash_style_litany_label">경배</string>
     <string name="config_flash_style_litany_description">기도 프리셋이며 더 느린 의식 신호 박자를 사용합니다.</string>
     <string name="config_flash_style_collapse_label">공포</string>
     <string name="config_flash_style_collapse_description">공포와 붕괴 프리셋입니다. 현재는 평온 신호 셸을 사용합니다.</string>
+    <string name="config_flash_style_zeal_label">열의</string>
+    <string name="config_flash_style_zeal_description">가변적인 빠른 타이밍과 문장 부호 쉼표를 사용하는 밝고 밀도 높은 프리셋입니다.</string>
+    <string name="config_flash_style_void_label">공허</string>
+    <string name="config_flash_style_void_description">더 느린 신호 박자를 사용하는 낮고 성긴 프리셋입니다.</string>
     <!-- CONTEXT: Preset label. Short chip-like option. Keep it compact. -->
     <!-- CONTEXT: Preset label. Short chip-like option. Keep it compact. -->
     <!-- CONTEXT: Preset label. Short chip-like option. Keep it compact. -->

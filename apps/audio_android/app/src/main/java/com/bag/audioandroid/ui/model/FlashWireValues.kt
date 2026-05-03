@@ -5,6 +5,8 @@ object FlashSignalProfileWire {
     const val LITANY: Int = 1
     const val HOSTILE: Int = 3
     const val COLLAPSE: Int = 4
+    const val ZEAL: Int = 5
+    const val VOID: Int = 6
 }
 
 object FlashVoicingFlavorWire {
@@ -12,4 +14,6 @@ object FlashVoicingFlavorWire {
     const val LITANY: Int = 1
     const val HOSTILE: Int = 3
     const val COLLAPSE: Int = 4
+    const val ZEAL: Int = 5
+    const val VOID: Int = 6
 }

@@ -60,11 +60,15 @@
     <string name="config_flash_style_steady_label">Stasi</string>
     <string name="config_flash_style_steady_description">Segnalazione meccanica chiara e stabile.</string>
     <string name="config_flash_style_hostile_label">Ostilità</string>
-    <string name="config_flash_style_hostile_description">Preset di comando furioso; per ora usa l’involucro stabile.</string>
+    <string name="config_flash_style_hostile_description">Preset di comando furioso con temporizzazione del segnale più corta e dura.</string>
     <string name="config_flash_style_litany_label">Litania</string>
     <string name="config_flash_style_litany_description">Preset di preghiera riverente con cadenza rituale più lenta.</string>
     <string name="config_flash_style_collapse_label">Collasso</string>
     <string name="config_flash_style_collapse_description">Preset di paura e collasso; per ora usa l’involucro stabile.</string>
+    <string name="config_flash_style_zeal_label">Zelo</string>
+    <string name="config_flash_style_zeal_description">Preset brillante e denso con ritmo rapido variabile e pause di punteggiatura.</string>
+    <string name="config_flash_style_void_label">Vuoto</string>
+    <string name="config_flash_style_void_description">Preset basso e rarefatto con una cadenza del segnale più lenta.</string>
     <string name="config_about_title">Info</string>
     <string name="config_about_subtitle">Autore, link del progetto e licenze</string>
     <string name="palette_ruby_title">Rosso rubino</string>

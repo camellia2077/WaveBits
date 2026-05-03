@@ -67,11 +67,15 @@
     <string name="config_flash_style_steady_label">停滞</string>
     <string name="config_flash_style_steady_description">明瞭で安定した機械信号。</string>
     <string name="config_flash_style_hostile_label">敵意</string>
-    <string name="config_flash_style_hostile_description">怒りの命令プリセット。現在は安定した信号シェルを使用します。</string>
+    <string name="config_flash_style_hostile_description">より短く硬い信号タイミングを使う、怒りの命令プリセット。</string>
     <string name="config_flash_style_litany_label">崇敬</string>
     <string name="config_flash_style_litany_description">祈りのプリセット。より遅い儀式的な信号リズムを使用します。</string>
     <string name="config_flash_style_collapse_label">崩壊</string>
     <string name="config_flash_style_collapse_description">恐怖と崩壊のプリセット。現在は安定した信号シェルを使用します。</string>
+    <string name="config_flash_style_zeal_label">熱誠</string>
+    <string name="config_flash_style_zeal_description">変速する高速タイミングと句読点の間を使う、明るく密なプリセット。</string>
+    <string name="config_flash_style_void_label">虚無</string>
+    <string name="config_flash_style_void_description">より遅い信号リズムを使う、低くまばらなプリセット。</string>
     <!-- CONTEXT: Preset label. Short chip-like option. Keep it compact. -->
     <!-- CONTEXT: Preset label. Short chip-like option. Keep it compact. -->
     <!-- CONTEXT: Preset label. Short chip-like option. Keep it compact. -->

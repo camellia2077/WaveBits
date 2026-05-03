@@ -60,6 +60,7 @@ internal fun rememberAudioAndroidViewModelFactory(appContext: Context): AudioAnd
 
     return remember(
         audioCodecGateway,
+        audioIoGateway,
         sampleInputTextProvider,
         appSettingsRepository,
         playbackRuntimeGateway,
@@ -68,6 +69,7 @@ internal fun rememberAudioAndroidViewModelFactory(appContext: Context): AudioAnd
     ) {
         AudioAndroidViewModelFactory(
             audioCodecGateway = audioCodecGateway,
+            audioIoGateway = audioIoGateway,
             sampleInputTextProvider = sampleInputTextProvider,
             appSettingsRepository = appSettingsRepository,
             playbackRuntimeGateway = playbackRuntimeGateway,

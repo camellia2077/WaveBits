@@ -18,6 +18,7 @@
   - `docs/architecture/android-native-strategy.md`
 - 如果改动涉及 flash voicing 选择器、preset、emotion 文案或 `{signalProfileValue, voicingFlavorValue}` 接线，再按需读：
   - `docs/design/flash-voicing-emotions.md`
+  - 具体 preset 细节看 `docs/design/flash-voicing/<preset>.md`
 - 如果改动涉及 XML 文案 / 本地化 / 样例文本 / 翻译检查失败，再按需读：
   - `docs/design/android/android-translation-workflow.md`
   - `docs/design/android/android-translation-tooling-agent-index.md`

@@ -239,4 +239,11 @@
     <string name="audio_input_encoding_valid_mini">Mini 输入可用。它会按 Morse 兼容文本编码。</string>
     <string name="audio_input_encoding_valid_pro">Pro 输入可用。所有字符都是 ASCII。</string>
     <string name="audio_input_encoding_rules_done">完成</string>
+    <string name="audio_info_flash_low_carrier">低频载波</string>
+    <string name="audio_info_flash_high_carrier">高频载波</string>
+    <string name="audio_info_flash_bit_duration">Bit 持续时间</string>
+    <string name="audio_info_flash_payload_silence">Payload 静音</string>
+    <string name="audio_info_flash_decode_path">解码路径</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s 个采样</string>
 </resources>

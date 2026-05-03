@@ -60,11 +60,15 @@
     <string name="config_flash_style_steady_label">Stasis</string>
     <string name="config_flash_style_steady_description">Signum machinale clarum et stabile.</string>
     <string name="config_flash_style_hostile_label">Hostilitas</string>
-    <string name="config_flash_style_hostile_description">Praeceptum iratum; nunc eodem involucro stabili utitur.</string>
+    <string name="config_flash_style_hostile_description">Praeceptum iratum cum tempore signi breviore et duriore.</string>
     <string name="config_flash_style_litany_label">Litania</string>
     <string name="config_flash_style_litany_description">Praescriptum precum reverens cum cadenza rituali tardiore.</string>
     <string name="config_flash_style_collapse_label">Ruina</string>
     <string name="config_flash_style_collapse_description">Praescriptum timoris et ruinae; nunc eodem involucro stabili utitur.</string>
+    <string name="config_flash_style_zeal_label">Zelus</string>
+    <string name="config_flash_style_zeal_description">Praescriptum clarum densumque cum tempore celeri variabili et pausis interpunctionis.</string>
+    <string name="config_flash_style_void_label">Vacuitas</string>
+    <string name="config_flash_style_void_description">Praescriptum grave et rarum cum cadenza signi tardiore.</string>
     <string name="config_about_title">Apocrypha</string>
     <string name="config_about_subtitle">Auctor, nexus consilii et licentiae sacrae</string>
     <string name="palette_ruby_title">Rubrum Rubini</string>

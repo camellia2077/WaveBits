@@ -12,8 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.R
+import com.bag.audioandroid.domain.FlashSignalInfo
 import com.bag.audioandroid.domain.GeneratedAudioInputSourceKind
 import com.bag.audioandroid.domain.SavedAudioItem
+import com.bag.audioandroid.domain.WavAudioInfo
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
 import com.bag.audioandroid.ui.model.PlaybackSpeedOption
@@ -33,6 +35,8 @@ internal fun AudioPlaybackTransportControls(
     totalSamples: Int,
     sampleRateHz: Int,
     frameSamples: Int,
+    wavAudioInfo: WavAudioInfo = WavAudioInfo.Empty,
+    flashSignalInfo: FlashSignalInfo = FlashSignalInfo.Empty,
     flashVoicingStyle: FlashVoicingStyleOption?,
     savedAudioItem: SavedAudioItem?,
     onTogglePlayback: () -> Unit,
@@ -54,32 +58,42 @@ internal fun AudioPlaybackTransportControls(
     val encodingTypeLabel = stringResource(R.string.audio_info_encoding_type)
     val encodingTypeValue = stringResource(transportMode.labelResId)
     val durationLabel = stringResource(R.string.audio_info_duration)
-    val durationValue = formatDurationMillis(durationMs)
+    val displayDurationMs = wavAudioInfo.durationMs.takeIf { wavAudioInfo.isWavSuccess && it > 0L } ?: durationMs
+    val durationValue = formatDurationMillis(displayDurationMs)
     val savedTimeLabel = stringResource(R.string.audio_player_detail_saved_time)
     val generatedTimeLabel = stringResource(R.string.audio_player_detail_saved_generated_time)
     val inputSourceLabel = stringResource(R.string.audio_player_detail_saved_input_source)
     val inputSourceValue = savedAudioItem?.inputSourceKind?.let { stringResource(it.labelResId) }
     val sampleRateLabel = stringResource(R.string.audio_info_sample_rate)
-    val sampleRateValue = stringResource(R.string.audio_info_sample_rate_value, sampleRateHz)
+    val displaySampleRateHz = wavAudioInfo.sampleRateHz.takeIf { wavAudioInfo.isWavSuccess && it > 0 } ?: sampleRateHz
+    val sampleRateValue = stringResource(R.string.audio_info_sample_rate_value, displaySampleRateHz)
     val frameSamplesLabel = stringResource(R.string.audio_info_frame_samples)
     val frameSamplesValue = stringResource(R.string.audio_info_frame_samples_value, frameSamples)
     val fileSizeLabel = stringResource(R.string.audio_player_detail_saved_file_size)
     val displayFileSizeBytes =
-        savedAudioItem?.fileSizeBytes
+        wavAudioInfo.fileByteCount.takeIf { wavAudioInfo.isWavSuccess && it > 0L }
+            ?: savedAudioItem?.fileSizeBytes
             ?: estimatedMonoPcm16WavSizeBytes(totalSamples)
     val fileSizeValue =
         displayFileSizeBytes?.let { fileSizeBytes ->
-            stringResource(R.string.audio_player_detail_saved_payload_bytes_value, fileSizeBytes)
+            formatStorageSizeMb(fileSizeBytes)
         }
     val payloadBytesLabel = stringResource(R.string.audio_player_detail_saved_payload_bytes)
     val payloadBytesValue =
         savedAudioItem
             ?.payloadByteCount
             ?.let { payloadByteCount ->
-                stringResource(R.string.audio_player_detail_saved_payload_bytes_value, payloadByteCount)
+                formatStorageSizeMb(payloadByteCount.toLong())
             }
     val flashVoicingStyleLabel = stringResource(R.string.audio_info_flash_voicing_style)
     val flashVoicingStyleValue = flashVoicingStyle?.let { stringResource(it.labelResId) }
+    val flashLowCarrierLabel = stringResource(R.string.audio_info_flash_low_carrier)
+    val flashHighCarrierLabel = stringResource(R.string.audio_info_flash_high_carrier)
+    val flashBitDurationLabel = stringResource(R.string.audio_info_flash_bit_duration)
+    val flashPayloadSilenceLabel = stringResource(R.string.audio_info_flash_payload_silence)
+    val flashDecodePathLabel = stringResource(R.string.audio_info_flash_decode_path)
+    val flashCarrierValueFormat = stringResource(R.string.audio_info_flash_carrier_hz_value)
+    val flashBitDurationValueFormat = stringResource(R.string.audio_info_flash_bit_duration_samples_value)
     val dismissLabel = stringResource(R.string.common_cancel)
     val audioInfoDialogModel =
         remember(
@@ -96,6 +110,7 @@ internal fun AudioPlaybackTransportControls(
             inputSourceValue,
             sampleRateLabel,
             sampleRateValue,
+            wavAudioInfo,
             frameSamplesLabel,
             frameSamplesValue,
             fileSizeLabel,
@@ -104,6 +119,14 @@ internal fun AudioPlaybackTransportControls(
             payloadBytesValue,
             flashVoicingStyleLabel,
             flashVoicingStyleValue,
+            flashSignalInfo,
+            flashLowCarrierLabel,
+            flashHighCarrierLabel,
+            flashBitDurationLabel,
+            flashPayloadSilenceLabel,
+            flashDecodePathLabel,
+            flashCarrierValueFormat,
+            flashBitDurationValueFormat,
             dismissLabel,
             savedAudioItem,
             transportMode,
@@ -198,6 +221,43 @@ internal fun AudioPlaybackTransportControls(
                                     testTag = "audio-info-row-flash-voicing-style",
                                 ),
                             )
+                            if (flashSignalInfo.available) {
+                                add(
+                                    AudioInfoRowModel(
+                                        label = flashLowCarrierLabel,
+                                        value = flashCarrierValueFormat.format(flashSignalInfo.lowCarrierHz),
+                                        testTag = "audio-info-row-flash-low-carrier",
+                                    ),
+                                )
+                                add(
+                                    AudioInfoRowModel(
+                                        label = flashHighCarrierLabel,
+                                        value = flashCarrierValueFormat.format(flashSignalInfo.highCarrierHz),
+                                        testTag = "audio-info-row-flash-high-carrier",
+                                    ),
+                                )
+                                add(
+                                    AudioInfoRowModel(
+                                        label = flashBitDurationLabel,
+                                        value = flashBitDurationValueFormat.format(flashSignalInfo.bitDurationSamples),
+                                        testTag = "audio-info-row-flash-bit-duration",
+                                    ),
+                                )
+                                add(
+                                    AudioInfoRowModel(
+                                        label = flashPayloadSilenceLabel,
+                                        value = flashSignalInfo.payloadSilence,
+                                        testTag = "audio-info-row-flash-payload-silence",
+                                    ),
+                                )
+                                add(
+                                    AudioInfoRowModel(
+                                        label = flashDecodePathLabel,
+                                        value = flashSignalInfo.decodePath,
+                                        testTag = "audio-info-row-flash-decode-path",
+                                    ),
+                                )
+                            }
                         }
                     },
                 dismissLabel = dismissLabel,

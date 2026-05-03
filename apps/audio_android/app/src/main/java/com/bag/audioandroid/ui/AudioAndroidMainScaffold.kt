@@ -137,6 +137,8 @@ internal fun AudioAndroidMainScaffold(
                     isWaveformPreview = playbackVisualData.isPreview,
                     sampleRateHz = currentPlayback.sampleRateHz,
                     frameSamples = uiState.currentPlaybackFrameSamples,
+                    wavAudioInfo = uiState.currentPlaybackWavAudioInfo,
+                    flashSignalInfo = uiState.currentPlaybackFlashSignalInfo,
                     displayedTime = displayedTime,
                     totalTime = totalTime,
                     isPlaying = currentPlayback.isPlaying,

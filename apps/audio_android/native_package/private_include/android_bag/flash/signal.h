@@ -65,5 +65,8 @@ std::vector<std::uint8_t> DecodePcm16ToBytes(const std::vector<std::int16_t>& pc
 std::vector<std::uint8_t> DecodePcm16ToBytesSkippingSilence(
     const std::vector<std::int16_t>& pcm,
     const BfskConfig& config = {});
+std::vector<std::uint8_t> DecodeZealPcm16ToBytes(
+    const std::vector<std::int16_t>& pcm,
+    const BfskConfig& config = {});
 
 }  // namespace bag::flash

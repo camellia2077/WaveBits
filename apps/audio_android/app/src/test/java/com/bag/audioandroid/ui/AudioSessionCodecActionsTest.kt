@@ -3,16 +3,21 @@ package com.bag.audioandroid.ui
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.domain.AudioEncodePhase
+import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.BagApiCodes
 import com.bag.audioandroid.domain.DecodedAudioPayloadResult
+import com.bag.audioandroid.domain.DecodedAudioData
 import com.bag.audioandroid.domain.EncodeAudioResult
 import com.bag.audioandroid.domain.EncodeProgressUpdate
+import com.bag.audioandroid.domain.FlashSignalInfo
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
+import com.bag.audioandroid.domain.GeneratedAudioMetadata
 import com.bag.audioandroid.domain.GeneratedAudioPcmCacheWriter
 import com.bag.audioandroid.domain.PayloadFollowBinaryGroupTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowByteTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
+import com.bag.audioandroid.domain.WavAudioInfo
 import com.bag.audioandroid.domain.TextFollowLineTokenRangeViewData
 import com.bag.audioandroid.domain.TextFollowLyricLineTimelineEntry
 import com.bag.audioandroid.domain.TextFollowTimelineEntry
@@ -156,6 +161,15 @@ class AudioSessionCodecActionsTest {
                     gateway =
                         FakeAudioCodecGateway(
                             encodeResult = EncodeAudioResult.Success(shortArrayOf(5, 6, 7), followData = DefaultFollowData),
+                            flashSignalInfo =
+                                FlashSignalInfo(
+                                    lowCarrierHz = "300",
+                                    highCarrierHz = "600",
+                                    bitDurationSamples = "2205",
+                                    payloadSilence = "none",
+                                    decodePath = "fixed low/high window",
+                                    available = true,
+                                ),
                         ),
                     testScope = this,
                 )
@@ -172,6 +186,8 @@ class AudioSessionCodecActionsTest {
             assertTrue(successSession.followData.followAvailable)
             assertTrue(successSession.followData.textFollowAvailable)
             assertEquals(listOf("A"), successSession.followData.textTokens)
+            assertTrue(successSession.generatedFlashSignalInfo.available)
+            assertEquals("300", successSession.generatedFlashSignalInfo.lowCarrierHz)
         }
 
     @Test
@@ -393,6 +409,7 @@ class AudioSessionCodecActionsTest {
                 uiState = uiState,
                 scope = CoroutineScope(dispatcher),
                 audioCodecGateway = gateway,
+                audioIoGateway = CodecFakeAudioIoGateway(),
                 sessionStateStore = AudioSessionStateStore(uiState),
                 uiTextMapper = BagUiTextMapper(),
                 playbackRuntimeGateway = FakePlaybackRuntimeGateway(),
@@ -427,6 +444,7 @@ private class FakeAudioCodecGateway(
         ),
     private val encodeBlock: (suspend ((EncodeProgressUpdate) -> Unit) -> EncodeAudioResult)? = null,
     private val encodeTextBlock: (suspend (String, (EncodeProgressUpdate) -> Unit) -> EncodeAudioResult)? = null,
+    private val flashSignalInfo: FlashSignalInfo = FlashSignalInfo.Empty,
     private val validateEncodeRequestBlock: (
         (
             text: String,
@@ -476,6 +494,14 @@ private class FakeAudioCodecGateway(
     ) = com.bag.audioandroid.domain.EncodedAudioPayloadResult(
         followData = buildFollowDataBlock?.invoke(text) ?: DefaultFollowData,
     )
+
+    override fun describeFlashSignal(
+        text: String,
+        sampleRateHz: Int,
+        frameSamples: Int,
+        flashSignalProfile: Int,
+        flashVoicingFlavor: Int,
+    ) = flashSignalInfo
 
     override fun validateDecodeConfig(
         sampleRateHz: Int,
@@ -548,6 +574,33 @@ private class FakePlaybackRuntimeGateway : PlaybackRuntimeGateway {
     override fun elapsedMs(state: PlaybackUiState): Long = 0L
 
     override fun totalMs(state: PlaybackUiState): Long = 0L
+}
+
+private class CodecFakeAudioIoGateway : AudioIoGateway {
+    override fun encodeMonoPcm16ToWavBytes(
+        sampleRateHz: Int,
+        pcm: ShortArray,
+        metadata: GeneratedAudioMetadata?,
+    ): ByteArray = ByteArray(44 + pcm.size * 2)
+
+    override fun decodeMonoPcm16WavBytes(wavBytes: ByteArray): DecodedAudioData = DecodedAudioData(
+        wavStatusCode = com.bag.audioandroid.domain.AudioIoWavCodes.STATUS_OK,
+        metadataStatusCode = com.bag.audioandroid.domain.AudioIoMetadataCodes.STATUS_NOT_FOUND,
+        sampleRateHz = 44_100,
+        channels = 1,
+        pcm = shortArrayOf(),
+    )
+
+    override fun probeMonoPcm16WavBytes(wavBytes: ByteArray): WavAudioInfo = WavAudioInfo(
+        wavStatusCode = com.bag.audioandroid.domain.AudioIoWavCodes.STATUS_OK,
+        sampleRateHz = 44_100,
+        channels = 1,
+        bitsPerSample = 16,
+        pcmSampleCount = ((wavBytes.size - 44) / 2).coerceAtLeast(0).toLong(),
+        dataByteCount = (wavBytes.size - 44).coerceAtLeast(0).toLong(),
+        fileByteCount = wavBytes.size.toLong(),
+        durationMs = 0L,
+    )
 }
 
 private class CodecFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {

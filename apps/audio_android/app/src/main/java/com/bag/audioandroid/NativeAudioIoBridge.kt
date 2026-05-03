@@ -2,6 +2,7 @@ package com.bag.audioandroid
 
 import com.bag.audioandroid.domain.DecodedAudioData
 import com.bag.audioandroid.domain.GeneratedAudioMetadata
+import com.bag.audioandroid.domain.WavAudioInfo
 
 object NativeAudioIoBridge {
     init {
@@ -15,4 +16,6 @@ object NativeAudioIoBridge {
     ): ByteArray
 
     external fun nativeDecodeMonoPcm16WavBytes(wavBytes: ByteArray): DecodedAudioData
+
+    external fun nativeProbeMonoPcm16WavBytes(wavBytes: ByteArray): WavAudioInfo
 }

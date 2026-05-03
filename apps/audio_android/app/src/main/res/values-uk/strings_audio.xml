@@ -218,4 +218,11 @@
     <string name="audio_input_encoding_valid_mini">Введення mini готове. Його буде закодовано як Morse-сумісний текст.</string>
     <string name="audio_input_encoding_valid_pro">Введення pro готове. Усі символи є ASCII.</string>
     <string name="audio_input_encoding_rules_done">Готово</string>
+    <string name="audio_info_flash_low_carrier">Низька несуча</string>
+    <string name="audio_info_flash_high_carrier">Висока несуча</string>
+    <string name="audio_info_flash_bit_duration">Тривалість біта</string>
+    <string name="audio_info_flash_payload_silence">Тиша payload</string>
+    <string name="audio_info_flash_decode_path">Шлях декодування</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s зразків</string>
 </resources>

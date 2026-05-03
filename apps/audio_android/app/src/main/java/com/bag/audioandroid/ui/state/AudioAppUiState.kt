@@ -2,9 +2,11 @@ package com.bag.audioandroid.ui.state
 
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.DecodedPayloadViewData
+import com.bag.audioandroid.domain.FlashSignalInfo
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.SavedAudioFolder
 import com.bag.audioandroid.domain.SavedAudioItem
+import com.bag.audioandroid.domain.WavAudioInfo
 import com.bag.audioandroid.ui.model.AppLanguageOption
 import com.bag.audioandroid.ui.model.AppTab
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
@@ -259,6 +261,28 @@ data class AudioAppUiState(
                         ?.takeIf { it.item.itemId == source.itemId }
                         ?.followData
                         ?: PayloadFollowViewData.Empty
+            }
+
+    val currentPlaybackFlashSignalInfo: FlashSignalInfo
+        get() =
+            when (val source = currentPlaybackSource) {
+                is AudioPlaybackSource.Generated -> sessions.getValue(source.mode).generatedFlashSignalInfo
+                is AudioPlaybackSource.Saved ->
+                    selectedSavedAudio
+                        ?.takeIf { it.item.itemId == source.itemId }
+                        ?.flashSignalInfo
+                        ?: FlashSignalInfo.Empty
+            }
+
+    val currentPlaybackWavAudioInfo: WavAudioInfo
+        get() =
+            when (val source = currentPlaybackSource) {
+                is AudioPlaybackSource.Generated -> sessions.getValue(source.mode).generatedWavAudioInfo
+                is AudioPlaybackSource.Saved ->
+                    selectedSavedAudio
+                        ?.takeIf { it.item.itemId == source.itemId }
+                        ?.wavAudioInfo
+                        ?: WavAudioInfo.Empty
             }
 
     val miniPlayerModel: MiniPlayerUiModel?

@@ -218,4 +218,11 @@
     <string name="audio_pro_unsupported_characters">Characteres pro non supportati: %1$s</string>
     <string name="audio_input_encoding_valid_mini">Input mini paratum est. Codificabitur sicut textus Morse-compatibilis.</string>
     <string name="audio_input_encoding_valid_pro">Input pro paratum est. Omnes characteres sunt ASCII.</string>
+    <string name="audio_info_flash_low_carrier">Portator humilis</string>
+    <string name="audio_info_flash_high_carrier">Portator altus</string>
+    <string name="audio_info_flash_bit_duration">Duratio bit</string>
+    <string name="audio_info_flash_payload_silence">Silentium payload</string>
+    <string name="audio_info_flash_decode_path">Iter decodendi</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s campiones</string>
 </resources>

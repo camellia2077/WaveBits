@@ -1,6 +1,7 @@
 package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.domain.AudioCodecGateway
+import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.ui.state.AudioAppUiState
@@ -13,6 +14,7 @@ internal class AudioSessionCodecActions(
     uiState: MutableStateFlow<AudioAppUiState>,
     scope: CoroutineScope,
     audioCodecGateway: AudioCodecGateway,
+    audioIoGateway: AudioIoGateway,
     sessionStateStore: AudioSessionStateStore,
     uiTextMapper: BagUiTextMapper,
     playbackRuntimeGateway: PlaybackRuntimeGateway,
@@ -27,6 +29,7 @@ internal class AudioSessionCodecActions(
             uiState = uiState,
             scope = scope,
             audioCodecGateway = audioCodecGateway,
+            audioIoGateway = audioIoGateway,
             sessionStateStore = sessionStateStore,
             uiTextMapper = uiTextMapper,
             playbackRuntimeGateway = playbackRuntimeGateway,

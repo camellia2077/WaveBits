@@ -218,4 +218,11 @@
     <string name="audio_pro_unsupported_characters">Nicht unterstützte pro-Zeichen: %1$s</string>
     <string name="audio_input_encoding_valid_mini">Mini-Eingabe ist bereit. Sie wird als Morse-kompatibler Text codiert.</string>
     <string name="audio_input_encoding_valid_pro">Pro-Eingabe ist bereit. Alle Zeichen sind ASCII.</string>
+    <string name="audio_info_flash_low_carrier">Niedriger Träger</string>
+    <string name="audio_info_flash_high_carrier">Hoher Träger</string>
+    <string name="audio_info_flash_bit_duration">Bitdauer</string>
+    <string name="audio_info_flash_payload_silence">Payload-Stille</string>
+    <string name="audio_info_flash_decode_path">Decode-Pfad</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s Samples</string>
 </resources>

@@ -29,6 +29,14 @@ interface AudioCodecGateway {
         flashVoicingFlavor: Int,
     ): EncodedAudioPayloadResult
 
+    fun describeFlashSignal(
+        text: String,
+        sampleRateHz: Int,
+        frameSamples: Int,
+        flashSignalProfile: Int,
+        flashVoicingFlavor: Int,
+    ): FlashSignalInfo
+
     fun validateDecodeConfig(
         sampleRateHz: Int,
         frameSamples: Int,

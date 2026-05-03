@@ -60,11 +60,15 @@
     <string name="config_flash_style_steady_label">Стазис</string>
     <string name="config_flash_style_steady_description">Чіткий стабільний машинний сигнал.</string>
     <string name="config_flash_style_hostile_label">Ворожість</string>
-    <string name="config_flash_style_hostile_description">Пресет лютого наказу; поки використовує рівну сигнальну оболонку.</string>
+    <string name="config_flash_style_hostile_description">Пресет лютого наказу з коротшим і жорсткішим сигнальним таймінгом.</string>
     <string name="config_flash_style_litany_label">Літанія</string>
     <string name="config_flash_style_litany_description">Пресет благоговійної молитви з повільнішою ритуальною каденцією.</string>
     <string name="config_flash_style_collapse_label">Зрив</string>
     <string name="config_flash_style_collapse_description">Пресет страху й зриву; поки використовує рівну сигнальну оболонку.</string>
+    <string name="config_flash_style_zeal_label">Завзяття</string>
+    <string name="config_flash_style_zeal_description">Яскравий щільний пресет зі змінним швидким ритмом і паузами на пунктуації.</string>
+    <string name="config_flash_style_void_label">Порожнеча</string>
+    <string name="config_flash_style_void_description">Низький розріджений пресет із повільнішою сигнальною каденцією.</string>
     <string name="config_about_title">Про застосунок</string>
     <string name="config_about_subtitle">Автор, посилання на проєкт і ліцензії</string>
     <string name="palette_ruby_title">Рубіново-червоний</string>

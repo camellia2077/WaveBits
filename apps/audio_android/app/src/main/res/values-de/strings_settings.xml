@@ -60,11 +60,15 @@
     <string name="config_flash_style_steady_label">Stase</string>
     <string name="config_flash_style_steady_description">Klare, stabile Maschinensignale.</string>
     <string name="config_flash_style_hostile_label">Feindseligkeit</string>
-    <string name="config_flash_style_hostile_description">Ein wütendes Befehls-Preset; nutzt derzeit die stabile Signalhülle.</string>
+    <string name="config_flash_style_hostile_description">Ein wütendes Befehls-Preset mit kürzerem, härterem Signaltiming.</string>
     <string name="config_flash_style_litany_label">Litanei</string>
     <string name="config_flash_style_litany_description">Ein ehrfürchtiges Gebets-Preset mit langsamerem rituellem Signaltakt.</string>
     <string name="config_flash_style_collapse_label">Zusammenbruch</string>
     <string name="config_flash_style_collapse_description">Ein Angst- und Zusammenbruchs-Preset; nutzt derzeit die stabile Signalhülle.</string>
+    <string name="config_flash_style_zeal_label">Eifer</string>
+    <string name="config_flash_style_zeal_description">Helles, dichtes Preset mit variablem schnellen Timing und Interpunktionspausen.</string>
+    <string name="config_flash_style_void_label">Leere</string>
+    <string name="config_flash_style_void_description">Tiefes, sparsames Preset mit langsamerer Signalkadenz.</string>
     <string name="config_about_title">Info</string>
     <string name="config_about_subtitle">Autor, Projektlink und Lizenzen</string>
     <string name="palette_ruby_title">Rubinrot</string>

@@ -60,11 +60,15 @@
     <string name="config_flash_style_steady_label">Стазис</string>
     <string name="config_flash_style_steady_description">Чёткая стабильная машинная сигнализация.</string>
     <string name="config_flash_style_hostile_label">Враждебность</string>
-    <string name="config_flash_style_hostile_description">Пресет яростной команды; пока использует ровную сигнальную оболочку.</string>
+    <string name="config_flash_style_hostile_description">Пресет яростной команды с более коротким и жестким сигнальным таймингом.</string>
     <string name="config_flash_style_litany_label">Литания</string>
     <string name="config_flash_style_litany_description">Пресет благоговейной молитвы с более медленной ритуальной каденцией.</string>
     <string name="config_flash_style_collapse_label">Срыв</string>
     <string name="config_flash_style_collapse_description">Пресет страха и срыва; пока использует ровную сигнальную оболочку.</string>
+    <string name="config_flash_style_zeal_label">Рвение</string>
+    <string name="config_flash_style_zeal_description">Яркий плотный пресет с переменным быстрым ритмом и паузами на пунктуации.</string>
+    <string name="config_flash_style_void_label">Пустота</string>
+    <string name="config_flash_style_void_description">Низкий разреженный пресет с более медленной сигнальной каденцией.</string>
     <string name="config_about_title">О приложении</string>
     <string name="config_about_subtitle">Автор, ссылка на проект и лицензии</string>
     <string name="palette_ruby_title">Рубиново-красный</string>

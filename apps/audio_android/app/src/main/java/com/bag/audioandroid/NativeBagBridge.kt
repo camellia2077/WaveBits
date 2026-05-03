@@ -2,6 +2,7 @@ package com.bag.audioandroid
 
 import com.bag.audioandroid.domain.DecodedAudioPayloadResult
 import com.bag.audioandroid.domain.EncodedAudioPayloadResult
+import com.bag.audioandroid.domain.FlashSignalInfo
 
 object NativeBagBridge {
     init {
@@ -47,6 +48,14 @@ object NativeBagBridge {
         flashSignalProfile: Int,
         flashVoicingFlavor: Int,
     ): EncodedAudioPayloadResult
+
+    external fun nativeDescribeFlashSignal(
+        text: String,
+        sampleRateHz: Int,
+        frameSamples: Int,
+        flashSignalProfile: Int,
+        flashVoicingFlavor: Int,
+    ): FlashSignalInfo
 
     external fun nativeCancelEncodeTextJob(handle: Long): Int
 

@@ -13,8 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.bag.audioandroid.domain.FlashSignalInfo
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.SavedAudioItem
+import com.bag.audioandroid.domain.WavAudioInfo
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.MiniPlayerUiModel
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
@@ -31,6 +33,8 @@ internal fun PlayerDetailSheetContent(
     isWaveformPreview: Boolean = false,
     sampleRateHz: Int,
     frameSamples: Int = 2205,
+    wavAudioInfo: WavAudioInfo = WavAudioInfo.Empty,
+    flashSignalInfo: FlashSignalInfo = FlashSignalInfo.Empty,
     displayedTime: String,
     totalTime: String,
     isPlaying: Boolean,
@@ -114,6 +118,8 @@ internal fun PlayerDetailSheetContent(
             durationMs = miniPlayerModel.durationMs,
             sampleRateHz = sampleRateHz,
             frameSamples = frameSamples,
+            wavAudioInfo = wavAudioInfo,
+            flashSignalInfo = flashSignalInfo,
             flashVoicingStyle = miniPlayerModel.flashVoicingStyle,
             savedAudioItem = savedAudioItem,
             onTogglePlayback = onTogglePlayback,
@@ -191,6 +197,8 @@ private fun PlayerDetailBottomDock(
     durationMs: Long,
     sampleRateHz: Int,
     frameSamples: Int,
+    wavAudioInfo: WavAudioInfo,
+    flashSignalInfo: FlashSignalInfo,
     flashVoicingStyle: FlashVoicingStyleOption?,
     savedAudioItem: SavedAudioItem?,
     onTogglePlayback: () -> Unit,
@@ -235,6 +243,8 @@ private fun PlayerDetailBottomDock(
             totalSamples = totalSamples,
             sampleRateHz = sampleRateHz,
             frameSamples = frameSamples,
+            wavAudioInfo = wavAudioInfo,
+            flashSignalInfo = flashSignalInfo,
             flashVoicingStyle = flashVoicingStyle,
             savedAudioItem = savedAudioItem,
             onTogglePlayback = onTogglePlayback,

@@ -8,6 +8,7 @@ import com.bag.audioandroid.domain.DecodedAudioPayloadResult
 import com.bag.audioandroid.domain.EncodeAudioResult
 import com.bag.audioandroid.domain.EncodeProgressUpdate
 import com.bag.audioandroid.domain.EncodedAudioPayloadResult
+import com.bag.audioandroid.domain.FlashSignalInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -105,6 +106,21 @@ class NativeAudioCodecGateway : AudioCodecGateway {
             followData = result.followData.normalizeDesignTokens(),
         )
     }
+
+    override fun describeFlashSignal(
+        text: String,
+        sampleRateHz: Int,
+        frameSamples: Int,
+        flashSignalProfile: Int,
+        flashVoicingFlavor: Int,
+    ): FlashSignalInfo =
+        NativeBagBridge.nativeDescribeFlashSignal(
+            text,
+            sampleRateHz,
+            frameSamples,
+            flashSignalProfile,
+            flashVoicingFlavor,
+        )
 
     override fun validateDecodeConfig(
         sampleRateHz: Int,

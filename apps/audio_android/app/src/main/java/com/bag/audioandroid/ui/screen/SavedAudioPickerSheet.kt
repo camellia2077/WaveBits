@@ -87,12 +87,7 @@ internal fun SavedAudioPickerSheet(
                                             add(stringResource(R.string.audio_info_sample_rate_value, it))
                                         }
                                         item.payloadByteCount?.let {
-                                            add(
-                                                stringResource(
-                                                    R.string.audio_player_detail_saved_payload_bytes_value,
-                                                    it,
-                                                ),
-                                            )
+                                            add(formatStorageSizeMb(it.toLong()))
                                         }
                                     }.joinToString(separator = " • ")
                                 if (savedAudioMetadataSummary.isNotBlank()) {

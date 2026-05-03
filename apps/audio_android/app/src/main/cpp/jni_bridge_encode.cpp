@@ -114,6 +114,50 @@ jobject NativeBuildEncodeFollowData(
 
     return NewEncodedAudioPayloadResultFromEncodeResult(env, result);
 }
+
+jobject NativeDescribeFlashSignal(
+    JNIEnv* env,
+    jstring text,
+    jint sample_rate_hz,
+    jint frame_samples,
+    jint flash_signal_profile,
+    jint flash_voicing_flavor) {
+    const std::string input = JStringToStdString(env, text);
+    if (input.empty()) {
+        return NewFlashSignalInfo(env, "", "", "", "", "", JNI_FALSE);
+    }
+
+    bag_encoder_config config =
+        MakeEncoderConfig(sample_rate_hz, frame_samples, flash_signal_profile, flash_voicing_flavor);
+    config.mode = BAG_TRANSPORT_FLASH;
+    std::array<char, 128> low_buffer{};
+    std::array<char, 128> high_buffer{};
+    std::array<char, 256> bit_buffer{};
+    std::array<char, 256> silence_buffer{};
+    std::array<char, 256> decode_buffer{};
+    bag_flash_signal_info info{};
+    info.low_carrier_hz_buffer = low_buffer.data();
+    info.low_carrier_hz_buffer_size = low_buffer.size();
+    info.high_carrier_hz_buffer = high_buffer.data();
+    info.high_carrier_hz_buffer_size = high_buffer.size();
+    info.bit_duration_samples_buffer = bit_buffer.data();
+    info.bit_duration_samples_buffer_size = bit_buffer.size();
+    info.payload_silence_buffer = silence_buffer.data();
+    info.payload_silence_buffer_size = silence_buffer.size();
+    info.decode_path_buffer = decode_buffer.data();
+    info.decode_path_buffer_size = decode_buffer.size();
+    if (bag_describe_flash_signal(&config, input.c_str(), &info) != BAG_OK || info.available == 0) {
+        return NewFlashSignalInfo(env, "", "", "", "", "", JNI_FALSE);
+    }
+    return NewFlashSignalInfo(
+        env,
+        CopyApiString(low_buffer.data(), info.low_carrier_hz_size),
+        CopyApiString(high_buffer.data(), info.high_carrier_hz_size),
+        CopyApiString(bit_buffer.data(), info.bit_duration_samples_size),
+        CopyApiString(silence_buffer.data(), info.payload_silence_size),
+        CopyApiString(decode_buffer.data(), info.decode_path_size),
+        JNI_TRUE);
+}
 jobject NativeDecodeGeneratedPcm(
     JNIEnv* env,
     jshortArray pcm,

@@ -752,6 +752,41 @@ jobject NewEncodedAudioPayloadResult(JNIEnv* env,
         terminal_code);
 }
 
+jobject NewFlashSignalInfo(JNIEnv* env,
+                           const std::string& low_carrier_hz,
+                           const std::string& high_carrier_hz,
+                           const std::string& bit_duration_samples,
+                           const std::string& payload_silence,
+                           const std::string& decode_path,
+                           jboolean available) {
+    jclass result_class = FindClassOrNull(env, "com/bag/audioandroid/domain/FlashSignalInfo");
+    if (result_class == nullptr) {
+        return nullptr;
+    }
+    jmethodID ctor =
+        env->GetMethodID(
+            result_class,
+            "<init>",
+            "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V");
+    if (ctor == nullptr) {
+        return nullptr;
+    }
+    jstring low_value = env->NewStringUTF(low_carrier_hz.c_str());
+    jstring high_value = env->NewStringUTF(high_carrier_hz.c_str());
+    jstring bit_value = env->NewStringUTF(bit_duration_samples.c_str());
+    jstring silence_value = env->NewStringUTF(payload_silence.c_str());
+    jstring decode_value = env->NewStringUTF(decode_path.c_str());
+    return env->NewObject(
+        result_class,
+        ctor,
+        low_value,
+        high_value,
+        bit_value,
+        silence_value,
+        decode_value,
+        available);
+}
+
 jshortArray NewShortArrayFromPcmResult(JNIEnv* env, const bag_pcm16_result& result) {
     jshortArray out = env->NewShortArray(static_cast<jsize>(result.sample_count));
     if (out != nullptr && result.sample_count > 0) {

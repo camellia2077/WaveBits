@@ -60,11 +60,15 @@
     <string name="config_flash_style_steady_label">Estase</string>
     <string name="config_flash_style_steady_description">Sinalização mecânica clara e estável.</string>
     <string name="config_flash_style_hostile_label">Hostilidade</string>
-    <string name="config_flash_style_hostile_description">Predefinição de comando furioso; por enquanto usa a carcaça estável.</string>
+    <string name="config_flash_style_hostile_description">Predefinição de comando furioso com temporização de sinal mais curta e rígida.</string>
     <string name="config_flash_style_litany_label">Ladainha</string>
     <string name="config_flash_style_litany_description">Predefinição de prece reverente com cadência ritual mais lenta.</string>
     <string name="config_flash_style_collapse_label">Colapso</string>
     <string name="config_flash_style_collapse_description">Predefinição de medo e colapso; por enquanto usa a carcaça estável.</string>
+    <string name="config_flash_style_zeal_label">Zelo</string>
+    <string name="config_flash_style_zeal_description">Predefinição brilhante e densa com ritmo rápido variável e pausas de pontuação.</string>
+    <string name="config_flash_style_void_label">Vazio</string>
+    <string name="config_flash_style_void_description">Predefinição grave e esparsa com cadência de sinal mais lenta.</string>
     <string name="config_about_title">Sobre</string>
     <string name="config_about_subtitle">Autor, link do projeto e licenças</string>
     <string name="palette_ruby_title">Vermelho rubi</string>

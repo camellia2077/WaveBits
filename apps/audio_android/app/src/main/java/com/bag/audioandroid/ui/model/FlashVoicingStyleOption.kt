@@ -40,6 +40,20 @@ enum class FlashVoicingStyleOption(
         labelResId = R.string.config_flash_style_collapse_label,
         descriptionResId = R.string.config_flash_style_collapse_description,
     ),
+    Zeal(
+        id = "zeal",
+        signalProfileValue = FlashSignalProfileWire.ZEAL,
+        voicingFlavorValue = FlashVoicingFlavorWire.ZEAL,
+        labelResId = R.string.config_flash_style_zeal_label,
+        descriptionResId = R.string.config_flash_style_zeal_description,
+    ),
+    Void(
+        id = "void",
+        signalProfileValue = FlashSignalProfileWire.VOID,
+        voicingFlavorValue = FlashVoicingFlavorWire.VOID,
+        labelResId = R.string.config_flash_style_void_label,
+        descriptionResId = R.string.config_flash_style_void_description,
+    ),
     ;
 
     val usesLongCadencePayload: Boolean

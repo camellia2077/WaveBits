@@ -59,11 +59,15 @@
     <string name="config_flash_style_steady_label">Stase</string>
     <string name="config_flash_style_steady_description">Signalisation mécanique claire et stable.</string>
     <string name="config_flash_style_hostile_label">Hostilité</string>
-    <string name="config_flash_style_hostile_description">Préréglage de commandement furieux ; utilise pour l’instant l’enveloppe stable.</string>
+    <string name="config_flash_style_hostile_description">Préréglage de commandement furieux avec un timing de signal plus court et plus dur.</string>
     <string name="config_flash_style_litany_label">Litanie</string>
     <string name="config_flash_style_litany_description">Préréglage de prière révérencielle avec une cadence rituelle plus lente.</string>
     <string name="config_flash_style_collapse_label">Effondrement</string>
     <string name="config_flash_style_collapse_description">Préréglage de peur et d’effondrement ; utilise pour l’instant l’enveloppe stable.</string>
+    <string name="config_flash_style_zeal_label">Zèle</string>
+    <string name="config_flash_style_zeal_description">Préréglage lumineux et dense avec rythme rapide variable et pauses de ponctuation.</string>
+    <string name="config_flash_style_void_label">Vide</string>
+    <string name="config_flash_style_void_description">Préréglage grave et clairsemé avec une cadence de signal plus lente.</string>
     <string name="config_about_title">Infos</string>
     <string name="config_about_subtitle">Auteur, lien du projet et licences</string>
     <string name="palette_ruby_title">Rouge rubis</string>

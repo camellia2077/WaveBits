@@ -3,8 +3,10 @@ package com.bag.audioandroid.ui.state
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.AudioEncodePhase
 import com.bag.audioandroid.domain.DecodedPayloadViewData
+import com.bag.audioandroid.domain.FlashSignalInfo
 import com.bag.audioandroid.domain.GeneratedAudioMetadata
 import com.bag.audioandroid.domain.PayloadFollowViewData
+import com.bag.audioandroid.domain.WavAudioInfo
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.PlaybackSpeedOption
 import com.bag.audioandroid.ui.model.SampleFlavor
@@ -19,7 +21,9 @@ data class ModeAudioSessionState(
     val generatedWaveformPcm: ShortArray = shortArrayOf(),
     val generatedPcmFilePath: String? = null,
     val generatedAudioMetadata: GeneratedAudioMetadata? = null,
+    val generatedWavAudioInfo: WavAudioInfo = WavAudioInfo.Empty,
     val generatedFlashVoicingStyle: FlashVoicingStyleOption? = null,
+    val generatedFlashSignalInfo: FlashSignalInfo = FlashSignalInfo.Empty,
     val generatedContentRevision: Long = 0L,
     val decodedPayload: DecodedPayloadViewData = DecodedPayloadViewData.Empty,
     val followData: PayloadFollowViewData = PayloadFollowViewData.Empty,

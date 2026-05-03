@@ -6,6 +6,7 @@ sealed interface EncodeAudioResult {
         val rawBytesHex: String = "",
         val rawBitsBinary: String = "",
         val followData: PayloadFollowViewData = PayloadFollowViewData.Empty,
+        val flashSignalInfo: FlashSignalInfo = FlashSignalInfo.Empty,
     ) : EncodeAudioResult
 
     data object Cancelled : EncodeAudioResult

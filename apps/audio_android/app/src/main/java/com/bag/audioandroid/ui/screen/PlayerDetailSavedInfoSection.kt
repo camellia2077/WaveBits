@@ -75,13 +75,13 @@ internal fun PlayerDetailSavedInfoSection(
             item.fileSizeBytes?.let { fileSizeBytes ->
                 PlayerDetailInfoRow(
                     label = stringResource(R.string.audio_player_detail_saved_file_size),
-                    value = stringResource(R.string.audio_player_detail_saved_payload_bytes_value, fileSizeBytes),
+                    value = formatStorageSizeMb(fileSizeBytes),
                 )
             }
             item.payloadByteCount?.let { payloadByteCount ->
                 PlayerDetailInfoRow(
                     label = stringResource(R.string.audio_player_detail_saved_payload_bytes),
-                    value = stringResource(R.string.audio_player_detail_saved_payload_bytes_value, payloadByteCount),
+                    value = formatStorageSizeMb(payloadByteCount.toLong()),
                 )
             }
         }

@@ -200,7 +200,7 @@ class PlayerDetailSheetContentTest {
 
         composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.audio_action_open_audio_info)).performClick()
         composeRule.onAllNodesWithTag("audio-info-row-file-size", useUnmergedTree = true).assertCountEquals(1)
-        composeRule.onNodeWithText("12345 bytes").assertIsDisplayed()
+        composeRule.onNodeWithText("0.01 MB").assertIsDisplayed()
     }
 
     @Test
@@ -250,7 +250,7 @@ class PlayerDetailSheetContentTest {
 
         composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.audio_action_open_audio_info)).performClick()
         composeRule.onAllNodesWithTag("audio-info-row-file-size", useUnmergedTree = true).assertCountEquals(1)
-        composeRule.onNodeWithText("68 bytes").assertIsDisplayed()
+        composeRule.onNodeWithText("0.01 MB").assertIsDisplayed()
     }
 
     @Test

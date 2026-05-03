@@ -218,4 +218,11 @@
     <string name="audio_pro_unsupported_characters">Неподдерживаемые символы pro: %1$s</string>
     <string name="audio_input_encoding_valid_mini">Ввод mini готов. Он будет закодирован как Morse-совместимый текст.</string>
     <string name="audio_input_encoding_valid_pro">Ввод pro готов. Все символы являются ASCII.</string>
+    <string name="audio_info_flash_low_carrier">Низкая несущая</string>
+    <string name="audio_info_flash_high_carrier">Высокая несущая</string>
+    <string name="audio_info_flash_bit_duration">Длительность бита</string>
+    <string name="audio_info_flash_payload_silence">Тишина payload</string>
+    <string name="audio_info_flash_decode_path">Путь декодирования</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s сэмплов</string>
 </resources>

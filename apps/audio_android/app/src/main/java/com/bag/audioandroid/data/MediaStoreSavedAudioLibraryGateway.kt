@@ -49,6 +49,7 @@ class MediaStoreSavedAudioLibraryGateway(
             return loadSavedAudioFileBacked(savedAudioItem, uri, metadata)
         }
         val fileBytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+        val wavInfo = audioIoGateway.probeMonoPcm16WavBytes(fileBytes)
         val decoded = audioIoGateway.decodeMonoPcm16WavBytes(fileBytes)
         if (!decoded.isWavSuccess ||
             decoded.wavStatusCode != AudioIoWavCodes.STATUS_OK ||
@@ -64,6 +65,7 @@ class MediaStoreSavedAudioLibraryGateway(
             waveformPcm = decoded.pcm,
             sampleRateHz = decoded.sampleRateHz,
             metadata = decoded.metadata,
+            wavAudioInfo = wavInfo,
         )
     }
 
@@ -101,6 +103,7 @@ class MediaStoreSavedAudioLibraryGateway(
             contentResolver.openInputStream(sourceUri)?.use { it.readBytes() }
                 ?: return SavedAudioImportResult.Failed
         val decoded = audioIoGateway.decodeMonoPcm16WavBytes(sourceBytes)
+        val wavInfo = audioIoGateway.probeMonoPcm16WavBytes(sourceBytes)
         if (!decoded.isWavSuccess ||
             decoded.wavStatusCode != AudioIoWavCodes.STATUS_OK ||
             decoded.channels != 1 ||
@@ -134,7 +137,7 @@ class MediaStoreSavedAudioLibraryGateway(
                         metadata = decoded.metadata,
                         pcmSize = decoded.pcm.size,
                         sampleRateHz = decoded.sampleRateHz,
-                        fileSizeBytes = sourceBytes.size.toLong(),
+                        fileSizeBytes = wavInfo.fileByteCount.takeIf { wavInfo.isWavSuccess && it > 0L } ?: sourceBytes.size.toLong(),
                         unknownModeWireName = UNKNOWN_MODE,
                     )
             }.getOrElse {
@@ -219,6 +222,17 @@ class MediaStoreSavedAudioLibraryGateway(
                 pcmFilePath = cacheWriter.filePath,
                 sampleRateHz = extraction.sampleRateHz,
                 metadata = metadata,
+                wavAudioInfo =
+                    com.bag.audioandroid.domain.WavAudioInfo(
+                        wavStatusCode = AudioIoWavCodes.STATUS_OK,
+                        sampleRateHz = extraction.sampleRateHz,
+                        channels = 1,
+                        bitsPerSample = 16,
+                        pcmSampleCount = extraction.sampleCount.toLong(),
+                        dataByteCount = extraction.sampleCount.toLong() * 2L,
+                        fileByteCount = savedAudioItem.fileSizeBytes ?: 0L,
+                        durationMs = extraction.sampleCount.toLong() * 1000L / extraction.sampleRateHz.toLong(),
+                    ),
             )
         } catch (_: Exception) {
             cacheWriter.abort()

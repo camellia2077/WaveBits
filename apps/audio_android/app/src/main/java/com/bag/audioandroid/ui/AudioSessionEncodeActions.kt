@@ -4,15 +4,18 @@ import android.util.Log
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.domain.AudioEncodePhase
+import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.BagApiCodes
 import com.bag.audioandroid.domain.DecodedPayloadViewData
 import com.bag.audioandroid.domain.EncodeAudioResult
 import com.bag.audioandroid.domain.EncodeProgressUpdate
+import com.bag.audioandroid.domain.FlashSignalInfo
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.GeneratedAudioInputSourceKind
 import com.bag.audioandroid.domain.GeneratedAudioMetadata
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
+import com.bag.audioandroid.domain.WavAudioInfo
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.TransportModeOption
@@ -35,6 +38,7 @@ internal class AudioSessionEncodeActions(
     private val uiState: MutableStateFlow<AudioAppUiState>,
     private val scope: CoroutineScope,
     audioCodecGateway: AudioCodecGateway,
+    audioIoGateway: AudioIoGateway,
     sessionStateStore: AudioSessionStateStore,
     uiTextMapper: BagUiTextMapper,
     playbackRuntimeGateway: PlaybackRuntimeGateway,
@@ -51,6 +55,7 @@ internal class AudioSessionEncodeActions(
             sessionStateStore = sessionStateStore,
             uiTextMapper = uiTextMapper,
             playbackRuntimeGateway = playbackRuntimeGateway,
+            audioIoGateway = audioIoGateway,
             sampleRateHz = sampleRateHz,
             generatedAudioCacheGateway = generatedAudioCacheGateway,
         )
@@ -273,6 +278,7 @@ private class EncodeRunner(
                     )
             ) {
                 is EncodeAudioResult.Success -> {
+                    val flashSignalInfo = describeFlashSignalForRequest(request)
                     safeLogE(
                         LONG_AUDIO_LOG_TAG,
                         "execute:singleSuccess mode=${request.mode.wireName} payloadBytes=$payloadByteCount samples=${gatewayResult.pcm.size}",
@@ -280,6 +286,7 @@ private class EncodeRunner(
                     EncodeResult.Success(
                         pcm = gatewayResult.pcm,
                         segmentCount = 1,
+                        flashSignalInfo = flashSignalInfo,
                     )
                 }
                 EncodeAudioResult.Cancelled -> EncodeResult.Cancelled
@@ -440,8 +447,29 @@ private class EncodeRunner(
             segmentCount = segmentation.segmentCount,
             segmentation = segmentation,
             segmentSampleCounts = segmentedAudio.segmentSampleCounts,
+            flashSignalInfo =
+                describeFlashSignalForRequest(
+                    request,
+                    text = segmentation.segments.firstOrNull() ?: request.inputText,
+                ),
         )
     }
+
+    private fun describeFlashSignalForRequest(
+        request: EncodeRequest,
+        text: String = request.inputText,
+    ): FlashSignalInfo =
+        if (request.mode == TransportModeOption.Flash) {
+            audioCodecGateway.describeFlashSignal(
+                text,
+                sampleRateHz,
+                request.frameSamples,
+                request.flashPreset.signalProfileValue,
+                request.flashPreset.voicingFlavorValue,
+            )
+        } else {
+            FlashSignalInfo.Empty
+        }
 
     private companion object {
         const val MAX_SINGLE_FRAME_PAYLOAD_BYTES = 512
@@ -469,6 +497,7 @@ private class EncodeStateReducer(
     private val sessionStateStore: AudioSessionStateStore,
     private val uiTextMapper: BagUiTextMapper,
     private val playbackRuntimeGateway: PlaybackRuntimeGateway,
+    private val audioIoGateway: AudioIoGateway,
     private val sampleRateHz: Int,
     private val generatedAudioCacheGateway: GeneratedAudioCacheGateway,
 ) {
@@ -577,7 +606,9 @@ private class EncodeStateReducer(
                 generatedWaveformPcm = shortArrayOf(),
                 generatedPcmFilePath = null,
                 generatedAudioMetadata = null,
+                generatedWavAudioInfo = WavAudioInfo.Empty,
                 generatedFlashVoicingStyle = null,
+                generatedFlashSignalInfo = FlashSignalInfo.Empty,
                 decodedPayload = DecodedPayloadViewData.Empty,
                 followData = PayloadFollowViewData.Empty,
                 statusText = uiTextMapper.validationIssue(validationIssue),
@@ -631,6 +662,28 @@ private class EncodeStateReducer(
                 null
             }
         val payloadByteCount = request.payloadByteCount
+        val generatedMetadata =
+            GeneratedAudioMetadata(
+                mode = request.mode,
+                flashVoicingStyle = generatedFlashStyle,
+                createdAtIsoUtc = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString(),
+                durationMs = (result.pcmSampleCount.toLong() * 1000L) / sampleRateHz.toLong(),
+                sampleRateHz = sampleRateHz,
+                frameSamples = request.frameSamples,
+                pcmSampleCount = result.pcmSampleCount,
+                payloadByteCount = payloadByteCount,
+                inputSourceKind =
+                    if (request.sampleInputId != null) {
+                        GeneratedAudioInputSourceKind.Sample
+                    } else {
+                        GeneratedAudioInputSourceKind.Manual
+                    },
+                segmentCount = result.segmentCount,
+                appVersion = request.appVersion,
+                coreVersion = request.coreVersion,
+                segmentSampleCounts = result.segmentSampleCounts,
+            )
+        val wavAudioInfo = probeGeneratedWavInfo(result, generatedMetadata)
         val nextRevision =
             uiState.value.sessions
                 .getValue(request.mode)
@@ -644,28 +697,10 @@ private class EncodeStateReducer(
                 generatedPcm = pcm,
                 generatedWaveformPcm = result.waveformPcm,
                 generatedPcmFilePath = result.generatedPcmFilePath,
-                generatedAudioMetadata =
-                    GeneratedAudioMetadata(
-                        mode = request.mode,
-                        flashVoicingStyle = generatedFlashStyle,
-                        createdAtIsoUtc = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString(),
-                        durationMs = (result.pcmSampleCount.toLong() * 1000L) / sampleRateHz.toLong(),
-                        sampleRateHz = sampleRateHz,
-                        frameSamples = request.frameSamples,
-                        pcmSampleCount = result.pcmSampleCount,
-                        payloadByteCount = payloadByteCount,
-                        inputSourceKind =
-                            if (request.sampleInputId != null) {
-                                GeneratedAudioInputSourceKind.Sample
-                            } else {
-                                GeneratedAudioInputSourceKind.Manual
-                            },
-                        segmentCount = result.segmentCount,
-                        appVersion = request.appVersion,
-                        coreVersion = request.coreVersion,
-                        segmentSampleCounts = result.segmentSampleCounts,
-                    ),
+                generatedAudioMetadata = generatedMetadata,
+                generatedWavAudioInfo = wavAudioInfo,
                 generatedFlashVoicingStyle = generatedFlashStyle,
+                generatedFlashSignalInfo = result.flashSignalInfo,
                 generatedContentRevision = nextRevision,
                 decodedPayload = DecodedPayloadViewData.Empty,
                 followData = PayloadFollowViewData.Empty,
@@ -732,6 +767,26 @@ private class EncodeStateReducer(
             result.segmentCount <= MAX_FOLLOW_DATA_SEGMENTS
     }
 
+    private fun probeGeneratedWavInfo(
+        result: EncodeResult.Success,
+        metadata: GeneratedAudioMetadata,
+    ): WavAudioInfo {
+        val pcmForProbe =
+            if (result.pcm.isNotEmpty()) {
+                result.pcm
+            } else {
+                ShortArray(result.pcmSampleCount.coerceAtLeast(0))
+            }
+        if (pcmForProbe.isEmpty()) {
+            return WavAudioInfo.Empty
+        }
+        val wavBytes = audioIoGateway.encodeMonoPcm16ToWavBytes(sampleRateHz, pcmForProbe, metadata)
+        if (wavBytes.isEmpty()) {
+            return WavAudioInfo.Empty
+        }
+        return audioIoGateway.probeMonoPcm16WavBytes(wavBytes)
+    }
+
     fun applyHydratedFollowData(
         mode: TransportModeOption,
         revision: Long,
@@ -794,6 +849,7 @@ private sealed interface EncodeResult {
         val segmentCount: Int,
         val segmentation: SegmentedInputPlan? = null,
         val segmentSampleCounts: List<Int> = emptyList(),
+        val flashSignalInfo: FlashSignalInfo = FlashSignalInfo.Empty,
     ) : EncodeResult
 }
 

@@ -8,6 +8,7 @@ import com.bag.audioandroid.audio.AudioPlaybackCoordinator
 import com.bag.audioandroid.data.AppSettingsRepository
 import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.domain.AudioCodecGateway
+import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.SavedAudioItem
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.update
 
 class AudioAndroidViewModel(
     audioCodecGateway: AudioCodecGateway,
+    audioIoGateway: AudioIoGateway,
     private val sampleInputTextProvider: SampleInputTextProvider,
     appSettingsRepository: AppSettingsRepository,
     playbackRuntimeGateway: PlaybackRuntimeGateway,
@@ -65,6 +67,7 @@ class AudioAndroidViewModel(
         AudioAndroidLibraryActions(
             uiState = uiStateFlow,
             sessionStateStore = sessionStateStore,
+            audioCodecGateway = audioCodecGateway,
             playbackRuntimeGateway = playbackRuntimeGateway,
             savedAudioRepository = savedAudioRepository,
             stopPlayback = playbackActions::stopPlayback,
@@ -84,6 +87,7 @@ class AudioAndroidViewModel(
             uiState = uiStateFlow,
             scope = viewModelScope,
             audioCodecGateway = audioCodecGateway,
+            audioIoGateway = audioIoGateway,
             sampleInputTextProvider = sampleInputTextProvider,
             sessionStateStore = sessionStateStore,
             uiTextMapper = uiTextMapper,

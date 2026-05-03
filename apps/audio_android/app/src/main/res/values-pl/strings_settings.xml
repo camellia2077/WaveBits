@@ -60,11 +60,15 @@
     <string name="config_flash_style_steady_label">Staza</string>
     <string name="config_flash_style_steady_description">Wyraźna, stabilna sygnalizacja mechaniczna.</string>
     <string name="config_flash_style_hostile_label">Wrogość</string>
-    <string name="config_flash_style_hostile_description">Gniewny preset rozkazu; na razie używa stabilnej powłoki sygnału.</string>
+    <string name="config_flash_style_hostile_description">Gniewny preset rozkazu z krótszym, twardszym taktowaniem sygnału.</string>
     <string name="config_flash_style_litany_label">Litania</string>
     <string name="config_flash_style_litany_description">Preset nabożnej modlitwy z wolniejszą rytualną kadencją sygnału.</string>
     <string name="config_flash_style_collapse_label">Załamanie</string>
     <string name="config_flash_style_collapse_description">Preset strachu i załamania; na razie używa stabilnej powłoki sygnału.</string>
+    <string name="config_flash_style_zeal_label">Zapał</string>
+    <string name="config_flash_style_zeal_description">Jasny, gęsty preset ze zmiennym szybkim rytmem i pauzami interpunkcyjnymi.</string>
+    <string name="config_flash_style_void_label">Pustka</string>
+    <string name="config_flash_style_void_description">Niski, oszczędny preset z wolniejszą kadencją sygnału.</string>
     <string name="config_about_title">O aplikacji</string>
     <string name="config_about_subtitle">Autor, link do projektu i licencje</string>
     <string name="palette_ruby_title">Rubinowa czerwień</string>

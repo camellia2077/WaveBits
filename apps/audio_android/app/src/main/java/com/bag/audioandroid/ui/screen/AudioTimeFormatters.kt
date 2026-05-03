@@ -3,6 +3,7 @@ package com.bag.audioandroid.ui.screen
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 internal fun formatSavedAudioTime(savedAtEpochSeconds: Long): String {
     if (savedAtEpochSeconds <= 0L) {
@@ -36,5 +37,16 @@ internal fun formatDurationMillis(durationMs: Long): String {
     }
 }
 
+internal fun formatStorageSizeMb(byteCount: Long): String {
+    if (byteCount <= 0L) {
+        return "0.00 MB"
+    }
+    val megabytes = byteCount.toDouble() / BytesPerMegabyte
+    val displayMegabytes = megabytes.coerceAtLeast(0.01)
+    return "%.2f MB".format(Locale.US, displayMegabytes)
+}
+
 private val SAVED_AUDIO_TIME_FORMATTER: DateTimeFormatter =
     DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+private const val BytesPerMegabyte = 1024.0 * 1024.0

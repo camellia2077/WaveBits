@@ -60,11 +60,15 @@
     <string name="config_flash_style_steady_label">Estasis</string>
     <string name="config_flash_style_steady_description">Señalización mecánica clara y estable.</string>
     <string name="config_flash_style_hostile_label">Hostilidad</string>
-    <string name="config_flash_style_hostile_description">Un ajuste de mando airado; por ahora usa la envolvente estable.</string>
+    <string name="config_flash_style_hostile_description">Un ajuste de mando airado con temporización de señal más corta y dura.</string>
     <string name="config_flash_style_litany_label">Letanía</string>
     <string name="config_flash_style_litany_description">Un ajuste de plegaria reverente con cadencia ritual más lenta.</string>
     <string name="config_flash_style_collapse_label">Colapso</string>
     <string name="config_flash_style_collapse_description">Un ajuste de miedo y colapso; por ahora usa la envolvente estable.</string>
+    <string name="config_flash_style_zeal_label">Fervor</string>
+    <string name="config_flash_style_zeal_description">Ajuste brillante y denso con ritmo rápido variable y pausas de puntuación.</string>
+    <string name="config_flash_style_void_label">Vacío</string>
+    <string name="config_flash_style_void_description">Ajuste bajo y disperso con una cadencia de señal más lenta.</string>
     <string name="config_about_title">Información</string>
     <string name="config_about_subtitle">Autor, enlace del proyecto y licencias</string>
     <string name="palette_ruby_title">Rojo rubí</string>

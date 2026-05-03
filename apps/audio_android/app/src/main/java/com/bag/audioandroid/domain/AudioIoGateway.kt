@@ -8,4 +8,6 @@ interface AudioIoGateway {
     ): ByteArray
 
     fun decodeMonoPcm16WavBytes(wavBytes: ByteArray): DecodedAudioData
+
+    fun probeMonoPcm16WavBytes(wavBytes: ByteArray): WavAudioInfo
 }

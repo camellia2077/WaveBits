@@ -3,6 +3,7 @@ package com.bag.audioandroid.ui
 import com.bag.audioandroid.R
 import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.domain.AudioCodecGateway
+import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.DecodedPayloadViewData
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
@@ -22,6 +23,7 @@ internal class AudioAndroidSessionActions(
     private val uiState: MutableStateFlow<AudioAppUiState>,
     scope: CoroutineScope,
     audioCodecGateway: AudioCodecGateway,
+    audioIoGateway: AudioIoGateway,
     sampleInputTextProvider: SampleInputTextProvider,
     private val sessionStateStore: AudioSessionStateStore,
     uiTextMapper: BagUiTextMapper,
@@ -47,6 +49,7 @@ internal class AudioAndroidSessionActions(
             uiState = uiState,
             scope = scope,
             audioCodecGateway = audioCodecGateway,
+            audioIoGateway = audioIoGateway,
             sessionStateStore = sessionStateStore,
             uiTextMapper = uiTextMapper,
             playbackRuntimeGateway = playbackRuntimeGateway,

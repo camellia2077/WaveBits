@@ -218,4 +218,11 @@
     <string name="audio_pro_unsupported_characters">Nieobsługiwane znaki pro: %1$s</string>
     <string name="audio_input_encoding_valid_mini">Wejście mini jest gotowe. Zostanie zakodowane jako tekst zgodny z Morse.</string>
     <string name="audio_input_encoding_valid_pro">Wejście pro jest gotowe. Wszystkie znaki są ASCII.</string>
+    <string name="audio_info_flash_low_carrier">Niska nośna</string>
+    <string name="audio_info_flash_high_carrier">Wysoka nośna</string>
+    <string name="audio_info_flash_bit_duration">Czas bitu</string>
+    <string name="audio_info_flash_payload_silence">Cisza payloadu</string>
+    <string name="audio_info_flash_decode_path">Ścieżka dekodowania</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s próbek</string>
 </resources>

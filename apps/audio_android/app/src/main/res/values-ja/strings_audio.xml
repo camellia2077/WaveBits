@@ -239,4 +239,11 @@
     <string name="audio_pro_unsupported_characters">pro で未対応の文字: %1$s</string>
     <string name="audio_input_encoding_valid_mini">Mini 入力は使用できます。Morse 互換テキストとしてエンコードされます。</string>
     <string name="audio_input_encoding_valid_pro">Pro 入力は使用できます。すべての文字が ASCII です。</string>
+    <string name="audio_info_flash_low_carrier">低キャリア</string>
+    <string name="audio_info_flash_high_carrier">高キャリア</string>
+    <string name="audio_info_flash_bit_duration">ビット長</string>
+    <string name="audio_info_flash_payload_silence">ペイロード無音</string>
+    <string name="audio_info_flash_decode_path">デコード経路</string>
+    <string name="audio_info_flash_carrier_hz_value">%1$s Hz</string>
+    <string name="audio_info_flash_bit_duration_samples_value">%1$s サンプル</string>
 </resources>

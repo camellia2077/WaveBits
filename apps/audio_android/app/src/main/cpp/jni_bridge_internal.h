@@ -20,6 +20,7 @@ inline constexpr std::size_t kMaxJvmEncodePcmSamples =
     static_cast<std::size_t>(kDefaultSampleRateHz) * 60U * 10U;
 
 std::string JStringToStdString(JNIEnv* env, jstring value);
+std::string CopyApiString(const char* buffer, std::size_t size);
 
 int NormalizeSampleRate(int sample_rate_hz);
 int NormalizeFrameSamples(int sample_rate_hz, int frame_samples);
@@ -79,6 +80,13 @@ jobject NewEncodedAudioPayloadResult(JNIEnv* env,
                                      const std::string& raw_bits_binary,
                                      jobject follow_data,
                                      jint terminal_code);
+jobject NewFlashSignalInfo(JNIEnv* env,
+                           const std::string& low_carrier_hz,
+                           const std::string& high_carrier_hz,
+                           const std::string& bit_duration_samples,
+                           const std::string& payload_silence,
+                           const std::string& decode_path,
+                           jboolean available);
 
 jshortArray NewShortArrayFromPcmResult(JNIEnv* env, const bag_pcm16_result& result);
 jobject NewEmptyPayloadFollowViewData(JNIEnv* env);
@@ -114,6 +122,13 @@ jobject NativeBuildEncodeFollowData(JNIEnv* env,
                                     jint mode,
                                     jint flash_signal_profile,
                                     jint flash_voicing_flavor);
+
+jobject NativeDescribeFlashSignal(JNIEnv* env,
+                                  jstring text,
+                                  jint sample_rate_hz,
+                                  jint frame_samples,
+                                  jint flash_signal_profile,
+                                  jint flash_voicing_flavor);
 
 jobject NativeDecodeGeneratedPcm(JNIEnv* env,
                                  jshortArray pcm,
