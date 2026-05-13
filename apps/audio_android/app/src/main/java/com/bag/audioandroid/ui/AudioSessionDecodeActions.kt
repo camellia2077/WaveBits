@@ -8,6 +8,8 @@ import com.bag.audioandroid.domain.BagApiCodes
 import com.bag.audioandroid.domain.BagDecodeContentCodes
 import com.bag.audioandroid.domain.DecodedAudioPayloadResult
 import com.bag.audioandroid.domain.DecodedPayloadViewData
+import com.bag.audioandroid.domain.FlashSignalInfo
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.TransportModeOption
@@ -24,12 +26,13 @@ import java.util.LinkedHashSet
 internal class AudioSessionDecodeActions(
     private val uiState: MutableStateFlow<AudioAppUiState>,
     private val scope: CoroutineScope,
-    audioCodecGateway: AudioCodecGateway,
+    private val audioCodecGateway: AudioCodecGateway,
     sessionStateStore: AudioSessionStateStore,
     uiTextMapper: BagUiTextMapper,
     private val sampleRateHz: Int,
     private val frameSamples: Int,
-    workerDispatcher: CoroutineDispatcher,
+    private val workerDispatcher: CoroutineDispatcher,
+    private val savedAudioDecodeCacheGateway: SavedAudioDecodeCacheGateway,
 ) {
     private val requestFactory = DecodeRequestFactory(sampleRateHz = sampleRateHz, frameSamples = frameSamples)
     private val stateReducer =
@@ -65,6 +68,12 @@ internal class AudioSessionDecodeActions(
             current.selectedSavedAudio
                 ?.takeIf { it.item.itemId == source.itemId }
                 ?: return
+        if (selectedSavedAudio.isLoadingContent) {
+            return
+        }
+        if (selectedSavedAudio.isDecodingContent) {
+            return
+        }
         val alreadyDecodedForLyrics =
             selectedSavedAudio.decodedPayload.textDecodeStatusCode !=
                 BagDecodeContentCodes.STATUS_UNAVAILABLE ||
@@ -112,13 +121,16 @@ internal class AudioSessionDecodeActions(
             current.selectedSavedAudio
                 ?.takeIf { it.item.itemId == itemId }
                 ?: return
+        if (selectedSavedAudio.isLoadingContent || selectedSavedAudio.isDecodingContent) {
+            return
+        }
         val mode = TransportModeOption.fromWireName(selectedSavedAudio.item.modeWireName)
         if (mode == null) {
             stateReducer.applySavedLoadFailure()
             return
         }
         val request = requestFactory.buildSaved(current, mode, selectedSavedAudio, current.selectedFlashVoicingStyle)
-        launchSavedDecode(itemId, request)
+        launchSavedDecode(itemId, request, selectedSavedAudio)
     }
 
     private fun launchGeneratedDecode(request: DecodeRequest) {
@@ -134,15 +146,55 @@ internal class AudioSessionDecodeActions(
     private fun launchSavedDecode(
         itemId: String,
         request: DecodeRequest,
+        selectedSavedAudio: SavedAudioPlaybackSelection,
     ) {
         stateReducer.markBusy(request.mode)
+        stateReducer.markSavedDecodeStarted(itemId)
         scope.launch {
-            stateReducer.reduceSavedResult(
-                itemId = itemId,
-                mode = request.mode,
-                result = decodeRunner.execute(request),
-            )
+            val result = decodeRunner.execute(request)
+            when (result) {
+                is DecodeResult.ValidationFailure ->
+                    stateReducer.reduceSavedValidationFailure(itemId, result.validationIssue)
+
+                is DecodeResult.Success -> {
+                    val flashSignalInfo = describeSavedFlashSignal(selectedSavedAudio, result.decoded.decodedPayload)
+                    kotlinx.coroutines.withContext(workerDispatcher) {
+                        savedAudioDecodeCacheGateway.write(
+                            item = selectedSavedAudio.item,
+                            metadata = selectedSavedAudio.metadata,
+                            decodedPayload = result.decoded.decodedPayload,
+                            followData = result.decoded.followData,
+                            flashSignalInfo = flashSignalInfo,
+                        )
+                    }
+                    stateReducer.reduceSavedSuccess(
+                        itemId = itemId,
+                        mode = request.mode,
+                        decoded = result.decoded,
+                        flashSignalInfo = flashSignalInfo,
+                    )
+                }
+            }
         }
+    }
+
+    private fun describeSavedFlashSignal(
+        savedAudio: SavedAudioPlaybackSelection,
+        decodedPayload: DecodedPayloadViewData,
+    ): FlashSignalInfo {
+        val metadata = savedAudio.metadata ?: return FlashSignalInfo.Empty
+        if (metadata.mode != TransportModeOption.Flash) {
+            return FlashSignalInfo.Empty
+        }
+        val resolvedText = decodedPayload.text.takeIf { decodedPayload.hasTextResult && it.isNotBlank() } ?: return FlashSignalInfo.Empty
+        val style = savedAudio.item.flashVoicingStyle ?: metadata.flashVoicingStyle ?: return FlashSignalInfo.Empty
+        return audioCodecGateway.describeFlashSignal(
+            resolvedText,
+            savedAudio.sampleRateHz,
+            metadata.frameSamples,
+            style.signalProfileValue,
+            style.voicingFlavorValue,
+        )
     }
 }
 
@@ -259,7 +311,7 @@ private class DecodeRequestFactory(
         fallback: FlashVoicingStyleOption,
     ): List<FlashVoicingStyleOption> {
         if (mode != TransportModeOption.Flash) {
-            return listOf(FlashVoicingStyleOption.Steady)
+            return listOf(FlashVoicingStyleOption.Standard)
         }
         val ordered = LinkedHashSet<FlashVoicingStyleOption>()
         preferred?.let(ordered::add)
@@ -328,7 +380,7 @@ private class DecodeRunner(
         return attempts
             .maxWithOrNull(compareBy<DecodeAttempt> { scoreDecodeAttempt(it, request.expectedPayloadByteCount) })
             ?.result
-            ?: decodeWithPreset(request, FlashVoicingStyleOption.Steady)
+            ?: decodeWithPreset(request, FlashVoicingStyleOption.Standard)
     }
 
     private fun decodeWithPreset(
@@ -461,9 +513,53 @@ private class DecodeStateReducer(
             is DecodeResult.ValidationFailure -> applyValidationFailure(result.validationIssue)
             is DecodeResult.Success -> {
                 val status = decodeStatusText(mode, result.decoded.decodedPayload)
-                applySavedSuccess(itemId, result.decoded, status)
+                applySavedSuccess(itemId, result.decoded, FlashSignalInfo.Empty, status)
             }
         }
+    }
+
+    fun markSavedDecodeStarted(itemId: String) {
+        uiState.update { state ->
+            val selected =
+                state.selectedSavedAudio
+                    ?.takeIf { it.item.itemId == itemId }
+                    ?: return@update state
+            state.copy(
+                selectedSavedAudio =
+                    selected.copy(
+                        isDecodingContent = true,
+                    ),
+            )
+        }
+    }
+
+    fun reduceSavedValidationFailure(
+        itemId: String,
+        validationIssue: Int,
+    ) {
+        uiState.update { state ->
+            val selected =
+                state.selectedSavedAudio
+                    ?.takeIf { it.item.itemId == itemId }
+                    ?: return@update state
+            state.copy(
+                selectedSavedAudio =
+                    selected.copy(
+                        isDecodingContent = false,
+                    ),
+            )
+        }
+        applyValidationFailure(validationIssue)
+    }
+
+    fun reduceSavedSuccess(
+        itemId: String,
+        mode: TransportModeOption,
+        decoded: DecodedAudioPayloadResult,
+        flashSignalInfo: FlashSignalInfo,
+    ) {
+        val status = decodeStatusText(mode, decoded.decodedPayload)
+        applySavedSuccess(itemId, decoded, flashSignalInfo, status)
     }
 
     private fun applyGeneratedSuccess(
@@ -487,6 +583,7 @@ private class DecodeStateReducer(
     private fun applySavedSuccess(
         itemId: String,
         decoded: DecodedAudioPayloadResult,
+        flashSignalInfo: FlashSignalInfo,
         status: UiText,
     ) {
         uiState.update { state ->
@@ -499,6 +596,9 @@ private class DecodeStateReducer(
                     selected.copy(
                         decodedPayload = decoded.decodedPayload,
                         followData = decoded.followData,
+                        flashSignalInfo = flashSignalInfo,
+                        needsDecodedContent = false,
+                        isDecodingContent = false,
                     ),
             )
         }

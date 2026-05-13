@@ -11,6 +11,7 @@ import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRepository
 import com.bag.audioandroid.ui.model.AppLanguageOption
@@ -26,6 +27,7 @@ import com.bag.audioandroid.ui.model.SampleInputLengthOption
 import com.bag.audioandroid.ui.model.ThemeModeOption
 import com.bag.audioandroid.ui.model.ThemeStyleOption
 import com.bag.audioandroid.ui.model.TransportModeOption
+import com.bag.audioandroid.ui.screen.DebugPlaybackDisplayModeRequest
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,9 +42,14 @@ class AudioAndroidViewModel(
     playbackRuntimeGateway: PlaybackRuntimeGateway,
     savedAudioRepository: SavedAudioRepository,
     private val generatedAudioCacheGateway: GeneratedAudioCacheGateway,
+    private val savedAudioDecodeCacheGateway: SavedAudioDecodeCacheGateway,
 ) : ViewModel() {
     private val uiStateFlow = MutableStateFlow(AudioAppUiState())
     val uiState: StateFlow<AudioAppUiState> = uiStateFlow
+    private val debugExpandLyricsRequestIdFlow = MutableStateFlow<Long?>(null)
+    val debugExpandLyricsRequestId: StateFlow<Long?> = debugExpandLyricsRequestIdFlow
+    private val debugPlaybackDisplayModeRequestFlow = MutableStateFlow<DebugPlaybackDisplayModeRequest?>(null)
+    val debugPlaybackDisplayModeRequest: StateFlow<DebugPlaybackDisplayModeRequest?> = debugPlaybackDisplayModeRequestFlow
 
     private val uiTextMapper = BagUiTextMapper()
     private val sampleInputSessionUpdater = SampleInputSessionUpdater(sampleInputTextProvider)
@@ -85,12 +92,14 @@ class AudioAndroidViewModel(
     private val libraryActions =
         AudioAndroidLibraryActions(
             uiState = uiStateFlow,
+            scope = viewModelScope,
             sessionStateStore = sessionStateStore,
-            audioCodecGateway = audioCodecGateway,
             playbackRuntimeGateway = playbackRuntimeGateway,
             savedAudioRepository = savedAudioRepository,
             stopPlayback = playbackActions::stopPlayback,
             generatedAudioCacheGateway = generatedAudioCacheGateway,
+            savedAudioDecodeCacheGateway = savedAudioDecodeCacheGateway,
+            workerDispatcher = Dispatchers.IO,
         )
     private val documentExportActions =
         AudioDocumentExportActions(
@@ -118,6 +127,7 @@ class AudioAndroidViewModel(
             refreshSavedAudioItems = libraryActions::refreshSavedAudioItems,
             workerDispatcher = Dispatchers.IO,
             generatedAudioCacheGateway = generatedAudioCacheGateway,
+            savedAudioDecodeCacheGateway = savedAudioDecodeCacheGateway,
             followDataWindowActions = followDataWindowActions,
         )
     private val navigationActions =
@@ -142,15 +152,27 @@ class AudioAndroidViewModel(
         AudioDebugScenarioActions(
             uiState = uiStateFlow,
             sampleInputTextProvider = sampleInputTextProvider,
+            savedAudioRepository = savedAudioRepository,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
             sessionStateStore = sessionStateStore,
             onTransportModeSelected = ::onTransportModeSelected,
             onFlashVoicingStyleSelected = ::onFlashVoicingStyleSelected,
             onMorseSpeedSelected = ::onMorseSpeedSelected,
+            onLanguageSelected = ::onLanguageSelected,
+            onDemoModeEnabledChanged = ::onDemoModeEnabledChanged,
+            onFlashVisualPerfOverlayEnabledChanged = ::onFlashVisualPerfOverlayEnabledChanged,
             onInputTextChange = ::onInputTextChange,
             onEncode = ::onEncode,
+            onPlaybackSpeedSelected = ::onPlaybackSpeedSelected,
+            onShellSavedAudioSelected = ::onShellSavedAudioSelected,
+            onOpenPlayerDetailSheet = ::onOpenPlayerDetailSheet,
         )
 
     init {
+        // Cold-start rule: never retain generated audio cache across launches.
+        // Storage footprint is a product constraint, not a best-effort cleanup.
+        generatedAudioCacheGateway.pruneCachedFiles()
+        savedAudioDecodeCacheGateway.prune(savedAudioRepository.listSavedAudio().map { it.itemId }.toSet())
         val coreVersion = audioCodecGateway.getCoreVersion()
         val selectedLanguage =
             AppLanguageOption.fromLanguageTags(
@@ -252,8 +274,8 @@ class AudioAndroidViewModel(
         preferencesActions.onSampleDecorationEnabledChanged(enabled)
     }
 
-    fun onSampleDecorationStyleSelected(style: com.bag.audioandroid.ui.model.SampleDecorationStyleOption) {
-        preferencesActions.onSampleDecorationStyleSelected(style)
+    fun onFlashVisualPerfOverlayEnabledChanged(enabled: Boolean) {
+        preferencesActions.onFlashVisualPerfOverlayEnabledChanged(enabled)
     }
 
     fun onOpenPlayerDetailSheet() {
@@ -274,15 +296,42 @@ class AudioAndroidViewModel(
     }
 
     fun startFlashDebugScenario(scenario: FlashDebugScenario) {
+        debugPlaybackDisplayModeRequestFlow.value =
+            DebugPlaybackDisplayModeRequest(
+                requestId = scenario.requestId,
+                mode = scenario.displayMode,
+            )
         debugScenarioActions.startFlashDebugScenario(scenario)
     }
 
     fun startMiniDebugScenario(scenario: MiniDebugScenario) {
+        debugExpandLyricsRequestIdFlow.value = scenario.requestId.takeIf { scenario.expandLyrics }
+        debugPlaybackDisplayModeRequestFlow.value =
+            DebugPlaybackDisplayModeRequest(
+                requestId = scenario.requestId,
+                mode = scenario.displayMode,
+            )
         debugScenarioActions.startMiniDebugScenario(scenario)
+    }
+
+    fun onDebugExpandLyricsHandled(requestId: Long) {
+        if (debugExpandLyricsRequestIdFlow.value == requestId) {
+            debugExpandLyricsRequestIdFlow.value = null
+        }
+    }
+
+    fun onDebugPlaybackDisplayModeHandled(requestId: Long) {
+        if (debugPlaybackDisplayModeRequestFlow.value?.requestId == requestId) {
+            debugPlaybackDisplayModeRequestFlow.value = null
+        }
     }
 
     fun startEncodeProgressDebugScenario(scenario: EncodeProgressDebugScenario) {
         debugScenarioActions.startEncodeProgressDebugScenario(scenario)
+    }
+
+    fun startSavedAudioDebugScenario(scenario: SavedAudioDebugScenario) {
+        debugScenarioActions.startSavedAudioDebugScenario(scenario)
     }
 
     fun onRandomizeSampleInput(length: SampleInputLengthOption) {
@@ -500,11 +549,18 @@ class AudioAndroidViewModel(
             is AudioPlaybackSource.Generated -> playbackActions.playCurrentFromStart()
             is AudioPlaybackSource.Saved -> {
                 if (nextSource.itemId != uiStateFlow.value.currentSavedAudioItem?.itemId &&
-                    !libraryActions.prepareSavedAudioSelection(nextSource.itemId)
+                    !libraryActions.prepareSavedAudioSelection(
+                        itemId = nextSource.itemId,
+                        onLoaded = playbackActions::playCurrentFromStart,
+                    )
                 ) {
                     return false
                 }
-                playbackActions.playCurrentFromStart()
+                if (nextSource.itemId == uiStateFlow.value.currentSavedAudioItem?.itemId) {
+                    playbackActions.playCurrentFromStart()
+                } else {
+                    true
+                }
             }
         }
     }
@@ -513,10 +569,14 @@ class AudioAndroidViewModel(
         val currentState = uiStateFlow.value
         val currentSource = currentState.currentPlaybackSource
         val targetSource = resolveTarget(currentState, currentSource) as? AudioPlaybackSource.Saved ?: return
-        if (!libraryActions.prepareSavedAudioSelection(targetSource.itemId)) {
+        if (!libraryActions.prepareSavedAudioSelection(targetSource.itemId, onLoaded = playbackActions::playCurrentFromStart)) {
             return
         }
-        playbackActions.playCurrentFromStart()
+        if (targetSource.itemId == uiStateFlow.value.currentSavedAudioItem?.itemId &&
+            uiStateFlow.value.selectedSavedAudio?.isLoadingContent == false
+        ) {
+            playbackActions.playCurrentFromStart()
+        }
     }
 
     private companion object {

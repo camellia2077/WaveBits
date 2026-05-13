@@ -61,10 +61,12 @@ def register_android_debug_group(subparsers: argparse._SubParsersAction[argparse
     flash_capture.add_argument("--wait-ms", type=int, default=90000, help="Delay before dumping logcat.")
     flash_capture.add_argument("--scenario", choices=["ui", "headless"], default="ui")
     flash_capture.add_argument("--style", default="litany", help="Flash voicing style.")
+    flash_capture.add_argument("--display", choices=["lyrics", "visual", "mix"], default="lyrics")
     flash_capture.add_argument("--visual", default="lanes", help="Flash visual mode.")
     flash_capture.add_argument("--input", dest="input_text", help="Optional text override.")
     flash_capture.add_argument("--sample-length", choices=["short", "long"], help="Built-in sample length.")
     flash_capture.add_argument("--sample-id", help="Built-in sample id.")
+    flash_capture.add_argument("--playback-speed", type=float, default=1.0, help="Player playback speed to apply before playback.")
     flash_capture.add_argument(
         "--play-ms",
         type=int,

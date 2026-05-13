@@ -35,6 +35,31 @@ class AppGeneratedAudioCacheGateway(
             .onFailure { error -> safeLogD(CACHE_AUTOMATION_TAG, "deleteFailed path=$path error=${error.message}") }
     }
 
+    override fun pruneCachedFiles(retainedPaths: Set<String>) {
+        val retainedAbsolutePaths =
+            retainedPaths
+                .filter { it.isNotBlank() }
+                .map { File(it).absoluteFile.path }
+                .toSet()
+        val files = cacheDirectory.listFiles() ?: return
+        files.forEach { file ->
+            if (file.absoluteFile.path !in retainedAbsolutePaths) {
+                runCatching { file.delete() }
+                    .onSuccess { deleted ->
+                        safeLogD(
+                            CACHE_AUTOMATION_TAG,
+                            "prune delete path=${file.absolutePath} deleted=$deleted retained=${retainedAbsolutePaths.size}",
+                        )
+                    }.onFailure { error ->
+                        safeLogD(
+                            CACHE_AUTOMATION_TAG,
+                            "pruneDeleteFailed path=${file.absolutePath} error=${error.message}",
+                        )
+                    }
+            }
+        }
+    }
+
     private companion object {
         const val CACHE_DIRECTORY_NAME = "generated-audio"
         const val CACHE_FILE_SUFFIX = ".pcm16"

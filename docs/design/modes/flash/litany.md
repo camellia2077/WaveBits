@@ -36,7 +36,7 @@ Litany 使用可跳过的整数 slot silence 来表达经文节奏：
   - 在可解码范围内保留一点连贯的吟唱尾部。
 - 低频 chant drone。
   - 当前 drone 以 `60 / 120 / 180 Hz` 为核心。
-  - gain 较 Steady 更高，用来形成神龛/管腔低鸣。
+  - gain 较 Standard 更高，用来形成神龛/管腔低鸣。
 - 慢速 chant swell。
   - 约 `0.65 Hz`，深度约 `10%`。
   - 表达祷文式呼吸，而不是 tremor。
@@ -63,7 +63,7 @@ Litany 使用可跳过的整数 slot silence 来表达经文节奏：
   - epilogue 使用约 `1.15s` 的秒级闭礼壳和一长一短二次钟击：第一声约 `92 Hz`、更低、更长，表示经文收束；第二声约 `128 Hz`、更短，表示礼仪闭合。
   - epilogue 的 terminal mute 会更晚介入，避免长钟尾音过早消失。
   - shell 内还会叠加受控 drone，但仍只放在 preamble / epilogue，不进入 payload silence chunk。
-  - 前后壳比 Steady / Hostile 更长，让 UI 时长和听感都能明显感到仪式化。
+  - 前后壳比 Standard / Hostile 更长，让 UI 时长和听感都能明显感到仪式化。
 
 ## 听感关键词
 慢诵、肃穆、低频、句读、机械喉腔、祷文、收束。

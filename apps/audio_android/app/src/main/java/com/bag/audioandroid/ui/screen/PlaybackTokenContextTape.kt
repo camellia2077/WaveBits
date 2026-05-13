@@ -1,5 +1,6 @@
 package com.bag.audioandroid.ui.screen
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -32,6 +33,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
@@ -40,6 +42,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bag.audioandroid.domain.PayloadFollowViewData
@@ -55,6 +58,14 @@ private val TokenTapeVerticalPadding = 6.dp
 private val TokenTapeFadeWidth = 28.dp
 private const val TokenTapeSingleLineHeightDp = 36f
 private const val TokenTapeWrappedLineHeightDp = 56f
+
+internal enum class PlaybackLyricsLayoutMeasurementSource(
+    val modeId: String,
+    val surfaceId: String,
+) {
+    VisualPreview(modeId = "visual", surfaceId = "preview"),
+    LyricsPreview(modeId = "lyrics", surfaceId = "preview"),
+}
 
 internal data class ContinuousViewportTokenSegment(
     val tokenIndex: Int,
@@ -102,6 +113,8 @@ internal fun PlaybackTokenContextTape(
     displayedSamples: Int,
     isPlaying: Boolean,
     visibleLineCount: Int = 3,
+    extraContainerHeight: Dp = 0.dp,
+    layoutMeasurementSource: PlaybackLyricsLayoutMeasurementSource = PlaybackLyricsLayoutMeasurementSource.VisualPreview,
     modifier: Modifier = Modifier,
     onSeekToSample: (Int) -> Unit = {},
 ) {
@@ -188,6 +201,7 @@ internal fun PlaybackTokenContextTape(
     val listState =
         androidx.compose.foundation.lazy
             .rememberLazyListState()
+    val density = LocalDensity.current
 
     androidx.compose.runtime.LaunchedEffect(activeLineIndex) {
         if (activeLineIndex >= 0) {
@@ -207,7 +221,7 @@ internal fun PlaybackTokenContextTape(
     // Using an inter-line spacing of 4.dp gives us a compact display.
     val singleLineHeightDp = if (prefersWrappedLines) TokenTapeWrappedLineHeightDp else TokenTapeSingleLineHeightDp
     val spacingDp = 4f
-    val totalHeightDp = singleLineHeightDp * visibleLineCount + spacingDp * (visibleLineCount - 1)
+    val totalHeightDp = singleLineHeightDp * visibleLineCount + spacingDp * (visibleLineCount - 1) + extraContainerHeight.value
     val verticalPaddingDp =
         if (visibleLineCount <= 1) {
             0f
@@ -233,7 +247,21 @@ internal fun PlaybackTokenContextTape(
             modifier
                 .fillMaxWidth()
                 .height(totalHeightDp.dp)
-                .testTag("playback-token-context-tape-list"),
+                .onSizeChanged { size ->
+                    val heightPx = size.height
+                    val heightDp = with(density) { heightPx.toDp().value }
+                    val lineHeightDp = singleLineHeightDp
+                    val maxPossibleLines =
+                        (((heightDp + spacingDp) / (lineHeightDp + spacingDp)).toInt()).coerceAtLeast(1)
+                    Log.d(
+                        "PlaybackLyricsLayout",
+                        "mode=${layoutMeasurementSource.modeId} surface=${layoutMeasurementSource.surfaceId} " +
+                            "containerHeightPx=$heightPx containerHeightDp=${"%.1f".format(heightDp)} " +
+                            "visibleLineCount=$visibleLineCount lineHeightDp=${"%.1f".format(lineHeightDp)} " +
+                            "spacingDp=${"%.1f".format(spacingDp)} maxPossibleLines=$maxPossibleLines " +
+                            "displayLineRanges=${displayLineRanges.size} wrapped=$prefersWrappedLines",
+                    )
+                }.testTag("playback-token-context-tape-list"),
     ) {
         items(displayLineRanges.size) { lineIndex ->
             val lineRange = displayLineRanges[lineIndex]

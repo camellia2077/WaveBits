@@ -184,7 +184,7 @@ internal fun FlashVisualWindowSource.drawableSegmentsForRange(
 internal fun FlashVisualWindowSource.maxDrawableSegmentsForWindow(window: FlashVisualWindowState): Int {
     val viewportSamples = (window.endSampleExclusive - window.startSample).coerceAtLeast(1)
     val estimatedVisibleBits = (viewportSamples / FlashEstimatedSamplesPerBit).coerceAtLeast(1)
-    // ToneTracks and ToneEnergy expand each segment into multiple paint primitives,
+    // Lanes and Pulse expand each segment into multiple paint primitives,
     // so keep the drawable budget below the raw visible-bit estimate.
     return minOf(
         estimatedVisibleBits * FlashVisualSegmentsPerVisibleBit,

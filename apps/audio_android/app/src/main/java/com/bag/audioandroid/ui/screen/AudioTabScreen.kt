@@ -153,12 +153,6 @@ fun AudioTabScreen(
                 modifier = Modifier.height(contentPadding.calculateBottomPadding()),
             )
         }
-        AudioModeSwitcherBar(
-            transportMode = transportMode,
-            onTransportModeSelected = onTransportModeSelected,
-            enabled = !isCodecBusy,
-            modifier = Modifier.fillMaxWidth(),
-        )
     }
 }
 

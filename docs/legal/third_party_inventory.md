@@ -1,6 +1,6 @@
 # Third-Party Inventory
 
-更新时间：2026-04-21
+更新时间：2026-05-11
 
 ## 目的
 
@@ -94,30 +94,31 @@
 
 | Name | Version | 来源 | 用途 | 状态 | 备注 |
 | --- | --- | --- | --- | --- | --- |
-| androidx.appcompat:appcompat | 1.7.0 | `apps/audio_android/app/build.gradle.kts` | Android UI/runtime 支持 | 已确认 | APK 分发期依赖 |
-| androidx.core:core-ktx | 1.13.1 | `apps/audio_android/app/build.gradle.kts` | Android Kotlin 扩展 | 已确认 | APK 分发期依赖 |
-| androidx.datastore:datastore-preferences | 1.1.1 | `apps/audio_android/app/build.gradle.kts` | 偏好存储 | 已确认 | APK 分发期依赖 |
-| androidx.activity:activity-compose | 1.9.2 | `apps/audio_android/app/build.gradle.kts` | Compose Activity 集成 | 已确认 | APK 分发期依赖 |
-| androidx.lifecycle:lifecycle-viewmodel-ktx | 2.8.6 | `apps/audio_android/app/build.gradle.kts` | ViewModel 支持 | 已确认 | APK 分发期依赖 |
-| androidx.lifecycle:lifecycle-viewmodel-compose | 2.8.6 | `apps/audio_android/app/build.gradle.kts` | Compose + ViewModel | 已确认 | APK 分发期依赖 |
-| androidx.lifecycle:lifecycle-runtime-compose | 2.8.6 | `apps/audio_android/app/build.gradle.kts` | Compose runtime 生命周期支持 | 已确认 | APK 分发期依赖 |
-| androidx.profileinstaller:profileinstaller | 1.4.0 | `apps/audio_android/app/build.gradle.kts` | Profile installer | 已确认 | APK 分发期依赖 |
-| androidx.compose.ui:ui | 1.6.8 | `apps/audio_android/app/build.gradle.kts` | Compose UI | 已确认 | APK 分发期依赖 |
-| androidx.compose.ui:ui-tooling-preview | 1.6.8 | `apps/audio_android/app/build.gradle.kts` | Compose 预览支持 | 已确认 | APK 分发期依赖 |
-| androidx.compose.material:material-icons-extended | 1.6.8 | `apps/audio_android/app/build.gradle.kts` | Material icons | 已确认 | APK 分发期依赖 |
-| androidx.compose.material3:material3 | 1.2.1 | `apps/audio_android/app/build.gradle.kts` | Material 3 UI | 已确认 | APK 分发期依赖 |
-| com.mikepenz:aboutlibraries-core | 12.2.4 | `apps/audio_android/app/build.gradle.kts` | 第三方依赖信息展示 | 已确认 | APK 分发期依赖 |
-| com.mikepenz:aboutlibraries-compose-m3 | 12.2.4 | `apps/audio_android/app/build.gradle.kts` | Compose Material 3 的 AboutLibraries UI | 已确认 | APK 分发期依赖 |
+| androidx.appcompat:appcompat | 1.7.1 | `apps/audio_android/app/build.gradle.kts` | Android UI/runtime 支持 | 已确认 | APK 分发期依赖 |
+| androidx.core:core-ktx | 1.18.0 | `apps/audio_android/app/build.gradle.kts` | Android Kotlin 扩展 | 已确认 | APK 分发期依赖 |
+| androidx.datastore:datastore-preferences | 1.2.1 | `apps/audio_android/app/build.gradle.kts` | 偏好存储 | 已确认 | APK 分发期依赖 |
+| androidx.activity:activity-compose | 1.13.0 | `apps/audio_android/app/build.gradle.kts` | Compose Activity 集成 | 已确认 | APK 分发期依赖 |
+| androidx.lifecycle:lifecycle-viewmodel-ktx | 2.10.0 | `apps/audio_android/app/build.gradle.kts` | ViewModel 支持 | 已确认 | APK 分发期依赖 |
+| androidx.lifecycle:lifecycle-viewmodel-compose | 2.10.0 | `apps/audio_android/app/build.gradle.kts` | Compose + ViewModel | 已确认 | APK 分发期依赖 |
+| androidx.lifecycle:lifecycle-runtime-compose | 2.10.0 | `apps/audio_android/app/build.gradle.kts` | Compose runtime 生命周期支持 | 已确认 | APK 分发期依赖 |
+| androidx.profileinstaller:profileinstaller | 1.4.1 | `apps/audio_android/app/build.gradle.kts` | Profile installer | 已确认 | APK 分发期依赖 |
+| androidx.compose:compose-bom | 2026.04.01 | `apps/audio_android/app/build.gradle.kts` | Compose 版本对齐基线 | 已确认 | APK 分发期依赖 |
+| androidx.compose.ui:ui | 由 `Compose BOM 2026.04.01` 管理 | `apps/audio_android/app/build.gradle.kts` | Compose UI | 已确认 | APK 分发期依赖 |
+| androidx.compose.ui:ui-tooling-preview | 由 `Compose BOM 2026.04.01` 管理 | `apps/audio_android/app/build.gradle.kts` | Compose 预览支持 | 已确认 | APK 分发期依赖 |
+| androidx.compose.material:material-icons-extended | 由 `Compose BOM 2026.04.01` 管理 | `apps/audio_android/app/build.gradle.kts` | Material icons | 已确认 | APK 分发期依赖 |
+| androidx.compose.material3:material3 | 由 `Compose BOM 2026.04.01` 管理 | `apps/audio_android/app/build.gradle.kts` | Material 3 UI | 已确认 | APK 分发期依赖 |
+| com.mikepenz:aboutlibraries-core | 14.2.0 | `apps/audio_android/app/build.gradle.kts` | 第三方依赖信息展示 | 已确认 | APK 分发期依赖 |
+| com.mikepenz:aboutlibraries-compose-m3 | 14.2.0 | `apps/audio_android/app/build.gradle.kts` | Compose Material 3 的 AboutLibraries UI | 已确认 | APK 分发期依赖 |
 
 ### 构建/质量工具
 
 | Name | Version | 来源 | 用途 | 状态 | 备注 |
 | --- | --- | --- | --- | --- | --- |
-| com.android.application Gradle plugin | 9.0.1 | `apps/audio_android/build.gradle.kts` | Android 构建插件 | 已确认 | 构建期工具 |
-| org.jetbrains.kotlin.plugin.compose | 2.2.10 | `apps/audio_android/build.gradle.kts` | Compose 编译插件 | 已确认 | 构建期工具 |
-| org.jlleitschuh.gradle.ktlint | 14.1.0 | `apps/audio_android/build.gradle.kts` | Kotlin 格式检查 | 已确认 | 构建/质量工具 |
+| com.android.application Gradle plugin | 9.2.1 | `apps/audio_android/build.gradle.kts` | Android 构建插件 | 已确认 | 构建期工具 |
+| org.jetbrains.kotlin.plugin.compose | 2.3.21 | `apps/audio_android/build.gradle.kts` | Compose 编译插件 | 已确认 | 构建期工具 |
+| org.jlleitschuh.gradle.ktlint | 14.2.0 | `apps/audio_android/build.gradle.kts` | Kotlin 格式检查 | 已确认 | 构建/质量工具 |
 | io.gitlab.arturbosch.detekt | 1.23.8 | `apps/audio_android/build.gradle.kts` | Kotlin 静态检查 | 已确认 | 构建/质量工具 |
-| com.mikepenz.aboutlibraries.plugin | 12.2.4 | `apps/audio_android/build.gradle.kts` | 生成 AboutLibraries 资源 | 已确认 | 构建期工具 |
+| com.mikepenz.aboutlibraries.plugin | 14.2.0 | `apps/audio_android/build.gradle.kts` | 生成 AboutLibraries 资源 | 已确认 | 构建期工具 |
 | org.gradle.toolchains.foojay-resolver-convention | 1.0.0 | `apps/audio_android/settings.gradle.kts` | Gradle toolchain 解析 | 已确认 | 构建期工具 |
 
 ### 开发/测试依赖
@@ -125,10 +126,12 @@
 | Name | Version | 来源 | 用途 | 状态 | 备注 |
 | --- | --- | --- | --- | --- | --- |
 | junit:junit | 4.13.2 | `apps/audio_android/app/build.gradle.kts` | 单元测试 | 已确认 | `testImplementation` |
-| androidx.test:core | 1.6.1 | `apps/audio_android/app/build.gradle.kts` | Android 测试支持 | 已确认 | `testImplementation` |
-| org.jetbrains.kotlinx:kotlinx-coroutines-test | 1.8.1 | `apps/audio_android/app/build.gradle.kts` | 协程测试 | 已确认 | `testImplementation` |
-| org.robolectric:robolectric | 4.14.1 | `apps/audio_android/app/build.gradle.kts` | Android 单元测试环境 | 已确认 | `testImplementation` |
-| androidx.compose.ui:ui-tooling | 1.6.8 | `apps/audio_android/app/build.gradle.kts` | Compose 调试/预览工具 | 已确认 | `debugImplementation` |
+| androidx.test:core | 1.7.0 | `apps/audio_android/app/build.gradle.kts` | Android 测试支持 | 已确认 | `testImplementation` |
+| androidx.test.ext:junit | 1.3.0 | `apps/audio_android/app/build.gradle.kts` | Android instrumentation JUnit 扩展 | 已确认 | `androidTestImplementation` |
+| androidx.test.espresso:espresso-core | 3.7.0 | `apps/audio_android/app/build.gradle.kts` | Espresso UI 测试 | 已确认 | `androidTestImplementation` |
+| org.jetbrains.kotlinx:kotlinx-coroutines-test | 1.10.2 | `apps/audio_android/app/build.gradle.kts` | 协程测试 | 已确认 | `testImplementation` |
+| org.robolectric:robolectric | 4.16 | `apps/audio_android/app/build.gradle.kts` | Android 单元测试环境 | 已确认 | `testImplementation` |
+| androidx.compose.ui:ui-tooling | 由 `Compose BOM 2026.04.01` 管理 | `apps/audio_android/app/build.gradle.kts` | Compose 调试/预览工具 | 已确认 | `debugImplementation` |
 
 ## 当前待补项
 

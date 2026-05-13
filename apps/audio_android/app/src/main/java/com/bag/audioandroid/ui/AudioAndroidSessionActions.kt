@@ -7,6 +7,7 @@ import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.DecodedPayloadViewData
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.domain.SavedAudioRepository
 import com.bag.audioandroid.ui.model.AudioPlaybackSource
 import com.bag.audioandroid.ui.model.SampleInputLengthOption
@@ -35,6 +36,7 @@ internal class AudioAndroidSessionActions(
     refreshSavedAudioItems: () -> Unit,
     workerDispatcher: CoroutineDispatcher = Dispatchers.IO,
     generatedAudioCacheGateway: GeneratedAudioCacheGateway,
+    savedAudioDecodeCacheGateway: SavedAudioDecodeCacheGateway,
     private val followDataWindowActions: FollowDataWindowActions? = null,
 ) {
     private val editingActions =
@@ -59,6 +61,7 @@ internal class AudioAndroidSessionActions(
             stopPlayback = stopPlayback,
             workerDispatcher = workerDispatcher,
             generatedAudioCacheGateway = generatedAudioCacheGateway,
+            savedAudioDecodeCacheGateway = savedAudioDecodeCacheGateway,
         )
     private val exportActions =
         AudioSessionExportActions(
@@ -66,6 +69,7 @@ internal class AudioAndroidSessionActions(
             scope = scope,
             sessionStateStore = sessionStateStore,
             savedAudioRepository = savedAudioRepository,
+            generatedAudioCacheGateway = generatedAudioCacheGateway,
             sampleRateHz = sampleRateHz,
             refreshSavedAudioItems = refreshSavedAudioItems,
             workerDispatcher = workerDispatcher,

@@ -58,8 +58,8 @@ jobject ToGeneratedAudioMetadata(JNIEnv* env, const audio_io_metadata& metadata,
     jobject flash_style_object = nullptr;
     if (metadata.has_flash_voicing_style != 0u) {
         switch (metadata.flash_voicing_style) {
-            case AUDIO_IO_METADATA_FLASH_VOICING_STYLE_STEADY:
-                flash_style_object = FindFlashStyleById(env, flash_entries, "steady");
+            case AUDIO_IO_METADATA_FLASH_VOICING_STYLE_STANDARD:
+                flash_style_object = FindFlashStyleById(env, flash_entries, "standard");
                 break;
             case AUDIO_IO_METADATA_FLASH_VOICING_STYLE_LITANY:
                 flash_style_object = FindFlashStyleById(env, flash_entries, "litany");

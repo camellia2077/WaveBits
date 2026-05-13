@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import com.bag.audioandroid.data.AndroidIntentAudioShareGateway
 import com.bag.audioandroid.data.AndroidSampleInputTextProvider
 import com.bag.audioandroid.data.AppGeneratedAudioCacheGateway
+import com.bag.audioandroid.data.AppSavedAudioDecodeCacheGateway
 import com.bag.audioandroid.data.AppSettingsRepository
 import com.bag.audioandroid.data.DefaultSavedAudioRepository
 import com.bag.audioandroid.data.MediaStoreAudioExportGateway
@@ -27,6 +28,10 @@ internal fun rememberAudioAndroidViewModelFactory(appContext: Context): AudioAnd
     val generatedAudioCacheGateway =
         remember(appContext) {
             AppGeneratedAudioCacheGateway(appContext)
+        }
+    val savedAudioDecodeCacheGateway =
+        remember(appContext) {
+            AppSavedAudioDecodeCacheGateway(appContext)
         }
     val audioExportGateway =
         remember(appContext, audioIoGateway) {
@@ -75,6 +80,7 @@ internal fun rememberAudioAndroidViewModelFactory(appContext: Context): AudioAnd
             playbackRuntimeGateway = playbackRuntimeGateway,
             savedAudioRepository = savedAudioRepository,
             generatedAudioCacheGateway = generatedAudioCacheGateway,
+            savedAudioDecodeCacheGateway = savedAudioDecodeCacheGateway,
         )
     }
 }

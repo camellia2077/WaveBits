@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.PayloadFollowViewData
@@ -42,8 +44,10 @@ internal fun PlaybackDataFollowSection(
     followData: PayloadFollowViewData,
     displayedSamples: Int,
     transportMode: TransportModeOption?,
+    onTokenStripHeightDpChanged: (Float) -> Unit = {},
     modifier: Modifier = Modifier,
-    initialAnnotationMode: PlaybackFollowViewMode = PlaybackFollowViewMode.Hex,
+    initialAnnotationMode: PlaybackFollowViewMode = PlaybackFollowViewMode.Binary,
+    contentSpacing: Dp = 10.dp,
     onSeekToSample: (Int) -> Unit = {},
 ) {
     var selectedAnnotationMode by rememberSaveable { mutableStateOf(initialAnnotationMode.name) }
@@ -54,7 +58,7 @@ internal fun PlaybackDataFollowSection(
             PlaybackFollowViewMode.Morse.name
         } else {
             selectedAnnotationMode.takeUnless { it == PlaybackFollowViewMode.Morse.name }
-                ?: PlaybackFollowViewMode.Hex.name
+                ?: PlaybackFollowViewMode.Binary.name
         }
     val presentationState =
         rememberPlaybackFollowPresentationState(
@@ -62,13 +66,19 @@ internal fun PlaybackDataFollowSection(
             displayedSamples = displayedSamples,
             selectedAnnotationModeName = normalizedAnnotationModeName,
         )
+    SideEffect {
+        FlashAlignmentPerfTrace.recordTokenCard(
+            followData = followData,
+            presentationState = presentationState,
+        )
+    }
 
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .testTag("playback-follow-section"),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(contentSpacing),
     ) {
         if (!followData.followAvailable) {
             Text(
@@ -115,6 +125,8 @@ internal fun PlaybackDataFollowSection(
         PlaybackFollowTokenStrip(
             followData = followData,
             presentationState = presentationState,
+            transportMode = transportMode,
+            onMeasuredHeightDpChanged = onTokenStripHeightDpChanged,
         )
         if (isTokenizerOpen) {
             PlaybackFollowTokenizerSheet(

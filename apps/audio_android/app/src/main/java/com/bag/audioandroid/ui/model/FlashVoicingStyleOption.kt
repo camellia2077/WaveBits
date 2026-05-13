@@ -12,12 +12,12 @@ enum class FlashVoicingStyleOption(
     @param:StringRes val labelResId: Int,
     @param:StringRes val descriptionResId: Int,
 ) {
-    Steady(
-        id = "steady",
-        signalProfileValue = FlashSignalProfileWire.STEADY,
-        voicingFlavorValue = FlashVoicingFlavorWire.STEADY,
-        labelResId = R.string.config_flash_style_steady_label,
-        descriptionResId = R.string.config_flash_style_steady_description,
+    Standard(
+        id = "standard",
+        signalProfileValue = FlashSignalProfileWire.STANDARD,
+        voicingFlavorValue = FlashVoicingFlavorWire.STANDARD,
+        labelResId = R.string.config_flash_style_standard_label,
+        descriptionResId = R.string.config_flash_style_standard_description,
     ),
     Hostile(
         id = "hostile",
@@ -67,6 +67,6 @@ enum class FlashVoicingStyleOption(
             }
 
     companion object {
-        fun fromId(id: String?): FlashVoicingStyleOption = entries.firstOrNull { it.id == id } ?: Steady
+        fun fromId(id: String?): FlashVoicingStyleOption = entries.firstOrNull { it.id == id } ?: Standard
     }
 }

@@ -1,5 +1,6 @@
 package com.bag.audioandroid.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.stopScroll
@@ -23,9 +24,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.domain.PayloadFollowViewData
+import com.bag.audioandroid.ui.model.TransportModeOption
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -34,12 +38,17 @@ import kotlinx.coroutines.launch
 internal fun PlaybackFollowTokenStrip(
     followData: PayloadFollowViewData,
     presentationState: PlaybackFollowPresentationState,
+    transportMode: TransportModeOption?,
+    onMeasuredHeightDpChanged: (Float) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
     var autoFollowPaused by remember { mutableStateOf(false) }
     var resumeAutoFollowJob by remember { mutableStateOf<Job?>(null) }
+    var measuredStripHeightPx by remember { mutableStateOf(0) }
+    var measuredActiveCardHeightPx by remember { mutableStateOf(0) }
 
     fun pauseAutoFollowBriefly() {
         autoFollowPaused = true
@@ -59,6 +68,15 @@ internal fun PlaybackFollowTokenStrip(
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val maxWidthPx = constraints.maxWidth
         val density = androidx.compose.ui.platform.LocalDensity.current
+        val minStripHeight =
+            if (transportMode == TransportModeOption.Mini) {
+                // Mini token pages render morse chips rather than tall binary/hex blocks.
+                // Use a smaller minimum strip height so the compact lyrics preview can
+                // reclaim the token-strip's internal spare space without touching the dock.
+                148.dp
+            } else {
+                188.dp
+            }
         val centeredItemWidth =
             with(density) {
                 (maxWidthPx * PlaybackFollowTokenCenterWidthFraction)
@@ -80,8 +98,20 @@ internal fun PlaybackFollowTokenStrip(
         val stripModifier =
             Modifier
                 .fillMaxWidth()
-                .heightIn(min = 188.dp, max = 320.dp)
-                .pointerInput(Unit) {
+                .heightIn(min = minStripHeight, max = 320.dp)
+                .onSizeChanged { size ->
+                    val heightPx = size.height
+                    val widthPx = size.width
+                    measuredStripHeightPx = heightPx
+                    val heightDp = with(density) { heightPx.toDp().value }
+                    val widthDp = with(density) { widthPx.toDp().value }
+                    onMeasuredHeightDpChanged(heightDp)
+                    Log.d(
+                        "PlaybackLyricsLayout",
+                        "mode=lyrics surface=token-strip widthPx=$widthPx widthDp=${"%.1f".format(widthDp)} " +
+                            "heightPx=$heightPx heightDp=${"%.1f".format(heightDp)} tokenCount=${followData.textTokens.size}",
+                    )
+                }.pointerInput(Unit) {
                     awaitEachGesture {
                         awaitFirstDown(pass = PointerEventPass.Initial)
                         pauseAutoFollowBriefly()
@@ -122,6 +152,26 @@ internal fun PlaybackFollowTokenStrip(
                             presentationState.isActiveBitTone,
                     isPast = index < presentationState.activeTextIndex,
                     modifier = Modifier.animateItem().width(centeredItemWidth),
+                    onMeasuredHeightPxChanged =
+                        if (index == presentationState.activeTextIndex) {
+                            { heightPx ->
+                                measuredActiveCardHeightPx = heightPx
+                                if (measuredStripHeightPx > 0) {
+                                    val stripHeightDp = with(density) { measuredStripHeightPx.toDp().value }
+                                    val activeCardHeightDp = with(density) { heightPx.toDp().value }
+                                    val spareHeightDp = with(density) { (measuredStripHeightPx - heightPx).coerceAtLeast(0).toDp().value }
+                                    Log.d(
+                                        "PlaybackTokenStripLayout",
+                                        "mode=lyrics stripHeightDp=${"%.1f".format(stripHeightDp)} " +
+                                            "activeCardHeightDp=${"%.1f".format(activeCardHeightDp)} " +
+                                            "stripSpareHeightDp=${"%.1f".format(spareHeightDp)} " +
+                                            "activeIndex=${presentationState.activeTextIndex}",
+                                    )
+                                }
+                            }
+                        } else {
+                            null
+                        },
                 )
             }
         }

@@ -164,7 +164,7 @@ internal object AndroidSampleCatalog {
         DissolutionOfEgo,
         SolipsisticApex,
         TyrannyOfPerfection,
-        SeductionOfStasis,
+        SeductionOfStandard,
     }
 
     private enum class LabyrinthOfMutabilityThemeCategory {
@@ -645,14 +645,14 @@ internal object AndroidSampleCatalog {
                 ),
                 ExquisiteFallSampleDefinition(
                     id = "soft_moss_says_enough",
-                    themeCategory = ExquisiteFallThemeCategory.SeductionOfStasis,
+                    themeCategory = ExquisiteFallThemeCategory.SeductionOfStandard,
                     allowedLengths = setOf(SampleInputLengthOption.Short),
                     themedResId = R.string.audio_sample_exquisite_fall_themed_soft_moss_says_enough,
                     asciiResId = R.string.audio_sample_pro_ascii_soft_moss_says_enough,
                 ),
                 ExquisiteFallSampleDefinition(
                     id = "lullaby_closes_the_eyes",
-                    themeCategory = ExquisiteFallThemeCategory.SeductionOfStasis,
+                    themeCategory = ExquisiteFallThemeCategory.SeductionOfStandard,
                     allowedLengths = setOf(SampleInputLengthOption.Long),
                     themedResId = R.string.audio_sample_exquisite_fall_themed_lullaby_closes_the_eyes,
                     asciiResId = R.string.audio_sample_pro_ascii_lullaby_closes_the_eyes,

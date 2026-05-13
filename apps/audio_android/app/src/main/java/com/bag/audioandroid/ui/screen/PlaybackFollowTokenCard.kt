@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -37,6 +38,7 @@ internal fun PlaybackFollowTokenCard(
     isActiveBitTone: Boolean = false,
     isPast: Boolean = false,
     onClick: (() -> Unit)? = null,
+    onMeasuredHeightPxChanged: ((Int) -> Unit)? = null,
     testTag: String? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -112,7 +114,13 @@ internal fun PlaybackFollowTokenCard(
         shape = MaterialTheme.shapes.large,
         modifier =
             cardModifier
-                .widthIn(min = PlaybackFollowTokenCardMinimumWidth, max = PlaybackFollowTokenCardMaximumWidth)
+                .then(
+                    if (onMeasuredHeightPxChanged != null) {
+                        Modifier.onSizeChanged { size -> onMeasuredHeightPxChanged(size.height) }
+                    } else {
+                        Modifier
+                    },
+                ).widthIn(min = PlaybackFollowTokenCardMinimumWidth, max = PlaybackFollowTokenCardMaximumWidth)
                 .testTag(
                     testTag ?: if (isActive) {
                         "follow-token-active"

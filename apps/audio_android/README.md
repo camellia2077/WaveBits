@@ -12,8 +12,12 @@
   - `docs/architecture/android/android-ui-structure.md`
 - Android native 策略：
   - `docs/architecture/android/android-native-strategy.md`
+- Android 基础设施升级清单：
+  - `docs/notes/android/android-infra-upgrade-checklist.md`
 - Android 自动化覆盖总览：
   - `docs/architecture/android/android-automation-coverage.md`
+- Android 自动化 agent 索引：
+  - `docs/architecture/android/android-automation-agent-index.md`
 - Android 双色主题规则：
   - `docs/design/android/android-dual-tone-theme.md`
 - Android 播放器 UI：
@@ -61,6 +65,7 @@
 - 想看 UI 设计原则：去 `docs/design/android/`
 - 想看 UI 职责和代码归属：去 `docs/architecture/android/android-ui-structure.md`
 - 想看 agent 必须遵守的硬规则：去 `apps/audio_android/AGENTS.md`
+- 想按需展开 Android 自动化文档：先去 `docs/architecture/android/android-automation-agent-index.md`
 
 ## 代码地图
 

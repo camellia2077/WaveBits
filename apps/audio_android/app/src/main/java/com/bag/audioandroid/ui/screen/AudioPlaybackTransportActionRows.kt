@@ -23,7 +23,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,7 +40,7 @@ import com.bag.audioandroid.R
 import com.bag.audioandroid.ui.PlayerChromeColors
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
 import com.bag.audioandroid.ui.model.PlaybackSpeedOption
-import kotlin.math.round
+import com.bag.audioandroid.ui.playerSegmentedButtonColors
 
 @Composable
 internal fun AudioPlaybackPrimaryControlsRow(
@@ -366,6 +368,7 @@ private fun PlaybackSpeedAdjustmentRow(
     onPlaybackSpeedSelected: (Float) -> Unit,
     contentColor: androidx.compose.ui.graphics.Color,
 ) {
+    val selectedSpeed = PlaybackSpeedOption.fromSpeed(playbackSpeed)
     Column(
         modifier =
             Modifier
@@ -378,14 +381,43 @@ private fun PlaybackSpeedAdjustmentRow(
             style = MaterialTheme.typography.labelLarge,
             color = contentColor,
         )
-        Slider(
-            value = playbackSpeed.coerceIn(PlaybackSpeedMin, PlaybackSpeedMax),
-            onValueChange = { selectedSpeed ->
-                onPlaybackSpeedSelected(snapPlaybackSpeed(selectedSpeed))
-            },
-            valueRange = PlaybackSpeedMin..PlaybackSpeedMax,
-            steps = PlaybackSpeedSliderSteps,
+        PlaybackSpeedPresetRow(
+            options = PlaybackSpeedOption.slowerSpeeds,
+            selectedSpeed = selectedSpeed,
+            onPlaybackSpeedSelected = onPlaybackSpeedSelected,
         )
+        PlaybackSpeedPresetRow(
+            options = PlaybackSpeedOption.fasterSpeeds,
+            selectedSpeed = selectedSpeed,
+            onPlaybackSpeedSelected = onPlaybackSpeedSelected,
+        )
+    }
+}
+
+@Composable
+private fun PlaybackSpeedPresetRow(
+    options: List<PlaybackSpeedOption>,
+    selectedSpeed: PlaybackSpeedOption,
+    onPlaybackSpeedSelected: (Float) -> Unit,
+) {
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        options.forEachIndexed { index, option ->
+            SegmentedButton(
+                selected = option == selectedSpeed,
+                onClick = { onPlaybackSpeedSelected(option.speed) },
+                shape =
+                    SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = options.size,
+                    ),
+                colors = playerSegmentedButtonColors(),
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(text = PlaybackSpeedOption.format(option.speed))
+            }
+        }
     }
 }
 
@@ -397,12 +429,3 @@ private fun SpacerUtilitySlot() {
         // Keep the speed control centered even when export is unavailable.
     }
 }
-
-private fun snapPlaybackSpeed(speed: Float): Float =
-    (round((speed - PlaybackSpeedMin) / PlaybackSpeedStep) * PlaybackSpeedStep + PlaybackSpeedMin)
-        .coerceIn(PlaybackSpeedMin, PlaybackSpeedMax)
-
-private const val PlaybackSpeedMin = 0.1f
-private const val PlaybackSpeedMax = 4.0f
-private const val PlaybackSpeedStep = 0.1f
-private const val PlaybackSpeedSliderSteps = 38

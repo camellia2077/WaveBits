@@ -22,6 +22,7 @@ import com.bag.audioandroid.domain.PayloadFollowByteTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.SavedAudioContent
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.domain.SavedAudioImportResult
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRenameResult
@@ -43,6 +44,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
@@ -219,7 +221,7 @@ class AudioSessionCodecFailureStateTest {
             val staleMetadata =
                 GeneratedAudioMetadata(
                     mode = TransportModeOption.Flash,
-                    flashVoicingStyle = FlashVoicingStyleOption.Steady,
+                    flashVoicingStyle = FlashVoicingStyleOption.Standard,
                     createdAtIsoUtc = "2026-05-11T00:00:00Z",
                     durationMs = 1_000,
                     sampleRateHz = 44_100,
@@ -240,7 +242,7 @@ class AudioSessionCodecFailureStateTest {
                                     generatedPcm = shortArrayOf(1, 2, 3),
                                     generatedWaveformPcm = shortArrayOf(1, 2, 3),
                                     generatedAudioMetadata = staleMetadata,
-                                    generatedFlashVoicingStyle = FlashVoicingStyleOption.Steady,
+                                    generatedFlashVoicingStyle = FlashVoicingStyleOption.Standard,
                                     generatedFlashSignalInfo =
                                         FlashSignalInfo(
                                             lowCarrierHz = "300",
@@ -332,12 +334,14 @@ class AudioSessionCodecFailureStateTest {
             val selectionActions =
                 AudioSavedAudioSelectionActions(
                     uiState = fixture.uiState,
-                    audioCodecGateway = FakeAudioCodecGateway(),
+                    scope = this,
                     playbackRuntimeGateway = FakePlaybackRuntimeGateway(),
                     savedAudioRepository = CodecFakeSavedAudioRepository(mapOf(savedItem.itemId to savedContent)),
                     stopPlayback = {},
                     setCurrentStatusText = {},
                     generatedAudioCacheGateway = CodecFakeGeneratedAudioCacheGateway(),
+                    savedAudioDecodeCacheGateway = CodecFakeSavedAudioDecodeCacheGateway(),
+                    workerDispatcher = UnconfinedTestDispatcher(testScheduler),
                 )
 
             selectionActions.onSavedAudioSelected(savedItem.itemId)
@@ -858,6 +862,7 @@ private fun createFixture(
             stopPlayback = {},
             workerDispatcher = dispatcher,
             generatedAudioCacheGateway = CodecFakeGeneratedAudioCacheGateway(),
+            savedAudioDecodeCacheGateway = CodecFakeSavedAudioDecodeCacheGateway(),
         )
     return Fixture(uiState, actions)
 }
@@ -1111,6 +1116,32 @@ private class CodecFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {
             File(path).delete()
         }
     }
+
+    override fun pruneCachedFiles(retainedPaths: Set<String>) {
+        retainedPaths
+            .filter { it.isNotBlank() }
+            .map(::File)
+            .forEach { it.deleteOnExit() }
+    }
+}
+
+private class CodecFakeSavedAudioDecodeCacheGateway : SavedAudioDecodeCacheGateway {
+    override fun read(
+        item: SavedAudioItem,
+        metadata: GeneratedAudioMetadata?,
+    ) = null
+
+    override fun write(
+        item: SavedAudioItem,
+        metadata: GeneratedAudioMetadata?,
+        decodedPayload: DecodedPayloadViewData,
+        followData: PayloadFollowViewData,
+        flashSignalInfo: FlashSignalInfo,
+    ) = Unit
+
+    override fun delete(itemId: String) = Unit
+
+    override fun prune(validItemIds: Set<String>) = Unit
 }
 
 private class FakeGeneratedAudioPcmCacheWriter(

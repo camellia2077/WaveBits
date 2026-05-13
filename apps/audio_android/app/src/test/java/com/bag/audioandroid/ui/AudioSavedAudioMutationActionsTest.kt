@@ -6,6 +6,7 @@ import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.GeneratedAudioMetadata
 import com.bag.audioandroid.domain.GeneratedAudioPcmCacheWriter
 import com.bag.audioandroid.domain.SavedAudioContent
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.domain.SavedAudioFolder
 import com.bag.audioandroid.domain.SavedAudioFolderMutationResult
 import com.bag.audioandroid.domain.SavedAudioImportResult
@@ -47,6 +48,7 @@ class AudioSavedAudioMutationActionsTest {
                 stopPlayback = {},
                 setCurrentStatusText = {},
                 generatedAudioCacheGateway = MutationFakeGeneratedAudioCacheGateway(),
+                savedAudioDecodeCacheGateway = MutationFakeSavedAudioDecodeCacheGateway(),
             )
 
         actions.onImportAudio("content://picked/audio")
@@ -68,6 +70,7 @@ class AudioSavedAudioMutationActionsTest {
                 stopPlayback = {},
                 setCurrentStatusText = {},
                 generatedAudioCacheGateway = MutationFakeGeneratedAudioCacheGateway(),
+                savedAudioDecodeCacheGateway = MutationFakeSavedAudioDecodeCacheGateway(),
             )
 
         actions.onImportAudio("content://picked/audio")
@@ -107,6 +110,7 @@ class AudioSavedAudioMutationActionsTest {
                 stopPlayback = {},
                 setCurrentStatusText = {},
                 generatedAudioCacheGateway = MutationFakeGeneratedAudioCacheGateway(),
+                savedAudioDecodeCacheGateway = MutationFakeSavedAudioDecodeCacheGateway(),
             )
 
         actions.onCreateSavedAudioFolder("Demo")
@@ -150,6 +154,7 @@ class AudioSavedAudioMutationActionsTest {
                 stopPlayback = {},
                 setCurrentStatusText = {},
                 generatedAudioCacheGateway = MutationFakeGeneratedAudioCacheGateway(),
+                savedAudioDecodeCacheGateway = MutationFakeSavedAudioDecodeCacheGateway(),
             )
 
         actions.onMoveSavedAudioToFolder(listOf(item.itemId), folder.folderId)
@@ -241,4 +246,25 @@ private class MutationFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGatewa
         }
 
     override fun deleteCachedFile(path: String?) = Unit
+
+    override fun pruneCachedFiles(retainedPaths: Set<String>) = Unit
+}
+
+private class MutationFakeSavedAudioDecodeCacheGateway : SavedAudioDecodeCacheGateway {
+    override fun read(
+        item: SavedAudioItem,
+        metadata: GeneratedAudioMetadata?,
+    ) = null
+
+    override fun write(
+        item: SavedAudioItem,
+        metadata: GeneratedAudioMetadata?,
+        decodedPayload: com.bag.audioandroid.domain.DecodedPayloadViewData,
+        followData: com.bag.audioandroid.domain.PayloadFollowViewData,
+        flashSignalInfo: com.bag.audioandroid.domain.FlashSignalInfo,
+    ) = Unit
+
+    override fun delete(itemId: String) = Unit
+
+    override fun prune(validItemIds: Set<String>) = Unit
 }

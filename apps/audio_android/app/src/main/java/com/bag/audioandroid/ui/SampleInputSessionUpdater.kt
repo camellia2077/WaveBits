@@ -2,7 +2,6 @@ package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.ui.model.AppLanguageOption
-import com.bag.audioandroid.ui.model.SampleDecorationStyleOption
 import com.bag.audioandroid.ui.model.SampleFlavor
 import com.bag.audioandroid.ui.model.SampleInputLengthOption
 import com.bag.audioandroid.ui.model.TransportModeOption
@@ -19,7 +18,6 @@ class SampleInputSessionUpdater(
         language: AppLanguageOption,
         flavor: SampleFlavor,
         isDecorationEnabled: Boolean = true,
-        decorationStyle: SampleDecorationStyleOption = SampleDecorationStyleOption.Emoji,
     ): Map<TransportModeOption, ModeAudioSessionState> =
         sessions.mapValues { (mode, session) ->
             randomizedInitialSession(
@@ -28,7 +26,6 @@ class SampleInputSessionUpdater(
                 language = language,
                 flavor = flavor,
                 isDecorationEnabled = isDecorationEnabled,
-                decorationStyle = decorationStyle,
             )
         }
 
@@ -68,7 +65,6 @@ class SampleInputSessionUpdater(
                     language = language,
                     flavor = newFlavor,
                     isDecorationEnabled = false,
-                    decorationStyle = SampleDecorationStyleOption.None,
                 )
             }
         }
@@ -79,7 +75,6 @@ class SampleInputSessionUpdater(
         language: AppLanguageOption,
         flavor: SampleFlavor,
         isDecorationEnabled: Boolean,
-        decorationStyle: SampleDecorationStyleOption,
     ): ModeAudioSessionState {
         val length = SampleInputLengthOption.Short
         // The first sample does not need to be fixed. We can shuffle first, show
@@ -108,7 +103,6 @@ class SampleInputSessionUpdater(
                 mode = mode,
                 flavor = flavor,
                 isDecorationEnabled = isDecorationEnabled,
-                decorationStyle = decorationStyle,
                 currentState = session.sampleEmojiShuffleState,
                 random = random,
             )

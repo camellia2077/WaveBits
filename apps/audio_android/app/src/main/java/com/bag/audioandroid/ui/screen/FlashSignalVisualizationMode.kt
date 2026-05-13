@@ -5,7 +5,7 @@ import com.bag.audioandroid.R
 enum class FlashSignalVisualizationMode(
     val labelResId: Int,
 ) {
-    ToneTracks(R.string.audio_flash_visualizer_mode_tone_tracks),
-    ToneEnergy(R.string.audio_flash_visualizer_mode_tone_energy),
-    PitchLadder(R.string.audio_flash_visualizer_mode_pitch_ladder),
+    Lanes(R.string.audio_flash_visualizer_mode_lanes),
+    Pitch(R.string.audio_flash_visualizer_mode_pitch),
+    Pulse(R.string.audio_flash_visualizer_mode_pulse),
 }

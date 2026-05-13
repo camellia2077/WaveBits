@@ -12,6 +12,11 @@ def _find_repo_root(start: Path) -> Path:
 
 REPO_ROOT = _find_repo_root(Path(__file__).resolve())
 DEFAULT_RES_DIRECTORY = REPO_ROOT / "apps" / "audio_android" / "app" / "src" / "main" / "res"
+DEFAULT_TRANSLATIONS_TEMP_DIRECTORY = REPO_ROOT / "temp" / "translations"
+DEFAULT_TRANSLATION_REVIEWS_DIRECTORY = DEFAULT_TRANSLATIONS_TEMP_DIRECTORY / "reviews"
+DEFAULT_TRANSLATION_KEY_ALIGNMENT_DIRECTORY = DEFAULT_TRANSLATIONS_TEMP_DIRECTORY / "key_alignment"
+DEFAULT_TRANSLATION_XML_DUMPS_DIRECTORY = DEFAULT_TRANSLATIONS_TEMP_DIRECTORY / "xml_dump"
+DEFAULT_TRANSLATION_LINT_BASELINE_FILE = DEFAULT_TRANSLATIONS_TEMP_DIRECTORY / "lint-baseline.json"
 TEXT_TYPES = ("app_text", "sample_text")
 FACTIONS = (
     "ancient_dynasty",

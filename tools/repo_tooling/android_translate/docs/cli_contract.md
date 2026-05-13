@@ -75,6 +75,11 @@ Note:
 - `1`: input file missing or setup failure
 - `2`: suggestion schema or conversion validation failure
 
+### `term-suggestions`
+
+- `0`: term inspection completed
+- `2`: invalid term or missing requested localized language folder
+
 ### `add-key`
 
 - `0`: English baseline key was added or already existed
@@ -153,11 +158,53 @@ Supported commands:
 - `mixed-language`
 - `key-alignment`
 - `replace`
+- `term-suggestions`
 
 `dump-xml-md` currently focuses on human-readable low-markup artifacts and does not emit JSON payloads.
 
 `--json-output` does not change business logic.
 It only changes presentation format.
+
+For `term-suggestions`, the recommended JSON shape is:
+
+```json
+{
+  "ok": true,
+  "command": "term-suggestions",
+  "exit_code": 0,
+  "summary": {
+    "term": "Standard",
+    "languages": ["de", "es", "ja"],
+    "text_type": "app_text",
+    "group": "strings_settings",
+    "whole_word": true,
+    "matched_files": 1,
+    "matched_keys": 1
+  },
+  "matches": [
+    {
+      "file": "strings_settings.xml",
+      "key": "config_flash_style_standard_label",
+      "en": "Standard",
+      "localized": {
+        "de": "Standard",
+        "es": "Estándar",
+        "ja": "標準"
+      }
+    }
+  ],
+  "suggestions": {
+    "de": [
+      {
+        "value": "Standard",
+        "count": 1,
+        "source_keys": ["config_flash_style_standard_label"]
+      }
+    ]
+  },
+  "errors": []
+}
+```
 
 For `replace`, the input schema is a single top-level object:
 

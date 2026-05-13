@@ -69,18 +69,22 @@ Covered scenarios:
 - Flash generated playback: `docs/architecture/android/android-flash-automation.md`
 - Mini generated playback alignment: `docs/architecture/android/android-mini-automation.md`
 - Mini/Pro/Ultra encode progress display: `docs/architecture/android/android-encode-progress-automation.md`
+- Saved library selection + player-detail latency: `docs/architecture/android/android-saved-automation.md`
+- Settings-owned automation surface: `docs/architecture/android/android-settings-automation.md`
 
 Common coverage:
 
 - Device foreground app path.
 - Debug intent extras for input text and scenario configuration.
+- Debug intent extras for selected Settings-owned state such as app language.
 - Logcat capture and summaries through `python tools/run.py android-debug capture-*` and `python tools/run.py android-debug ...-summary`.
 - Generated playback and progress diagnostics with stable debug tags.
+- Debug-only on-screen overlays for selected playback diagnosis, including Flash Visual perf metrics and `Lanes` alignment observation.
 
 Not covered:
 
 - Release/staging automation entry points.
-- Saved library click-through or import/export flows.
+- Saved library import/export/share flows.
 - Screenshot/pixel validation.
 - Automated assertion pass/fail beyond the generated summary and manual success criteria.
 
@@ -89,14 +93,14 @@ Not covered:
 | Area | JVM state tests | Instrumentation UI | ADB debug scenario | Notes |
 | --- | --- | --- | --- | --- |
 | Flash encode | Covered | Covered | Covered | ADB covers styles, short/long/sample id/custom input, UI/headless. |
-| Flash playback Visual/Lyrics | Partial | Covered smoke | Covered diagnostics | Pixel correctness is not covered. |
+| Flash playback Visual/Lyrics | Partial | Covered smoke | Covered diagnostics | ADB now covers `lyrics/visual/mix`, `lanes/pulse/pitch`, shared-sample alignment logs, and debug overlay observation; pixel correctness is still not asserted. |
 | Flash voicing styles | Covered through config and selected flows | Covered | Covered | Full visual-mode x style matrix is not in instrumentation. |
 | Mini encode | Covered | Covered | Covered | ADB Mini scenario covers playback alignment; encode-progress scenario covers progress UI. |
 | Mini Morse speeds | Covered through config and selected flows | Covered | Covered | ADB Mini scenario sweeps slow/standard/fast. |
 | Pro encode | Covered | Not mode-specific | Covered | Encode-progress scenario covers progress UI. |
 | Ultra encode | Covered | Not mode-specific | Covered | Encode-progress scenario caught and verifies the no-bounce regression. |
 | Generated mini player | Covered | Covered smoke | Covered diagnostics | Failure cleanup is covered in JVM. |
-| Saved playback source | Covered | Partial through UI surfaces | Not covered | Saved/Generated failure isolation is covered in JVM. |
+| Saved playback source | Covered | Partial through UI surfaces | Covered diagnostics | ADB scenario covers selection/detail timing and long-audio hydration. |
 | Decode/Roundtrip | Covered | Not covered | Not covered | Generated `flash/mini/pro/ultra` roundtrip is JVM-only. |
 | Long text segmentation | Covered | Not covered | Covered indirectly | ADB progress captures long generated input; JVM validates metadata/state. |
 | File-backed generated PCM | Covered | Not covered | Covered by logs | Real file size/perf is device-observed, not asserted. |
@@ -109,8 +113,6 @@ Not covered:
 Highest priority gaps:
 
 - Saved library product workflow on device:
-  - select saved item
-  - open player detail
   - play/pause
   - delete selected/current item
   - verify current playback source fallback
@@ -128,6 +130,52 @@ Lower priority but useful:
 - Screenshot or pixel assertions for Flash/Mini visual surfaces.
 - Staging/release-like device automation for JNI/R8/resource-shrinker regressions.
 - Activity recreation and app background/foreground playback-state recovery.
+
+## Current Agent Notes
+
+Useful things a new agent should know before debugging Android playback alignment:
+
+- `python tools/run.py android-debug capture-flash` is the main entry for real-device Flash capture.
+- All `capture-*` wrappers write the same three artifact files:
+  - `raw.log`
+  - `summary.md`
+  - `crash-summary.txt`
+- `python tools/run.py android-debug crash-summary <raw.log>` can be reused on any existing adb dump; it is not Flash-specific.
+- Flash adb scenarios support:
+  - `--scenario ui|headless`
+  - `--display lyrics|visual|mix`
+  - `--visual lanes|pulse|pitch`
+  - `--style <flash-style>`
+  - `--sample-length short|long` or explicit `--input`
+- Current Flash `1.0x` real-device baseline:
+  - sweep every `FlashVoicingStyleOption`
+  - first gate is `Mix + Pulse`
+  - current reference capture is `temp/android-debug/flash_mix_pulse_style_sweep_20260514/`
+- Important wrapper limitation:
+  - the raw adb Flash scenario supports `wb.display` and `wb.lang`
+  - `capture-flash` now exposes `--display`
+  - `capture-flash` still does not expose `wb.lang`
+  - use raw `adb shell am start ...` when you need language override from the wrapper path
+- Important Mini wrapper limitation:
+  - the raw adb Mini scenario supports `wb.display`, `wb.lyrics.expand`, and `wb.lang`
+  - `capture-mini` does not expose them yet
+- `FlashAlignmentPerf` is the preferred unified sync stream for Flash:
+  - it carries Visual, `8 bits`, and token-card state in one throttled row
+  - current fields are enough to distinguish offset drift from bit-value mismatch
+- `Settings > Debug > Visual perf overlay` is not only an FPS overlay anymore:
+  - in `Flash + Lanes`, it also shows current bit boundaries and an on-screen `lane / row / token` alignment summary
+- `Pulse` has its own geometry trace:
+  - `PlaybackPulseLayout`
+- Stable Compose tags worth preferring in tests and scripted checks:
+  - `playback-display-lyrics`
+  - `playback-display-visual`
+  - `playback-display-mix`
+  - `flash-visualization-mode-lanes`
+  - `flash-visualization-mode-pulse`
+  - `flash-visualization-mode-pitch`
+  - `flash-visual-lanes-alignment-overlay`
+  - `flash-visual-lanes-alignment-summary`
+  - `flash-visual-pulse-tape`
 
 ## Maintenance Rules
 

@@ -29,7 +29,7 @@
     <string name="audio_action_export_to_file">匯出到檔案</string>
     <string name="audio_action_playback_speed_short">速度</string>
     <string name="audio_action_open_playback_speed_menu">開啟播放速度選單</string>
-    <string name="audio_action_toggle_playback_speed_slider">切換播放速度微調</string>
+    <string name="audio_action_toggle_playback_speed_slider">切換播放速度檔位</string>
     <string name="audio_action_cycle_playback_speed">播放速度 %1$s</string>
     <string name="audio_action_open_saved_audio_list">已儲存</string>
     <string name="audio_decode_source_generated">來源：%1$s</string>
@@ -80,7 +80,7 @@
     <string name="audio_player_detail_decoded_title">讀取結果</string>
     <string name="audio_player_detail_decoded_empty">尚無結果。需要時請點選「讀取」。</string>
     <string name="audio_playback_view_visual">視覺</string>
-    <string name="audio_playback_view_lyrics">歌詞</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">等待 follow 資料</string>
     <string name="audio_pro_visual_symbol_order">目前位元組會發出 2 個符號：先高 nibble，再低 nibble</string>
     <string name="audio_pro_visual_step_1">步驟 1</string>
@@ -142,9 +142,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d 位元組</string>
     <string name="audio_generated_input_source_manual">手動輸入</string>
     <string name="audio_generated_input_source_sample">示例文字</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">軌道</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">能量</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">階梯</string>
+    <string name="audio_flash_visualizer_mode_lanes">軌道</string>
+    <string name="audio_flash_visualizer_mode_pulse">脈衝</string>
+    <string name="audio_flash_visualizer_mode_pitch">階梯</string>
     <string name="transport_mode_flash_label">flash</string>
     <string name="transport_mode_pro_label">pro</string>
     <string name="transport_mode_ultra_label">ultra</string>
@@ -235,10 +235,14 @@
     <string name="demo_hint_generate_audio">Generate audio</string>
     <string name="demo_hint_decode_audio">Decode audio</string>
     <string name="demo_hint_open_mini_player">Open mini player</string>
-    <string name="demo_hint_switch_to_lyrics">Switched to Lyrics</string>
+    <string name="demo_hint_switch_to_lyrics">Switched to Tokens</string>
     <string name="demo_hint_switch_to_visual">Switched to Visual</string>
     <string name="demo_hint_play">Playback started</string>
     <string name="demo_hint_pause">Playback paused</string>
     <string name="demo_hint_theme_changed">Theme changed</string>
     <string name="demo_hint_language_changed">Language changed and sample refreshed</string>
+    <string name="audio_saved_audio_decode_loading_title">正在讀取已儲存音訊…</string>
+    <string name="audio_saved_audio_decode_loading_body">此片段會讀取一次，用來建立可重用的文字與歌詞檢視。結果只會保存在此 app 內，讓下次開啟更快。</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

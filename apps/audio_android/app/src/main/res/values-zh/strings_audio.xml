@@ -39,7 +39,7 @@
     <string name="audio_action_export_to_file">导出到文件</string>
     <string name="audio_action_playback_speed_short">速度</string>
     <string name="audio_action_open_playback_speed_menu">打开播放速度菜单</string>
-    <string name="audio_action_toggle_playback_speed_slider">切换播放速度微调</string>
+    <string name="audio_action_toggle_playback_speed_slider">切换播放速度挡位</string>
     <string name="audio_action_cycle_playback_speed">播放速度 %1$s</string>
     <string name="audio_action_open_saved_audio_list">已保存</string>
     <!-- CONTEXT: Label describing where the current read result came from. %1$s is a mode name such as flash/pro/ultra. -->
@@ -94,7 +94,7 @@
     <string name="audio_player_detail_decoded_title">读取结果</string>
     <string name="audio_player_detail_decoded_empty">暂无结果。需要时请点击“读取”。</string>
     <string name="audio_playback_view_visual">视觉效果</string>
-    <string name="audio_playback_view_lyrics">歌词</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">正在等待跟踪数据</string>
     <string name="audio_pro_visual_symbol_order">当前字节发出 2 个符号：先是高位半字节，然后是低位半字节</string>
     <string name="audio_pro_visual_step_1">第一步</string>
@@ -160,9 +160,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d 字节</string>
     <string name="audio_generated_input_source_manual">手动输入</string>
     <string name="audio_generated_input_source_sample">示例文本</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">轨道</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">能量</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">阶梯</string>
+    <string name="audio_flash_visualizer_mode_lanes">轨道</string>
+    <string name="audio_flash_visualizer_mode_pulse">脉冲</string>
+    <string name="audio_flash_visualizer_mode_pitch">阶梯</string>
     <!-- CONTEXT: Transport mode name shown in tabs/chips. Do not translate flash/pro/ultra as ordinary adjectives. -->
     <string name="transport_mode_flash_label">flash</string>
     <!-- CONTEXT: Transport mode name shown in tabs/chips. -->
@@ -256,10 +256,14 @@
     <string name="demo_hint_generate_audio">Generate audio</string>
     <string name="demo_hint_decode_audio">Decode audio</string>
     <string name="demo_hint_open_mini_player">Open mini player</string>
-    <string name="demo_hint_switch_to_lyrics">Switched to Lyrics</string>
+    <string name="demo_hint_switch_to_lyrics">Switched to Tokens</string>
     <string name="demo_hint_switch_to_visual">Switched to Visual</string>
     <string name="demo_hint_play">Playback started</string>
     <string name="demo_hint_pause">Playback paused</string>
     <string name="demo_hint_theme_changed">Theme changed</string>
     <string name="demo_hint_language_changed">Language changed and sample refreshed</string>
+    <string name="audio_saved_audio_decode_loading_title">正在读取已保存音频…</string>
+    <string name="audio_saved_audio_decode_loading_body">此片段会被读取一次，以生成可复用的文本和歌词视图。结果只保存在此应用内，以便下次更快打开。</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

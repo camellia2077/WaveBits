@@ -12,7 +12,7 @@ enum class TransportMode : std::uint8_t {
 };
 
 enum class FlashSignalProfile : std::uint8_t {
-    kSteady = 0,
+    kStandard = 0,
     kLitany = 1,
     kHostile = 3,
     kCollapse = 4,
@@ -21,7 +21,7 @@ enum class FlashSignalProfile : std::uint8_t {
 };
 
 enum class FlashVoicingFlavor : std::uint8_t {
-    kSteady = 0,
+    kStandard = 0,
     kLitany = 1,
     kHostile = 3,
     kCollapse = 4,
@@ -48,7 +48,7 @@ inline constexpr bool IsFramedTransportMode(TransportMode mode) {
 
 inline constexpr bool IsValidFlashSignalProfile(FlashSignalProfile profile) {
     switch (profile) {
-    case FlashSignalProfile::kSteady:
+    case FlashSignalProfile::kStandard:
     case FlashSignalProfile::kLitany:
     case FlashSignalProfile::kHostile:
     case FlashSignalProfile::kCollapse:
@@ -62,7 +62,7 @@ inline constexpr bool IsValidFlashSignalProfile(FlashSignalProfile profile) {
 
 inline constexpr bool IsValidFlashVoicingFlavor(FlashVoicingFlavor flavor) {
     switch (flavor) {
-    case FlashVoicingFlavor::kSteady:
+    case FlashVoicingFlavor::kStandard:
     case FlashVoicingFlavor::kLitany:
     case FlashVoicingFlavor::kHostile:
     case FlashVoicingFlavor::kCollapse:
@@ -79,8 +79,8 @@ struct CoreConfig {
     int frame_samples = 480;
     bool enable_diagnostics = false;
     TransportMode mode = TransportMode::kFlash;
-    FlashSignalProfile flash_signal_profile = FlashSignalProfile::kSteady;
-    FlashVoicingFlavor flash_voicing_flavor = FlashVoicingFlavor::kSteady;
+    FlashSignalProfile flash_signal_profile = FlashSignalProfile::kStandard;
+    FlashVoicingFlavor flash_voicing_flavor = FlashVoicingFlavor::kStandard;
     int reserved = 0;
 };
 

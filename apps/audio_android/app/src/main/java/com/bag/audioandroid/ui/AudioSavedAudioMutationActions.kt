@@ -2,6 +2,7 @@ package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.domain.SavedAudioFolder
 import com.bag.audioandroid.domain.SavedAudioFolderMutationResult
 import com.bag.audioandroid.domain.SavedAudioImportResult
@@ -21,6 +22,7 @@ internal class AudioSavedAudioMutationActions(
     private val stopPlayback: () -> Unit,
     private val setCurrentStatusText: (UiText) -> Unit,
     private val generatedAudioCacheGateway: GeneratedAudioCacheGateway,
+    private val savedAudioDecodeCacheGateway: SavedAudioDecodeCacheGateway,
 ) {
     fun onCreateSavedAudioFolder(name: String) {
         when (val result = savedAudioRepository.createSavedAudioFolder(name)) {
@@ -164,6 +166,7 @@ internal class AudioSavedAudioMutationActions(
         }
 
         stopPlaybackIfCurrentSavedAudio(deletedItemIds)
+        deletedItemIds.forEach(savedAudioDecodeCacheGateway::delete)
         refreshSavedAudioItems()
         uiState.update { state ->
             state.copy(
@@ -193,6 +196,7 @@ internal class AudioSavedAudioMutationActions(
         }
 
         stopPlaybackIfCurrentSavedAudio(itemId)
+        savedAudioDecodeCacheGateway.delete(itemId)
         refreshSavedAudioItems()
         uiState.update {
             it.copy(libraryStatusText = UiText.Resource(R.string.library_status_deleted))
@@ -283,6 +287,7 @@ internal class AudioSavedAudioMutationActions(
         val savedAudioItems = savedAudioRepository.listSavedAudio()
         val libraryMetadata = savedAudioRepository.readLibraryMetadata()
         val savedAudioItemIds = savedAudioItems.map { it.itemId }.toSet()
+        savedAudioDecodeCacheGateway.prune(savedAudioItemIds)
         val currentSelection = uiState.value.selectedSavedAudio
         if (currentSelection != null && currentSelection.item.itemId !in savedAudioItemIds) {
             generatedAudioCacheGateway.deleteCachedFile(currentSelection.pcmFilePath)

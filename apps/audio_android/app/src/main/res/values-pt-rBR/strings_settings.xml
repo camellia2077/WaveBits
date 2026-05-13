@@ -57,14 +57,14 @@
     <string name="palette_family_neutrals">Neutros</string>
     <string name="config_flash_style_title">Estilo flash</string>
     <string name="config_flash_style_subtitle">Escolha como o áudio flash deve soar.</string>
-    <string name="config_flash_style_steady_label">Estase</string>
-    <string name="config_flash_style_steady_description">Sinalização mecânica clara e estável.</string>
+    <string name="config_flash_style_standard_label">Padrão</string>
+    <string name="config_flash_style_standard_description">Sinalização mecânica clara e estável.</string>
     <string name="config_flash_style_hostile_label">Hostilidade</string>
     <string name="config_flash_style_hostile_description">Predefinição de comando furioso com temporização de sinal mais curta e rígida.</string>
     <string name="config_flash_style_litany_label">Ladainha</string>
     <string name="config_flash_style_litany_description">Predefinição de prece reverente com cadência ritual mais lenta.</string>
     <string name="config_flash_style_collapse_label">Colapso</string>
-    <string name="config_flash_style_collapse_description">Predefinição de medo e colapso; por enquanto usa a carcaça estável.</string>
+    <string name="config_flash_style_collapse_description">Um preset de medo e colapso; por enquanto usa o invólucro de sinal padrão.</string>
     <string name="config_flash_style_zeal_label">Zelo</string>
     <string name="config_flash_style_zeal_description">Predefinição brilhante e densa com ritmo rápido variável e pausas de pontuação.</string>
     <string name="config_flash_style_void_label">Vazio</string>
@@ -194,9 +194,6 @@
 
     <string name="config_sample_decoration_title">Decoração de exemplo</string>
     <string name="config_sample_decoration_subtitle">Adiciona marcadores de prefixo opcionais ao texto de exemplo aleatório.</string>
-    <string name="config_sample_decoration_style_title">Estilo</string>
-    <string name="config_sample_decoration_style_none">Nenhum</string>
-    <string name="config_sample_decoration_style_emoji">Emoji (por facção)</string>
     <string name="config_demo_mode_title">Modo demonstração</string>
     <string name="config_demo_mode_subtitle">Mostra feedback de toque e dicas para gravação.</string>
     <string name="config_custom_brand_theme_import_title">Importar dual-tone personalizado</string>

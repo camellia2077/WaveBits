@@ -20,7 +20,7 @@ Preserve FlipBits protocol tokens such as mini, flash, pro, ultra, ASCII, UTF-8,
 For app UI text, keep labels concise and natural in Ukrainian.
 Use stable Ukrainian product terminology across related controls, settings, dialogs, and validation messages.
 Prefer the clearer Ukrainian expression when direct transfer from another language would sound unnatural.
-Follow existing Ukrainian terms for this app where present: символів/байтів for character and byte counters, Правила введення for Input rules, Лірика for Lyrics, Бінарний for Binary, несуча for carrier, and нібл for nibble.
+Follow existing Ukrainian terms for this app where present: символів/байтів for character and byte counters, Правила введення for Input rules, Tokens for the Tokens tab, Бінарний for Binary, несуча for carrier, and нібл for nibble.
 Keep mini-player, tab, segmented-control, and chip labels short.
 Do not turn short controls, visualizer mode labels, or transport labels into explanatory sentences.
 Keep product mode names mini, flash, pro, and ultra lowercase unless the string begins with a sentence that already capitalizes nearby product terms.

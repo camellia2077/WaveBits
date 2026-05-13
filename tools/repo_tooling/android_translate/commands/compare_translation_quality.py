@@ -7,6 +7,7 @@ from pathlib import Path
 from core.translation_paths import (
     APP_TEXT_GROUPS,
     DEFAULT_RES_DIRECTORY,
+    DEFAULT_TRANSLATION_REVIEWS_DIRECTORY,
     FACTIONS,
     TEXT_TYPES,
     display_language_tag,
@@ -37,7 +38,7 @@ from prompts.translation_review_prompts import (
     PROMPT_VERSION,
 )
 
-DEFAULT_OUTPUT_DIRECTORY = Path(__file__).resolve().parents[5] / "temp" / "ai_translation_reviews"
+DEFAULT_OUTPUT_DIRECTORY = DEFAULT_TRANSLATION_REVIEWS_DIRECTORY
 REVIEW_LANGUAGE_ORDER = (
     "de",
     "es",

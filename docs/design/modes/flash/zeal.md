@@ -18,7 +18,7 @@
 - 更短 attack / release。
   - 每个 tone 更短促、更接近快速发声，但 signal 层仍保留足够 carrier 周期供判定。
 - 更亮 harmonic 与适中边界 accent。
-  - 二、三次谐波和 byte / nibble accent 高于 Steady，但低于 Hostile 的攻击性口径。
+  - 二、三次谐波和 byte / nibble accent 高于 Standard，但低于 Hostile 的攻击性口径。
 - 轻度 softclip 与快速 tremolo。
   - 让整体更紧、更兴奋，但不制造 Collapse 式不稳定。
 - zeal rising shell。

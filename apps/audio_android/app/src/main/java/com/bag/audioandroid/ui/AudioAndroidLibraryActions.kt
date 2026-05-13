@@ -1,22 +1,26 @@
 package com.bag.audioandroid.ui
 
-import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRepository
 import com.bag.audioandroid.ui.model.UiText
 import com.bag.audioandroid.ui.state.AudioAppUiState
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 
 internal class AudioAndroidLibraryActions(
     uiState: MutableStateFlow<AudioAppUiState>,
+    scope: CoroutineScope,
     sessionStateStore: AudioSessionStateStore,
-    audioCodecGateway: AudioCodecGateway,
     playbackRuntimeGateway: PlaybackRuntimeGateway,
     savedAudioRepository: SavedAudioRepository,
     stopPlayback: () -> Unit,
     generatedAudioCacheGateway: GeneratedAudioCacheGateway,
+    savedAudioDecodeCacheGateway: SavedAudioDecodeCacheGateway,
+    workerDispatcher: CoroutineDispatcher,
 ) {
     private val setCurrentStatusText: (UiText) -> Unit = { statusText ->
         sessionStateStore.updateCurrentSession {
@@ -26,12 +30,14 @@ internal class AudioAndroidLibraryActions(
     private val selectionActions =
         AudioSavedAudioSelectionActions(
             uiState = uiState,
-            audioCodecGateway = audioCodecGateway,
+            scope = scope,
             playbackRuntimeGateway = playbackRuntimeGateway,
             savedAudioRepository = savedAudioRepository,
             stopPlayback = stopPlayback,
             setCurrentStatusText = setCurrentStatusText,
             generatedAudioCacheGateway = generatedAudioCacheGateway,
+            savedAudioDecodeCacheGateway = savedAudioDecodeCacheGateway,
+            workerDispatcher = workerDispatcher,
         )
     private val mutationActions =
         AudioSavedAudioMutationActions(
@@ -40,6 +46,7 @@ internal class AudioAndroidLibraryActions(
             stopPlayback = stopPlayback,
             setCurrentStatusText = setCurrentStatusText,
             generatedAudioCacheGateway = generatedAudioCacheGateway,
+            savedAudioDecodeCacheGateway = savedAudioDecodeCacheGateway,
         )
 
     fun onSavedAudioSelected(itemId: String) {
@@ -54,11 +61,13 @@ internal class AudioAndroidLibraryActions(
         itemId: String,
         switchToAudioTab: Boolean = false,
         clearLibrarySelection: Boolean = false,
+        onLoaded: (() -> Unit)? = null,
     ): Boolean =
         selectionActions.prepareSavedAudioSelection(
             itemId = itemId,
             switchToAudioTab = switchToAudioTab,
             clearLibrarySelection = clearLibrarySelection,
+            onLoaded = onLoaded,
         )
 
     fun onEnterLibrarySelection(itemId: String) {

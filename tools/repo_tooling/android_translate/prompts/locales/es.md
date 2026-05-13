@@ -17,7 +17,7 @@ Preserve FlipBits protocol tokens such as mini, flash, pro, ultra, ASCII, UTF-8,
 
 [app_text_rule]
 For app UI text, keep labels compact enough for Android buttons, tabs, segmented controls, mini-player sheets, sliders, and narrow cards.
-Follow existing project terms where present: audio, caracteres, bytes, reglas de entrada, Visual, Lyrics, Hex, Morse, payload, token, nibble, portadora baja, and portadora alta.
+Follow existing project terms where present: audio, caracteres, bytes, reglas de entrada, Visual, Tokens, Hex, Morse, payload, token, nibble, portadora baja, and portadora alta.
 Do not turn short controls, visualizer mode labels, or transport labels into explanatory sentences.
 
 [sample_text_rule]

@@ -10,14 +10,14 @@
 - 每个 low/high bit 使用 `0.875x frame_samples`。
 - low/high carrier 为 `450 / 900 Hz`。
 - 不插入额外可跳过 silence。
-- 不插入 payload silence，但比 Steady 更短，强调“快、硬、压迫”。
+- 不插入 payload silence，但比 Standard 更短，强调“快、硬、压迫”。
 
 ## Voicing 方法
 - 更强的 byte / nibble accent。
-  - `byte_boundary_click_scale` 明显高于 Steady。
+  - `byte_boundary_click_scale` 明显高于 Standard。
   - `nibble_boundary_accent_factor` 也更强，让 payload 有切割感。
 - attack / release 更短。
-  - `payload_release_scale` 小于 Steady。
+  - `payload_release_scale` 小于 Standard。
   - 每个 low/high 更像短促命令，而不是吟唱或拖尾。
 - 更强金属层。
   - `metallic_layer_gain_scale` 明显提高。
@@ -29,7 +29,7 @@
   - 提高 softclip drive 和 mix。
   - 让整体听起来被压缩、过载、硬朗，但仍限制在 PCM16 范围。
 - 快速 tremolo。
-  - 频率约 `9.8 Hz`，深度比 Steady 高。
+  - 频率约 `9.8 Hz`，深度比 Standard 高。
   - 表达激动和威胁，但不做 Collapse 那种失控颤抖。
 - preamble / epilogue 使用 hostile challenge shell。
   - preamble 用短促多段 burst 和更硬的高频边缘，像威胁式锁定。

@@ -33,7 +33,7 @@
 
 ## Emotion / Style 结构
 - formal `flash` 当前对外暴露六个用户可见 emotion preset：
-  - `Steady`
+  - `Standard`
   - `Hostile`
   - `Litany`
   - `Collapse`
@@ -47,7 +47,7 @@
   - preamble / epilogue 和 payload texture 的情绪化声效
 
 ## 当前 Signal Profile 速记
-- `Steady`: `0.9375x frame_samples`
+- `Standard`: `0.9375x frame_samples`
 - `Hostile`: `0.875x frame_samples`
 - `Litany`: `6x frame_samples`，可跳过 silence slot 为 `1x frame_samples`
 - `Collapse`: `1x frame_samples`

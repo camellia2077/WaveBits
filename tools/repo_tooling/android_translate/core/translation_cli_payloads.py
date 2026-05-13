@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 
 
 def emit_json_payload(payload: dict[str, object]) -> None:
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="replace")
     print(json.dumps(payload, ensure_ascii=False, indent=2))
 
 

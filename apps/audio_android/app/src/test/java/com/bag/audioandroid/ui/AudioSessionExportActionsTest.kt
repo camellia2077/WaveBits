@@ -2,8 +2,10 @@ package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.AudioExportResult
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.GeneratedAudioInputSourceKind
 import com.bag.audioandroid.domain.GeneratedAudioMetadata
+import com.bag.audioandroid.domain.GeneratedAudioPcmCacheWriter
 import com.bag.audioandroid.domain.SavedAudioContent
 import com.bag.audioandroid.domain.SavedAudioImportResult
 import com.bag.audioandroid.domain.SavedAudioItem
@@ -19,8 +21,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class AudioSessionExportActionsTest {
     @Test
@@ -47,6 +51,7 @@ class AudioSessionExportActionsTest {
                                 uriString = "content://saved/test",
                             ),
                     ),
+                generatedAudioCacheGateway = ExportFakeGeneratedAudioCacheGateway(),
                 sampleRateHz = 44100,
                 refreshSavedAudioItems = {},
                 workerDispatcher = Dispatchers.Unconfined,
@@ -79,6 +84,7 @@ class AudioSessionExportActionsTest {
                 scope = CoroutineScope(Dispatchers.Unconfined),
                 sessionStateStore = AudioSessionStateStore(state),
                 savedAudioRepository = FakeExportRepository(exportResult = AudioExportResult.Failed),
+                generatedAudioCacheGateway = ExportFakeGeneratedAudioCacheGateway(),
                 sampleRateHz = 44100,
                 refreshSavedAudioItems = {},
                 workerDispatcher = Dispatchers.Unconfined,
@@ -93,6 +99,49 @@ class AudioSessionExportActionsTest {
         )
     }
 
+    @Test
+    fun `export success deletes file backed cache and clears generated file path`() {
+        val cacheGateway = TrackingExportGeneratedAudioCacheGateway()
+        val fileBackedPath = "C:/tmp/generated-audio/flash_cached.pcm16"
+        val state =
+            MutableStateFlow(
+                AudioAppUiState(
+                    sessions =
+                        mapOf(
+                            TransportModeOption.Flash to
+                                sessionWithGeneratedAudio().copy(
+                                    generatedPcm = shortArrayOf(),
+                                    generatedPcmFilePath = fileBackedPath,
+                                ),
+                        ),
+                ),
+            )
+        val actions =
+            AudioSessionExportActions(
+                uiState = state,
+                scope = CoroutineScope(Dispatchers.Unconfined),
+                sessionStateStore = AudioSessionStateStore(state),
+                savedAudioRepository =
+                    FakeExportRepository(
+                        exportResult =
+                            AudioExportResult.Success(
+                                displayName = "saved.wav",
+                                uriString = "content://saved/test",
+                            ),
+                    ),
+                generatedAudioCacheGateway = cacheGateway,
+                sampleRateHz = 44100,
+                refreshSavedAudioItems = {},
+                workerDispatcher = Dispatchers.Unconfined,
+            )
+
+        actions.onExportAudio()
+
+        assertNull(state.value.currentSession.generatedPcmFilePath)
+        assertEquals(listOf(fileBackedPath), cacheGateway.deletedPaths)
+        assertEquals(listOf(emptySet<String>()), cacheGateway.prunedRetainedPaths)
+    }
+
     private fun sessionWithGeneratedAudio() =
         ModeAudioSessionState(
             inputText = "text",
@@ -100,7 +149,7 @@ class AudioSessionExportActionsTest {
             generatedAudioMetadata =
                 GeneratedAudioMetadata(
                     mode = TransportModeOption.Flash,
-                    flashVoicingStyle = FlashVoicingStyleOption.Steady,
+                    flashVoicingStyle = FlashVoicingStyleOption.Standard,
                     createdAtIsoUtc = "2026-03-17T00:00:00Z",
                     durationMs = 1L,
                     sampleRateHz = 44_100,
@@ -111,7 +160,7 @@ class AudioSessionExportActionsTest {
                     appVersion = "1.0.0",
                     coreVersion = "1.0.0",
                 ),
-            generatedFlashVoicingStyle = FlashVoicingStyleOption.Steady,
+            generatedFlashVoicingStyle = FlashVoicingStyleOption.Standard,
         )
 
     private fun assertResId(
@@ -169,4 +218,47 @@ private class FakeExportRepository(
     ): Boolean = false
 
     override fun shareSavedAudio(item: SavedAudioItem): Boolean = false
+}
+
+private class ExportFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {
+    override fun createPcmCacheWriter(modeWireName: String): GeneratedAudioPcmCacheWriter =
+        object : GeneratedAudioPcmCacheWriter {
+            override val filePath: String = File.createTempFile("${modeWireName}_", ".pcm16").absolutePath
+
+            override fun appendPcm(pcm: ShortArray) = Unit
+
+            override fun finish() = Unit
+
+            override fun abort() = Unit
+        }
+
+    override fun deleteCachedFile(path: String?) = Unit
+
+    override fun pruneCachedFiles(retainedPaths: Set<String>) = Unit
+}
+
+private class TrackingExportGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {
+    val deletedPaths = mutableListOf<String>()
+    val prunedRetainedPaths = mutableListOf<Set<String>>()
+
+    override fun createPcmCacheWriter(modeWireName: String): GeneratedAudioPcmCacheWriter =
+        object : GeneratedAudioPcmCacheWriter {
+            override val filePath: String = File.createTempFile("${modeWireName}_", ".pcm16").absolutePath
+
+            override fun appendPcm(pcm: ShortArray) = Unit
+
+            override fun finish() = Unit
+
+            override fun abort() = Unit
+        }
+
+    override fun deleteCachedFile(path: String?) {
+        if (path != null) {
+            deletedPaths += path
+        }
+    }
+
+    override fun pruneCachedFiles(retainedPaths: Set<String>) {
+        prunedRetainedPaths += retainedPaths
+    }
 }

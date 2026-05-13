@@ -80,7 +80,7 @@
     <string name="audio_player_detail_decoded_title">Resultado da leitura</string>
     <string name="audio_player_detail_decoded_empty">Ainda não há resultado. Toque em Ler quando precisar.</string>
     <string name="audio_playback_view_visual">Visual</string>
-    <string name="audio_playback_view_lyrics">Letra</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">Aguardando dados de acompanhamento</string>
     <string name="audio_pro_visual_symbol_order">O byte atual emite 2 símbolos: nibble alto primeiro, depois nibble baixo</string>
     <string name="audio_pro_visual_step_1">Etapa 1</string>
@@ -142,9 +142,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d bytes</string>
     <string name="audio_generated_input_source_manual">Manual</string>
     <string name="audio_generated_input_source_sample">Exemplo</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">Faixas</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">Energia</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">Tom</string>
+    <string name="audio_flash_visualizer_mode_lanes">Faixas</string>
+    <string name="audio_flash_visualizer_mode_pulse">Pulso</string>
+    <string name="audio_flash_visualizer_mode_pitch">Tom</string>
     <string name="transport_mode_flash_label">flash</string>
     <string name="transport_mode_pro_label">pro</string>
     <string name="transport_mode_ultra_label">ultra</string>
@@ -241,4 +241,8 @@
     <string name="demo_hint_pause">Reprodução pausada</string>
     <string name="demo_hint_theme_changed">Tema alterado</string>
     <string name="demo_hint_language_changed">Idioma alterado e amostra atualizada</string>
+    <string name="audio_saved_audio_decode_loading_title">Lendo áudio salvo…</string>
+    <string name="audio_saved_audio_decode_loading_body">Este clipe está sendo lido uma vez para criar sua visualização reutilizável de texto e letra. O resultado fica apenas neste app para reabrir mais rápido.</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

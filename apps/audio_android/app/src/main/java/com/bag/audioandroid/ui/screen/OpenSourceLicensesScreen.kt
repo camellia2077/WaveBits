@@ -22,9 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.bag.audioandroid.R
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
-import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
+import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +31,7 @@ fun OpenSourceLicensesScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val libraries by rememberLibraries(R.raw.aboutlibraries)
+    val libraries by produceLibraries(R.raw.aboutlibraries)
     var searchQuery by remember { mutableStateOf("") }
     val filteredLibraries =
         remember(libraries, searchQuery) {
@@ -109,6 +108,6 @@ private fun Libs.filterByQuery(query: String): Libs {
             libraries
                 .filter { library ->
                     library.matchesQuery(normalizedQuery)
-                }.toImmutableList(),
+                },
     )
 }

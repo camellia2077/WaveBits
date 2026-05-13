@@ -8,7 +8,6 @@ import com.bag.audioandroid.ui.model.CustomBrandThemeSettings
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.PaletteOption
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
-import com.bag.audioandroid.ui.model.SampleDecorationStyleOption
 import com.bag.audioandroid.ui.model.ThemeModeOption
 import com.bag.audioandroid.ui.model.ThemeStyleOption
 import com.bag.audioandroid.ui.model.hasSameConfigAs
@@ -154,7 +153,7 @@ internal class AudioAndroidPreferencesActions(
     }
 
     fun onFlashVoicingStyleSelected(style: FlashVoicingStyleOption) {
-        val isEnhancedStyle = style != FlashVoicingStyleOption.Steady
+        val isEnhancedStyle = style != FlashVoicingStyleOption.Standard
         uiState.update {
             it.copy(
                 selectedFlashVoicingStyle = style,
@@ -197,44 +196,31 @@ internal class AudioAndroidPreferencesActions(
 
     fun onSampleDecorationEnabledChanged(enabled: Boolean) {
         uiState.update { state ->
-            state.withSampleDecoration(
-                isDecorationEnabled = enabled,
-                decorationStyle = state.sampleDecorationStyle,
-            )
+            state.withSampleDecoration(isDecorationEnabled = enabled)
         }
         scope.launch {
             appSettingsRepository.setSampleDecorationEnabled(enabled)
         }
     }
 
-    fun onSampleDecorationStyleSelected(style: SampleDecorationStyleOption) {
-        uiState.update { state ->
-            state.withSampleDecoration(
-                isDecorationEnabled = state.isSampleDecorationEnabled,
-                decorationStyle = style,
-            )
-        }
+    fun onFlashVisualPerfOverlayEnabledChanged(enabled: Boolean) {
+        uiState.update { it.copy(isFlashVisualPerfOverlayEnabled = enabled) }
         scope.launch {
-            appSettingsRepository.setSampleDecorationStyleId(style.id)
+            appSettingsRepository.setFlashVisualPerfOverlayEnabled(enabled)
         }
     }
 }
 
-internal fun AudioAppUiState.withSampleDecoration(
-    isDecorationEnabled: Boolean,
-    decorationStyle: SampleDecorationStyleOption,
-): AudioAppUiState {
+internal fun AudioAppUiState.withSampleDecoration(isDecorationEnabled: Boolean): AudioAppUiState {
     val updatedSession =
         applySampleEmojiDecoration(
             session = currentSession,
             mode = transportMode,
             flavor = currentSampleFlavor,
             isDecorationEnabled = isDecorationEnabled,
-            decorationStyle = decorationStyle,
         )
     return copy(
         isSampleDecorationEnabled = isDecorationEnabled,
-        sampleDecorationStyle = decorationStyle,
         sessions = sessions + (transportMode to updatedSession),
     )
 }

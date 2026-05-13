@@ -35,6 +35,9 @@ class PlaybackSourceCoordinator(
                     state.selectedSavedAudio
                         ?.takeIf { it.item.itemId == source.itemId }
                         ?: return null
+                if (selectedSavedAudio.isLoadingContent) {
+                    return null
+                }
                 PlaybackTarget(
                     source = source,
                     pcm = selectedSavedAudio.pcm,

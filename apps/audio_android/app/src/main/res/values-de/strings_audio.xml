@@ -80,7 +80,7 @@
     <string name="audio_player_detail_decoded_title">Leseergebnis</string>
     <string name="audio_player_detail_decoded_empty">Noch kein Ergebnis. Tippe bei Bedarf auf Lesen.</string>
     <string name="audio_playback_view_visual">Visual</string>
-    <string name="audio_playback_view_lyrics">Lyrics</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">Warten auf Follow-Daten</string>
     <string name="audio_pro_visual_symbol_order">Das aktuelle Byte sendet 2 Symbole: zuerst das hohe Nibble, dann das niedrige</string>
     <string name="audio_pro_visual_step_1">Schritt 1</string>
@@ -125,7 +125,7 @@
     <string name="audio_ultra_visual_level_low">Niedrig</string>
     <string name="audio_follow_unavailable">Payload-Follow ist für dieses Audio gerade nicht verfügbar.</string>
     <string name="audio_follow_text_unavailable">Text-Follow ist für dieses Audio gerade nicht verfügbar.</string>
-    <string name="audio_follow_display_lyrics">Lyrics</string>
+    <string name="audio_follow_display_lyrics">Tokens</string>
     <string name="audio_follow_display_data">Daten</string>
     <string name="audio_follow_view_hex">Hex</string>
     <string name="audio_follow_view_binary">Binary</string>
@@ -142,9 +142,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d Byte</string>
     <string name="audio_generated_input_source_manual">Manuell</string>
     <string name="audio_generated_input_source_sample">Beispiel</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">Spuren</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">Energie</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">Tonhöhe</string>
+    <string name="audio_flash_visualizer_mode_lanes">Spuren</string>
+    <string name="audio_flash_visualizer_mode_pulse">Puls</string>
+    <string name="audio_flash_visualizer_mode_pitch">Tonhöhe</string>
     <string name="transport_mode_flash_label">flash</string>
     <string name="transport_mode_pro_label">pro</string>
     <string name="transport_mode_ultra_label">ultra</string>
@@ -235,10 +235,14 @@
     <string name="demo_hint_generate_audio">Audio erstellen</string>
     <string name="demo_hint_decode_audio">Audio dekodieren</string>
     <string name="demo_hint_open_mini_player">Mini-Player öffnen</string>
-    <string name="demo_hint_switch_to_lyrics">Zu Lyrics gewechselt</string>
+    <string name="demo_hint_switch_to_lyrics">Zu Tokens gewechselt</string>
     <string name="demo_hint_switch_to_visual">Zu Visual gewechselt</string>
     <string name="demo_hint_play">Wiedergabe gestartet</string>
     <string name="demo_hint_pause">Wiedergabe pausiert</string>
     <string name="demo_hint_theme_changed">Design geändert</string>
     <string name="demo_hint_language_changed">Sprache geändert und Sample aktualisiert</string>
+    <string name="audio_saved_audio_decode_loading_title">Gespeichertes Audio wird gelesen…</string>
+    <string name="audio_saved_audio_decode_loading_body">Dieser Clip wird einmal gelesen, um seine wiederverwendbare Text- und Liedansicht zu erstellen. Das Ergebnis bleibt nur in dieser App, damit erneutes Öffnen schneller geht.</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

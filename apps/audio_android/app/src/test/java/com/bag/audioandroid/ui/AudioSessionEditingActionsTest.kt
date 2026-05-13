@@ -3,7 +3,6 @@ package com.bag.audioandroid.ui
 import com.bag.audioandroid.data.SampleInput
 import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.ui.model.AppLanguageOption
-import com.bag.audioandroid.ui.model.SampleDecorationStyleOption
 import com.bag.audioandroid.ui.model.SampleFlavor
 import com.bag.audioandroid.ui.model.SampleInputLengthOption
 import com.bag.audioandroid.ui.model.TransportModeOption
@@ -133,7 +132,6 @@ class AudioSessionEditingActionsTest {
             AudioAppUiState(
                 selectedLanguage = AppLanguageOption.English,
                 isSampleDecorationEnabled = true,
-                sampleDecorationStyle = SampleDecorationStyleOption.Emoji,
                 transportMode = TransportModeOption.Flash,
                 sessions =
                     sessionsWithCurrentFlash(
@@ -148,7 +146,6 @@ class AudioSessionEditingActionsTest {
         val disabled =
             state.withSampleDecoration(
                 isDecorationEnabled = false,
-                decorationStyle = SampleDecorationStyleOption.Emoji,
             )
         assertEquals("flash-a", disabled.currentSession.inputText)
         assertNull(disabled.currentSession.appliedSampleEmojiPrefix)
@@ -156,7 +153,6 @@ class AudioSessionEditingActionsTest {
         val enabled =
             disabled.withSampleDecoration(
                 isDecorationEnabled = true,
-                decorationStyle = SampleDecorationStyleOption.Emoji,
             )
         assertTrue(enabled.currentSession.inputText.endsWith("flash-a"))
         assertTrue(enabled.currentSession.inputText != "flash-a")
@@ -169,7 +165,6 @@ class AudioSessionEditingActionsTest {
             AudioAppUiState(
                 selectedLanguage = AppLanguageOption.English,
                 isSampleDecorationEnabled = true,
-                sampleDecorationStyle = SampleDecorationStyleOption.Emoji,
                 transportMode = TransportModeOption.Flash,
                 sessions =
                     sessionsWithCurrentFlash(
@@ -184,7 +179,6 @@ class AudioSessionEditingActionsTest {
         val disabled =
             state.withSampleDecoration(
                 isDecorationEnabled = false,
-                decorationStyle = SampleDecorationStyleOption.Emoji,
             )
 
         assertEquals("\uD83D\uDE80 user text", disabled.currentSession.inputText)

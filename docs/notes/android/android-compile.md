@@ -2,11 +2,6 @@
 
 优先从仓库根目录使用 `tools/run.py android`，不要再默认直接调用旧的 `tools/build_android.py`。
 
-## Debug APK
-
-```powershell
-python tools/run.py android assemble-debug
-```
 
 ## Release APK
 
@@ -34,10 +29,10 @@ adb uninstall com.your.package
 adb install path\to\app-release.apk
 
 
-## Native Debug 构建
+## Debug 
 
-如果只想验证 Android native/CMake 链路，可运行：
+python tools/run.py android assemble-debug
 
-```powershell
-python tools/run.py android native-debug
-```
+adb install -r apps/audio_android/app/build/outputs/apk/debug/app-debug.apk
+
+adb shell am start -n com.bag.audioandroid/.MainActivity

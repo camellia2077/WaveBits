@@ -25,7 +25,10 @@ internal fun PlaybackFollowAnnotationModeSwitcher(
         if (transportMode == TransportModeOption.Mini) {
             listOf(PlaybackFollowViewMode.Morse)
         } else {
-            PlaybackFollowViewMode.entries.filterNot { it == PlaybackFollowViewMode.Morse }
+            listOf(
+                PlaybackFollowViewMode.Binary,
+                PlaybackFollowViewMode.Hex,
+            )
         }
     SingleChoiceSegmentedButtonRow(
         modifier =

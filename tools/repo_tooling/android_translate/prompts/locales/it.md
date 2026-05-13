@@ -17,7 +17,7 @@ For Android string safety, do not introduce raw backslashes, pseudo unicode esca
 
 [app_text_rule]
 For app UI text, keep labels compact enough for Android buttons, tabs, segmented controls, mini-player sheets, sliders, and narrow cards.
-Follow existing project terms where present: audio, caratteri, byte, regole di input, Visuale, Lyrics, Hex, Morse, payload, token, nibble, portante bassa, and portante alta.
+Follow existing project terms where present: audio, caratteri, byte, regole di input, Visuale, Tokens, Hex, Morse, payload, token, nibble, portante bassa, and portante alta.
 Do not turn short controls, visualizer mode labels, or transport labels into explanatory sentences.
 
 [sample_text_rule]

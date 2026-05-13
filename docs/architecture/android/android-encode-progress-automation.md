@@ -57,10 +57,14 @@ Supported extras:
 - `wb.sample.length`
   - Optional built-in sample selector.
   - Accepted values: `short`, `long`.
-  - Uses the current app language and current sample flavor.
+  - Uses the current app language or `wb.lang` override, plus the current sample flavor.
 - `wb.sample.id`
   - Optional built-in sample id selector.
   - Takes priority over `wb.sample.length` when `wb.input` is absent.
+- `wb.lang`
+  - Optional app-language override for the scenario.
+  - Accepted values follow app locale tags such as `zh`, `en`, `ru`.
+  - Applied before sample resolution and encode capture.
 - `wb.repeat`
   - Repeats the resolved input text.
   - Accepted range: `1..50`.
@@ -78,11 +82,35 @@ Supported extras:
   - Defaults to `33`.
   - Accepted range: `16..1000`.
 
+`python tools/run.py android-debug capture-encode-progress` is the main wrapper for this scenario and currently exposes the whole commonly used contract:
+
+- `--mode`
+- `--speed`
+- `--input`
+- `--sample-length`
+- `--sample-id`
+- `--repeat`
+- `--capture-ms`
+- `--poll-ms`
+- `--no-encode`
+
+Language override still exists at the raw adb scenario layer through `wb.lang`, but the wrapper does not surface it yet.
+
 Recommended device prep:
 
 ```powershell
 python tools/run.py android-debug device-prep
 ```
+
+Default `capture-encode-progress` artifacts:
+
+- `raw.log`
+- `summary.md`
+- `crash-summary.txt`
+
+If `--output-dir` is omitted, the tool creates:
+
+- `temp/android-debug/<timestamp>-encode-progress-<mode>/`
 
 ## Three-Mode Sweep
 
@@ -109,6 +137,12 @@ Read the generated summary first. The most useful fields are:
   - UI-facing progress bar value.
 - `Preparing/Finalizing bounces`
   - Count of adjacent phase transitions between `PreparingInput` and `Finalizing`.
+
+When you already have a captured log, the paired summary command is:
+
+```powershell
+python tools/run.py android-debug encode-progress-summary temp\android-debug\<capture-dir>\raw.log --output temp\android-debug\<capture-dir>\summary.md
+```
 
 ## Success Criteria
 

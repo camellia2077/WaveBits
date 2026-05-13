@@ -17,7 +17,7 @@ Use this before changing Flash Visual, Lyrics follow, playback smoothing, or lon
 - `apps/audio_android/app/src/main/java/com/bag/audioandroid/ui/screen/FlashSignalVisualizationAnalysis.kt`
   - Builds bucket and segment analysis used by Flash Visual.
 - `apps/audio_android/app/src/main/java/com/bag/audioandroid/ui/screen/FlashSignalVisualizationDrawing.kt`
-  - Draws Tone Tracks, Tone Energy, and Pitch Ladder primitives.
+  - Draws the current `Lanes`, `Pulse`, and `Pitch` Flash visual primitives.
 - `apps/audio_android/app/src/main/java/com/bag/audioandroid/ui/FlashVisualWindowActions.kt`
   - Maintains the Flash visual window state and throttles/reduces redundant window requests.
 - `apps/audio_android/app/src/main/java/com/bag/audioandroid/ui/state/FlashVisualWindowState.kt`
@@ -127,7 +127,7 @@ Playback and motion:
 
 Use ADB data when the symptom is animation stutter, jumping, flicker, or long-audio performance. Do not rely only on subjective visual feedback.
 
-For the fixed Flash device scenario, supported styles/visual modes, instrumentation coverage, and stable UI tags, use `docs/architecture/android/android-flash-automation.md`.
+For the fixed Flash device scenario, supported styles/visual modes, Mix-mode token follow behavior, debug overlays, instrumentation coverage, and stable UI tags, use `docs/architecture/android/android-flash-automation.md`.
 
 Recommended capture:
 

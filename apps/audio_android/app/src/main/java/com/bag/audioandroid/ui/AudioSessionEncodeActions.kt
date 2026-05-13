@@ -241,7 +241,7 @@ private class EncodeRequestFactory(
                 if (current.transportMode == TransportModeOption.Flash && current.isFlashVoicingEnabled) {
                     current.selectedFlashVoicingStyle
                 } else {
-                    FlashVoicingStyleOption.Steady
+                    FlashVoicingStyleOption.Standard
                 },
             frameSamples =
                 if (current.transportMode == TransportModeOption.Mini) {
@@ -933,6 +933,7 @@ private class EncodeStateReducer(
                 "applySuccess:playbackSourceUpdated mode=${request.mode.wireName} transportModeMatches=true",
             )
         }
+        generatedAudioCacheGateway.enforceGeneratedAudioCachePolicy(uiState.value)
         if (!shouldHydrateFollowData(result)) {
             safeLogE(
                 LONG_AUDIO_LOG_TAG,

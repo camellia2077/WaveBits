@@ -22,3 +22,5 @@ Use it for Android-only behavior such as player UI structure, native bridge stra
   - Mini real-device adb scenario and Visual/Lyrics timing capture prework for slow, standard, and fast Morse speeds.
 - `android-encode-progress-automation.md`
   - Mini/Pro/Ultra real-device adb scenario for encode progress bar phase and visibility capture.
+- `android-settings-automation.md`
+  - Settings-owned automation surface such as app-language overrides and layout-measurement debug baseline resets.

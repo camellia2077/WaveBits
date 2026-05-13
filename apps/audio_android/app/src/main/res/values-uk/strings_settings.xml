@@ -57,14 +57,14 @@
     <string name="palette_family_neutrals">Нейтральні</string>
     <string name="config_flash_style_title">Стиль flash</string>
     <string name="config_flash_style_subtitle">Виберіть, як має звучати flash-аудіо.</string>
-    <string name="config_flash_style_steady_label">Стазис</string>
-    <string name="config_flash_style_steady_description">Чіткий стабільний машинний сигнал.</string>
+    <string name="config_flash_style_standard_label">Стандарт</string>
+    <string name="config_flash_style_standard_description">Чіткий стабільний машинний сигнал.</string>
     <string name="config_flash_style_hostile_label">Ворожість</string>
     <string name="config_flash_style_hostile_description">Пресет лютого наказу з коротшим і жорсткішим сигнальним таймінгом.</string>
     <string name="config_flash_style_litany_label">Літанія</string>
     <string name="config_flash_style_litany_description">Пресет благоговійної молитви з повільнішою ритуальною каденцією.</string>
     <string name="config_flash_style_collapse_label">Зрив</string>
-    <string name="config_flash_style_collapse_description">Пресет страху й зриву; поки використовує рівну сигнальну оболонку.</string>
+    <string name="config_flash_style_collapse_description">Пресет страху й руйнування; зараз використовує стандартну сигнальну оболонку.</string>
     <string name="config_flash_style_zeal_label">Завзяття</string>
     <string name="config_flash_style_zeal_description">Яскравий щільний пресет зі змінним швидким ритмом і паузами на пунктуації.</string>
     <string name="config_flash_style_void_label">Порожнеча</string>
@@ -194,9 +194,7 @@
 
     <string name="config_sample_decoration_title">Sample decoration</string>
     <string name="config_sample_decoration_subtitle">Add optional prefix markers to randomized sample text.</string>
-    <string name="config_sample_decoration_style_title">Style</string>
-    <string name="config_sample_decoration_style_none">None</string>
-    <string name="config_sample_decoration_style_emoji">Emoji (flavor-based)</string>     <string name="config_demo_mode_title">Demo mode</string>
+    <string name="config_demo_mode_title">Demo mode</string>
     <string name="config_demo_mode_subtitle">Show tap feedback and key action hints for recording.</string>
     <string name="config_custom_brand_theme_import_title">Імпорт власного dual-tone</string>
     <string name="config_custom_brand_theme_import">Імпорт</string>

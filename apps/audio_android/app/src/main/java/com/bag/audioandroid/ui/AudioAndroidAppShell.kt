@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import com.bag.audioandroid.ui.model.SavedAudioModeFilter
 import com.bag.audioandroid.ui.model.ThemeStyleOption
 import com.bag.audioandroid.ui.screen.AboutScreen
+import com.bag.audioandroid.ui.screen.DebugPlaybackDisplayModeRequest
 import com.bag.audioandroid.ui.screen.OpenSourceLicensesScreen
 import com.bag.audioandroid.ui.state.AudioAppUiState
 import com.bag.audioandroid.ui.theme.BrandDualToneThemes
@@ -26,6 +27,10 @@ internal fun AudioAndroidAppShell(
     savedAudioFilter: SavedAudioModeFilter,
     onSavedAudioFilterChange: (SavedAudioModeFilter) -> Unit,
     debugScenario: FlashDebugScenario? = null,
+    debugExpandLyricsRequestId: Long? = null,
+    onDebugExpandLyricsHandled: (Long) -> Unit = {},
+    debugPlaybackDisplayModeRequest: DebugPlaybackDisplayModeRequest? = null,
+    onDebugPlaybackDisplayModeHandled: (Long) -> Unit = {},
     onImportAudio: () -> Unit,
     viewModel: AudioAndroidViewModel,
     modifier: Modifier = Modifier,
@@ -89,6 +94,10 @@ internal fun AudioAndroidAppShell(
                         brandThemes = BrandDualToneThemes,
                         viewModel = viewModel,
                         debugScenario = debugScenario,
+                        debugExpandLyricsRequestId = debugExpandLyricsRequestId,
+                        onDebugExpandLyricsHandled = onDebugExpandLyricsHandled,
+                        debugPlaybackDisplayModeRequest = debugPlaybackDisplayModeRequest,
+                        onDebugPlaybackDisplayModeHandled = onDebugPlaybackDisplayModeHandled,
                         onImportAudio = onImportAudio,
                         modifier = modifier,
                     )

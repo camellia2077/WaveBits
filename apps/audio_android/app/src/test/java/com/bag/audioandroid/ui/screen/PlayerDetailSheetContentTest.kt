@@ -23,6 +23,7 @@ import com.bag.audioandroid.ui.model.MiniPlayerUiModel
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
 import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.model.UiText
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -305,13 +306,122 @@ class PlayerDetailSheetContentTest {
     @Test
     fun `preview waveform keeps flash visualizer and real follow timeline`() {
         setPreviewPlayerDetailContent(initialDisplayMode = PlaybackDisplayMode.Visual)
-        composeRule.onNodeWithText(composeRule.activity.getString(R.string.audio_flash_visualizer_mode_tone_tracks)).assertIsDisplayed()
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.audio_flash_visualizer_mode_lanes)).assertIsDisplayed()
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.audio_flash_visualizer_mode_pulse)).assertIsDisplayed()
     }
 
     @Test
     fun `preview waveform keeps lyrics on real follow timeline`() {
         setPreviewPlayerDetailContent(initialDisplayMode = PlaybackDisplayMode.Lyrics)
         composeRule.onAllNodesWithTag("follow-token-active", useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    @Test
+    fun `preview waveform mix mode shows visualizer and token strip without lyrics preview`() {
+        setPreviewPlayerDetailContent(initialDisplayMode = PlaybackDisplayMode.Mix)
+
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.audio_flash_visualizer_mode_lanes)).assertIsDisplayed()
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.audio_flash_visualizer_mode_pulse)).assertIsDisplayed()
+        composeRule.onAllNodesWithTag("playback-follow-section").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("playback-lyrics-section").assertCountEquals(0)
+    }
+
+    @Test
+    fun `mix mode token follow uses visual displayed samples`() {
+        assertEquals(
+            409,
+            playbackFollowSectionDisplayedSamples(
+                playbackDisplayMode = PlaybackDisplayMode.Mix,
+                displayedSamples = 10_000,
+                visualDisplayedSamples = 409,
+            ),
+        )
+    }
+
+    @Test
+    fun `mix mode token follow prefers shared flash playback sample when available`() {
+        assertEquals(
+            26390,
+            playbackFollowSectionDisplayedSamples(
+                playbackDisplayMode = PlaybackDisplayMode.Mix,
+                displayedSamples = 10_000,
+                visualDisplayedSamples = 409,
+                sharedFlashPlaybackSampleState =
+                    FlashVisualPlaybackSampleState(
+                        rawSample = 35_197f,
+                        displayedSample = 26_390f,
+                    ),
+            ),
+        )
+    }
+
+    @Test
+    fun `lyrics mode token follow keeps raw displayed samples`() {
+        assertEquals(
+            10_000,
+            playbackFollowSectionDisplayedSamples(
+                playbackDisplayMode = PlaybackDisplayMode.Lyrics,
+                displayedSamples = 10_000,
+                visualDisplayedSamples = 409,
+            ),
+        )
+    }
+
+    @Test
+    fun `player detail exposes lyrics expand toggle`() {
+        composeRule.setContent {
+            PlayerDetailSheetContent(
+                miniPlayerModel =
+                    MiniPlayerUiModel(
+                        title = UiText.Plain("Mini"),
+                        subtitle = UiText.Plain("generated"),
+                        leadingIcon = MiniPlayerLeadingIcon.Generated,
+                        durationMs = 44_000L,
+                        transportMode = TransportModeOption.Mini,
+                        isFlashMode = false,
+                        flashVoicingStyle = null,
+                        source = MiniPlayerSource.Generated,
+                    ),
+                displayedSamples = 7,
+                totalSamples = 12,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4, 5, 6),
+                sampleRateHz = 44_100,
+                displayedTime = "0:07",
+                totalTime = "0:12",
+                isPlaying = false,
+                playbackSequenceMode = PlaybackSequenceMode.Normal,
+                playbackSpeed = 1.0f,
+                canSkipPrevious = false,
+                canSkipNext = false,
+                canExportGeneratedAudio = false,
+                followData =
+                    sampleFollowData().copy(
+                        lyricLines = listOf("ASH BELL RITE"),
+                        lineTokenRanges =
+                            listOf(
+                                com.bag.audioandroid.domain
+                                    .TextFollowLineTokenRangeViewData(0, 0, 3),
+                            ),
+                        lyricLineFollowAvailable = true,
+                    ),
+                savedAudioItem = null,
+                onTogglePlayback = {},
+                onSkipToPreviousTrack = {},
+                onSkipToNextTrack = {},
+                onPlaybackSequenceModeSelected = {},
+                onPlaybackSpeedSelected = {},
+                onExportGeneratedAudio = {},
+                onExportGeneratedAudioToDocument = {},
+                onShareSavedAudio = null,
+                onOpenSavedAudioSheet = {},
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+            )
+        }
+
+        composeRule.onNodeWithTag("playback-lyrics-expand-toggle").assertExists()
     }
 
     private fun setPreviewPlayerDetailContent(initialDisplayMode: PlaybackDisplayMode = PlaybackDisplayMode.Lyrics) {

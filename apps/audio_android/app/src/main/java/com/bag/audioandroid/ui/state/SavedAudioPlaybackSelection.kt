@@ -20,4 +20,7 @@ data class SavedAudioPlaybackSelection(
     val decodedPayload: DecodedPayloadViewData = DecodedPayloadViewData.Empty,
     val followData: PayloadFollowViewData = PayloadFollowViewData.Empty,
     val flashSignalInfo: FlashSignalInfo = FlashSignalInfo.Empty,
+    val isLoadingContent: Boolean = false,
+    val needsDecodedContent: Boolean = false,
+    val isDecodingContent: Boolean = false,
 )

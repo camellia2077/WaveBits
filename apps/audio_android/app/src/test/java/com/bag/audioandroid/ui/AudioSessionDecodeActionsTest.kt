@@ -20,6 +20,7 @@ import com.bag.audioandroid.domain.PayloadFollowByteTimelineEntry
 import com.bag.audioandroid.domain.PayloadFollowViewData
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
 import com.bag.audioandroid.domain.SavedAudioContent
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.domain.SavedAudioImportResult
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioRenameResult
@@ -577,6 +578,7 @@ class AudioSessionDecodeActionsTest {
                     sampleRateHz = 44_100,
                     frameSamples = 2_205,
                     workerDispatcher = dispatcher,
+                    savedAudioDecodeCacheGateway = LocalFakeSavedAudioDecodeCacheGateway(),
                 ),
             actionsGateway = gateway,
             sessionActions =
@@ -596,6 +598,7 @@ class AudioSessionDecodeActionsTest {
                     refreshSavedAudioItems = {},
                     workerDispatcher = dispatcher,
                     generatedAudioCacheGateway = LocalFakeGeneratedAudioCacheGateway(),
+                    savedAudioDecodeCacheGateway = LocalFakeSavedAudioDecodeCacheGateway(),
                 ),
         )
     }
@@ -803,6 +806,27 @@ private class LocalFakeGeneratedAudioCacheGateway : GeneratedAudioCacheGateway {
         }
 
     override fun deleteCachedFile(path: String?) = Unit
+
+    override fun pruneCachedFiles(retainedPaths: Set<String>) = Unit
+}
+
+private class LocalFakeSavedAudioDecodeCacheGateway : SavedAudioDecodeCacheGateway {
+    override fun read(
+        item: SavedAudioItem,
+        metadata: GeneratedAudioMetadata?,
+    ) = null
+
+    override fun write(
+        item: SavedAudioItem,
+        metadata: GeneratedAudioMetadata?,
+        decodedPayload: DecodedPayloadViewData,
+        followData: PayloadFollowViewData,
+        flashSignalInfo: com.bag.audioandroid.domain.FlashSignalInfo,
+    ) = Unit
+
+    override fun delete(itemId: String) = Unit
+
+    override fun prune(validItemIds: Set<String>) = Unit
 }
 
 private class LocalFakePlaybackRuntimeGateway : PlaybackRuntimeGateway {

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -82,26 +81,21 @@ internal fun PlaybackHexByteBlock(
     onFocusColor: Color,
     inactiveColor: Color,
 ) {
-    val nibbles = remember(group) { hexNibbleGroups(group) }
+    val nibbles = hexNibbleGroups(group)
     val currentNibbleIndex =
         if (isActive && activeBitIndex >= 4 && nibbles.size > 1) {
             1
         } else {
             0
         }.coerceAtMost(nibbles.lastIndex.coerceAtLeast(0))
-    val currentNibble = nibbles.getOrNull(currentNibbleIndex) ?: HexNibbleGroup(hex = group, binary = "0000")
-    val activeBitIndexWithinNibble =
-        if (isActive && activeBitIndex >= 0) {
-            activeBitIndex % 4
-        } else {
-            -1
-        }
-    PlaybackHexNibbleBlock(
-        hexText = if (isActive) currentNibble.hex else group.uppercase(),
-        binaryText = currentNibble.binary,
+    val binaryText = nibbles.joinToString(separator = "") { it.binary }
+    PlaybackHexByteVisualBlock(
+        hexText = group.uppercase(),
+        binaryText = binaryText,
         isActive = isActive,
         isPast = isPast,
-        activeBitIndex = activeBitIndexWithinNibble,
+        activeNibbleIndex = if (isActive) currentNibbleIndex else -1,
+        activeBitIndex = if (isActive) activeBitIndex else -1,
         isActiveBitTone = isActiveBitTone,
         focusColor = focusColor,
         onFocusColor = onFocusColor,
@@ -110,25 +104,46 @@ internal fun PlaybackHexByteBlock(
 }
 
 @Composable
-private fun PlaybackHexNibbleBlock(
+private fun PlaybackHexByteVisualBlock(
     hexText: String,
     binaryText: String,
     isActive: Boolean,
     isPast: Boolean,
+    activeNibbleIndex: Int,
     activeBitIndex: Int,
     isActiveBitTone: Boolean,
     focusColor: Color,
     onFocusColor: Color,
     inactiveColor: Color,
 ) {
-    val hexColor =
-        when {
-            isActive -> onFocusColor
-            isPast -> focusColor
-            else -> inactiveColor
+    val annotatedHexText =
+        buildAnnotatedString {
+            hexText.forEachIndexed { nibbleIndex, hexChar ->
+                val isCurrentNibble = isActive && isActiveBitTone && nibbleIndex == activeNibbleIndex
+                val isHistoryNibble =
+                    isPast ||
+                        (
+                            isActive &&
+                                activeNibbleIndex >= 0 &&
+                                (
+                                    if (isActiveBitTone) {
+                                        nibbleIndex < activeNibbleIndex
+                                    } else {
+                                        nibbleIndex <= activeNibbleIndex
+                                    }
+                                )
+                        )
+                val (textColor, backgroundColor, weight) =
+                    when {
+                        isCurrentNibble -> Triple(onFocusColor, focusColor, FontWeight.Bold)
+                        isHistoryNibble -> Triple(focusColor, Color.Transparent, FontWeight.Medium)
+                        else -> Triple(inactiveColor, Color.Transparent, FontWeight.Medium)
+                    }
+                withStyle(SpanStyle(color = textColor, background = backgroundColor, fontWeight = weight)) {
+                    append(hexChar)
+                }
+            }
         }
-    val hexBackground = if (isActive) focusColor else Color.Transparent
-    val hexWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
     val annotatedBinaryText =
         buildAnnotatedString {
             binaryText.forEachIndexed { bitIndex, bitChar ->
@@ -163,12 +178,7 @@ private fun PlaybackHexNibbleBlock(
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Text(
-            text =
-                buildAnnotatedString {
-                    withStyle(SpanStyle(color = hexColor, background = hexBackground, fontWeight = hexWeight)) {
-                        append(hexText)
-                    }
-                },
+            text = annotatedHexText,
             style =
                 MaterialTheme.typography.labelLarge.copy(
                     fontFamily = FontFamily.Monospace,

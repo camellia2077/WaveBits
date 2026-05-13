@@ -80,7 +80,7 @@
     <string name="audio_player_detail_decoded_title">Wynik odczytu</string>
     <string name="audio_player_detail_decoded_empty">Nie ma jeszcze wyniku. W razie potrzeby stuknij Odczytaj.</string>
     <string name="audio_playback_view_visual">Wizualizacja</string>
-    <string name="audio_playback_view_lyrics">Liryka</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">Oczekiwanie na dane follow</string>
     <string name="audio_pro_visual_symbol_order">Bieżący bajt emituje 2 symbole: najpierw starszy nibble, potem młodszy</string>
     <string name="audio_pro_visual_step_1">Krok 1</string>
@@ -142,9 +142,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d bajtów</string>
     <string name="audio_generated_input_source_manual">Ręczne</string>
     <string name="audio_generated_input_source_sample">Próbka</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">Ścieżki</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">Energia</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">Ton</string>
+    <string name="audio_flash_visualizer_mode_lanes">Ścieżki</string>
+    <string name="audio_flash_visualizer_mode_pulse">Impuls</string>
+    <string name="audio_flash_visualizer_mode_pitch">Ton</string>
     <string name="transport_mode_flash_label">flash</string>
     <string name="transport_mode_pro_label">pro</string>
     <string name="transport_mode_ultra_label">ultra</string>
@@ -235,10 +235,14 @@
     <string name="demo_hint_generate_audio">Generuj audio</string>
     <string name="demo_hint_decode_audio">Dekoduj audio</string>
     <string name="demo_hint_open_mini_player">Otwórz mini player</string>
-    <string name="demo_hint_switch_to_lyrics">Przełączono na Lyrics</string>
+    <string name="demo_hint_switch_to_lyrics">Przełączono na Tokens</string>
     <string name="demo_hint_switch_to_visual">Przełączono na Visual</string>
     <string name="demo_hint_play">Odtwarzanie uruchomione</string>
     <string name="demo_hint_pause">Odtwarzanie wstrzymane</string>
     <string name="demo_hint_theme_changed">Motyw zmieniony</string>
     <string name="demo_hint_language_changed">Język zmieniony, sample odświeżony</string>
+    <string name="audio_saved_audio_decode_loading_title">Odczytywanie zapisanego audio…</string>
+    <string name="audio_saved_audio_decode_loading_body">Ten klip jest odczytywany jednorazowo, aby utworzyć jego wielokrotnie używany widok tekstu i tekstu piosenki. Wynik pozostaje tylko w tej aplikacji, aby kolejne otwarcie było szybsze.</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

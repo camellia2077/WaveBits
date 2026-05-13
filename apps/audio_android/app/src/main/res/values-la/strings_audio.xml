@@ -80,7 +80,7 @@
     <string name="audio_player_detail_decoded_title">Exitus resolutionis</string>
     <string name="audio_player_detail_decoded_empty">Nullus exitus adhuc. Inscribe Solve Hexam cum opus est.</string>
     <string name="audio_playback_view_visual">Visio</string>
-    <string name="audio_playback_view_lyrics">Carmina</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">Expectatio datorum follow</string>
     <string name="audio_pro_visual_symbol_order">Byte praesens duo symbola emittit: prius nibble superius, deinde inferius</string>
     <string name="audio_pro_visual_step_1">Gradus 1</string>
@@ -142,9 +142,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d octeti</string>
     <string name="audio_generated_input_source_manual">Manualis</string>
     <string name="audio_generated_input_source_sample">Exemplum</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">Lineae</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">Energia</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">Tonus</string>
+    <string name="audio_flash_visualizer_mode_lanes">Lineae</string>
+    <string name="audio_flash_visualizer_mode_pulse">Pulsus</string>
+    <string name="audio_flash_visualizer_mode_pitch">Tonus</string>
     <string name="transport_mode_flash_label">flash</string>
     <string name="transport_mode_pro_label">pro</string>
     <string name="transport_mode_ultra_label">ultra</string>
@@ -235,10 +235,14 @@
     <string name="demo_hint_generate_audio">Generate audio</string>
     <string name="demo_hint_decode_audio">Decode audio</string>
     <string name="demo_hint_open_mini_player">Open mini player</string>
-    <string name="demo_hint_switch_to_lyrics">Switched to Lyrics</string>
+    <string name="demo_hint_switch_to_lyrics">Switched to Tokens</string>
     <string name="demo_hint_switch_to_visual">Switched to Visual</string>
     <string name="demo_hint_play">Playback started</string>
     <string name="demo_hint_pause">Playback paused</string>
     <string name="demo_hint_theme_changed">Theme changed</string>
     <string name="demo_hint_language_changed">Language changed and sample refreshed</string>
+    <string name="audio_saved_audio_decode_loading_title">Vox archivata legitur…</string>
+    <string name="audio_saved_audio_decode_loading_body">Haec vox semel legitur ut prospectus textus et cantici reusabilis fiat. Eventus intra hanc appem tantum manet ut iterum celerius aperiatur.</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

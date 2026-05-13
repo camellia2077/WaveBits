@@ -113,6 +113,11 @@ def int_extra(command: list[str], key: str, value: int | None) -> None:
         command.extend(["--ei", key, str(value)])
 
 
+def float_extra(command: list[str], key: str, value: float | None) -> None:
+    if value is not None:
+        command.extend(["--ef", key, str(value)])
+
+
 def long_extra(command: list[str], key: str, value: int | None) -> None:
     if value is not None:
         command.extend(["--el", key, str(value)])

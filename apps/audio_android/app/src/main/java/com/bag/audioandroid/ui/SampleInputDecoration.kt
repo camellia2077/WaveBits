@@ -1,6 +1,5 @@
 package com.bag.audioandroid.ui
 
-import com.bag.audioandroid.ui.model.SampleDecorationStyleOption
 import com.bag.audioandroid.ui.model.SampleFlavor
 import com.bag.audioandroid.ui.model.TransportModeOption
 import com.bag.audioandroid.ui.state.ModeAudioSessionState
@@ -16,11 +15,10 @@ internal fun nextSampleEmojiPrefix(
     mode: TransportModeOption,
     flavor: SampleFlavor,
     isDecorationEnabled: Boolean,
-    decorationStyle: SampleDecorationStyleOption,
     currentState: SampleEmojiShuffleState?,
     random: Random = Random.Default,
 ): SampleEmojiPrefix? {
-    if (!isDecorationEnabled || decorationStyle != SampleDecorationStyleOption.Emoji) {
+    if (!isDecorationEnabled) {
         return null
     }
     val style = sampleEmojiStyleFor(flavor) ?: return null
@@ -96,7 +94,6 @@ internal fun applySampleEmojiDecoration(
     mode: TransportModeOption,
     flavor: SampleFlavor,
     isDecorationEnabled: Boolean,
-    decorationStyle: SampleDecorationStyleOption,
     random: Random = Random.Default,
 ): ModeAudioSessionState {
     if (session.sampleInputId == null) {
@@ -108,7 +105,6 @@ internal fun applySampleEmojiDecoration(
             mode = mode,
             flavor = flavor,
             isDecorationEnabled = isDecorationEnabled,
-            decorationStyle = decorationStyle,
             currentState = withoutAppliedPrefix.sampleEmojiShuffleState,
             random = random,
         )

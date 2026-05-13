@@ -37,9 +37,9 @@
 </p>
 
 ## Quick Overview
-- Native Android app for generating, playing, saving, importing, and exporting stylized encoded audio.
+- Native Android app for the visualization and sonification of text encoding.
 - Supports Morse code (`mini`), bit-by-bit BFSK / FSK (`flash`), DTMF-like dual-tone mapping (`pro`), and `16-FSK` (`ultra`).
-- Provides Visual and Lyrics follow views for signal-level and text-encoding-level inspection.
+Offers "Visual" and "Lyrics" modes for inspecting audio signal and text encoding layers.
 - Localized UI: English, German, Spanish, French, Italian, Japanese, Korean, Polish, Brazilian Portuguese, Russian, Ukrainian, Simplified Chinese, Traditional Chinese, and dog Latin for a solemn, liturgical, techno-futurist space-opera atmosphere.
 
 ## Download / Install
@@ -103,7 +103,7 @@ Bit-by-bit BFSK / FSK (`flash`) currently provides six styles. Each style uses a
 | --- | --- | --- |
 | [Litany](docs/design/modes/flash/litany.md) | `220 / 440 Hz` | low, solemn, chant-like |
 | [Collapse](docs/design/modes/flash/collapse.md) | `280 / 560 Hz` | hushed, panicked, stuttering |
-| [Steady](docs/design/modes/flash/steady.md) | `300 / 600 Hz` | everyday, precise, stable |
+| [Standard](docs/design/modes/flash/standard.md) | `300 / 600 Hz` | everyday, precise, stable |
 | [Hostile](docs/design/modes/flash/hostile.md) | `450 / 900 Hz` | sharp, urgent, aggressive |
 | [Zeal](docs/design/modes/flash/zeal.md) | variable `560-900 / 1120-1800 Hz` | bright, variable-speed, dense |
 | [Void](docs/design/modes/flash/void.md) | `240 / 480 Hz` | low, trailing, sparse |

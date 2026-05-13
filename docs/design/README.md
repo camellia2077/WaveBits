@@ -23,4 +23,4 @@
 - `docs/design/modes/flash/voicing-emotions.md`
   - `flash` voicing emotion 总览、decode 边界和 preset 对比。
 - `docs/design/modes/flash/`
-  - 按 preset 拆分的 `Steady / Hostile / Litany / Collapse / Zeal / Void` 详细设计。
+  - 按 preset 拆分的 `Standard / Hostile / Litany / Collapse / Zeal / Void` 详细设计。

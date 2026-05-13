@@ -18,7 +18,7 @@ Preserve FlipBits protocol tokens such as mini, flash, pro, ultra, ASCII, UTF-8,
 [app_text_rule]
 For app UI text, keep labels compact enough for Android buttons, tabs, segmented controls, mini-player sheets, sliders, and narrow cards.
 Use German compounds where they are natural, but avoid overlong compounds in narrow UI controls.
-Follow existing project terms where present: Audio, Zeichen, Bytes, Eingaberegeln, Visual, Lyrics, Hex, Morse, Payload, Token, Nibble, niedriger Träger, and hoher Träger.
+Follow existing project terms where present: Audio, Zeichen, Bytes, Eingaberegeln, Visual, Tokens, Hex, Morse, Payload, Token, Nibble, niedriger Träger, and hoher Träger.
 Do not turn short controls, visualizer mode labels, or transport labels into explanatory sentences.
 
 [sample_text_rule]

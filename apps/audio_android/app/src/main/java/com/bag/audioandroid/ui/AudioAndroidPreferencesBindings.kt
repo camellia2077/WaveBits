@@ -5,7 +5,6 @@ import com.bag.audioandroid.ui.model.CustomBrandThemeSettings
 import com.bag.audioandroid.ui.model.DefaultCustomBrandThemeSettings
 import com.bag.audioandroid.ui.model.FlashVoicingStyleOption
 import com.bag.audioandroid.ui.model.PlaybackSequenceMode
-import com.bag.audioandroid.ui.model.SampleDecorationStyleOption
 import com.bag.audioandroid.ui.model.ThemeModeOption
 import com.bag.audioandroid.ui.model.ThemeStyleOption
 import com.bag.audioandroid.ui.state.AudioAppUiState
@@ -44,7 +43,7 @@ internal class AudioAndroidPreferencesBindings(
         observeConfigThemeAppearanceExpanded()
         observeDemoModeEnabled()
         observeSampleDecorationEnabled()
-        observeSampleDecorationStyle()
+        observeFlashVisualPerfOverlayEnabled()
     }
 
     private fun observeSelectedPalette() {
@@ -267,17 +266,16 @@ internal class AudioAndroidPreferencesBindings(
         }
     }
 
-    private fun observeSampleDecorationStyle() {
+    private fun observeFlashVisualPerfOverlayEnabled() {
         scope.launch {
-            appSettingsRepository.sampleDecorationStyleId
+            appSettingsRepository.isFlashVisualPerfOverlayEnabled
                 .distinctUntilChanged()
-                .collect { styleId ->
-                    val style = SampleDecorationStyleOption.fromId(styleId)
+                .collect { enabled ->
                     uiState.update { state ->
-                        if (state.sampleDecorationStyle == style) {
+                        if (state.isFlashVisualPerfOverlayEnabled == enabled) {
                             state
                         } else {
-                            state.copy(sampleDecorationStyle = style)
+                            state.copy(isFlashVisualPerfOverlayEnabled = enabled)
                         }
                     }
                 }

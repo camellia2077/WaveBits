@@ -6,6 +6,7 @@ from pathlib import Path
 
 from core.translation_paths import (
     DEFAULT_RES_DIRECTORY,
+    DEFAULT_TRANSLATION_KEY_ALIGNMENT_DIRECTORY,
     display_language_tag,
     is_pro_sample_key,
     iter_translation_text_xml_paths,
@@ -20,7 +21,7 @@ from core.translation_resources import AndroidStringResourceRepository, Resource
 from prompts.language_prompt_profiles import get_locale_prompt_profile
 from prompts.translation_review_prompts import build_key_alignment_repair_prompt
 
-DEFAULT_OUTPUT_DIRECTORY = Path(__file__).resolve().parents[5] / "temp" / "translation_key_alignment_reports"
+DEFAULT_OUTPUT_DIRECTORY = DEFAULT_TRANSLATION_KEY_ALIGNMENT_DIRECTORY
 
 
 @dataclass(frozen=True)

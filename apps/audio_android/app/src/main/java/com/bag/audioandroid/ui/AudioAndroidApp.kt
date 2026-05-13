@@ -29,11 +29,14 @@ fun AudioAndroidApp(
     debugScenario: FlashDebugScenario? = null,
     miniDebugScenario: MiniDebugScenario? = null,
     encodeProgressDebugScenario: EncodeProgressDebugScenario? = null,
+    savedAudioDebugScenario: SavedAudioDebugScenario? = null,
 ) {
     val appContext = LocalContext.current.applicationContext
     val factory = rememberAudioAndroidViewModelFactory(appContext)
     val viewModel: AudioAndroidViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val debugExpandLyricsRequestId by viewModel.debugExpandLyricsRequestId.collectAsStateWithLifecycle()
+    val debugPlaybackDisplayModeRequest by viewModel.debugPlaybackDisplayModeRequest.collectAsStateWithLifecycle()
     val importAudioLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.OpenDocument(),
@@ -101,6 +104,12 @@ fun AudioAndroidApp(
     LaunchedEffect(encodeProgressDebugScenario?.requestId) {
         if (BuildConfig.DEBUG && encodeProgressDebugScenario != null) {
             viewModel.startEncodeProgressDebugScenario(encodeProgressDebugScenario)
+        }
+    }
+
+    LaunchedEffect(savedAudioDebugScenario?.requestId) {
+        if (BuildConfig.DEBUG && savedAudioDebugScenario != null) {
+            viewModel.startSavedAudioDebugScenario(savedAudioDebugScenario)
         }
     }
 
@@ -182,11 +191,16 @@ fun AudioAndroidApp(
                 "uiPlaybackOpenDetail requestId=${scenario.requestId} mode=flash " +
                     "detailBefore=${uiState.showPlayerDetailSheet}",
             )
+            viewModel.onPlaybackSpeedSelected(scenario.playbackSpeed)
+            Log.d(
+                "FlashAutomation",
+                "uiPlaybackSpeed requestId=${scenario.requestId} mode=flash speed=${scenario.playbackSpeed}",
+            )
             viewModel.onTogglePlayback()
             Log.d(
                 "FlashAutomation",
                 "uiPlaybackToggle requestId=${scenario.requestId} mode=flash " +
-                    "playMs=${scenario.playDurationMs}",
+                    "playMs=${scenario.playDurationMs} speed=${scenario.playbackSpeed}",
             )
             if (scenario.playDurationMs > 0L) {
                 delay(scenario.playDurationMs)
@@ -313,6 +327,10 @@ fun AudioAndroidApp(
         savedAudioFilter = savedAudioFilter,
         onSavedAudioFilterChange = { savedAudioFilter = it },
         debugScenario = debugScenario,
+        debugExpandLyricsRequestId = debugExpandLyricsRequestId,
+        onDebugExpandLyricsHandled = viewModel::onDebugExpandLyricsHandled,
+        debugPlaybackDisplayModeRequest = debugPlaybackDisplayModeRequest,
+        onDebugPlaybackDisplayModeHandled = viewModel::onDebugPlaybackDisplayModeHandled,
         onImportAudio = { importAudioLauncher.launch(arrayOf("audio/*")) },
         viewModel = viewModel,
     )

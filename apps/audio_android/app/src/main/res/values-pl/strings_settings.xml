@@ -57,14 +57,14 @@
     <string name="palette_family_neutrals">Neutralne</string>
     <string name="config_flash_style_title">Styl flash</string>
     <string name="config_flash_style_subtitle">Wybierz, jak ma brzmieć audio flash.</string>
-    <string name="config_flash_style_steady_label">Staza</string>
-    <string name="config_flash_style_steady_description">Wyraźna, stabilna sygnalizacja mechaniczna.</string>
+    <string name="config_flash_style_standard_label">Standard</string>
+    <string name="config_flash_style_standard_description">Wyraźna, stabilna sygnalizacja mechaniczna.</string>
     <string name="config_flash_style_hostile_label">Wrogość</string>
     <string name="config_flash_style_hostile_description">Gniewny preset rozkazu z krótszym, twardszym taktowaniem sygnału.</string>
     <string name="config_flash_style_litany_label">Litania</string>
     <string name="config_flash_style_litany_description">Preset nabożnej modlitwy z wolniejszą rytualną kadencją sygnału.</string>
     <string name="config_flash_style_collapse_label">Załamanie</string>
-    <string name="config_flash_style_collapse_description">Preset strachu i załamania; na razie używa stabilnej powłoki sygnału.</string>
+    <string name="config_flash_style_collapse_description">Preset strachu i załamania; obecnie używa standardowej obwiedni sygnału.</string>
     <string name="config_flash_style_zeal_label">Zapał</string>
     <string name="config_flash_style_zeal_description">Jasny, gęsty preset ze zmiennym szybkim rytmem i pauzami interpunkcyjnymi.</string>
     <string name="config_flash_style_void_label">Pustka</string>
@@ -194,9 +194,6 @@
 
     <string name="config_sample_decoration_title">Dekoracja sample</string>
     <string name="config_sample_decoration_subtitle">Dodaj opcjonalne prefiksy do losowanego tekstu sample.</string>
-    <string name="config_sample_decoration_style_title">Styl</string>
-    <string name="config_sample_decoration_style_none">Brak</string>
-    <string name="config_sample_decoration_style_emoji">Emoji (zależnie od frakcji)</string>
     <string name="config_demo_mode_title">Tryb demo</string>
     <string name="config_demo_mode_subtitle">Pokazuje efekt dotyku i podpowiedzi do nagrania.</string>
     <string name="config_custom_brand_theme_import_title">Importuj niestandardowy dual-tone</string>

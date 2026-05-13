@@ -78,7 +78,7 @@ internal fun DrawScope.drawToneTrackSegments(
     }
 }
 
-internal fun DrawScope.drawToneEnergySegments(
+internal fun DrawScope.drawBitCellSegments(
     segments: List<FlashSignalToneSegment>,
     viewport: FlashSignalViewport,
     leftPadding: Float,
@@ -92,10 +92,11 @@ internal fun DrawScope.drawToneEnergySegments(
     enableViewportEdgeFade: Boolean = true,
 ) {
     val centerY = topPadding + innerHeight / 2f
-    val upperGap = 3.dp.toPx()
-    val lowerGap = 3.dp.toPx()
-    val maxEnergyHeight = innerHeight * 0.42f
-    val edgeFadeSamples = if (enableViewportEdgeFade) edgeFadeSampleCount(segments, viewport) else 0f
+    val laneGap = 8.dp.toPx()
+    val laneHeight = (innerHeight - laneGap).coerceAtLeast(1f) / 2f
+    val upperTop = topPadding + laneHeight * 0.14f
+    val lowerTop = centerY + laneGap / 2f + laneHeight * 0.14f
+    val contentHeight = laneHeight * 0.72f
 
     drawLine(
         color = centerLineColor,
@@ -110,50 +111,35 @@ internal fun DrawScope.drawToneEnergySegments(
             }
             val startX = sampleToViewportX(segment.startSample.toFloat(), viewport, leftPadding, innerWidth)
             val endX = sampleToViewportX(segment.endSample.toFloat(), viewport, leftPadding, innerWidth)
-            val drawBounds = segmentVisualBounds(segment, viewport, startX, endX, minVisibleWidth = 1.8f)
-            val segmentWidth = (drawBounds.endX - drawBounds.startX).coerceAtLeast(1.8f)
-            when (segment.tone) {
-                FskDominantTone.High ->
-                    drawEnergyPulseClusterAcrossSegment(
-                        segment = segment,
-                        viewport = viewport,
-                        startX = drawBounds.startX,
-                        endX = drawBounds.endX,
-                        baselineY = centerY - upperGap,
-                        direction = -1f,
-                        minBarHeight = maxEnergyHeight * 0.28f,
-                        maxBarHeight = maxEnergyHeight,
+            val rectStartX = startX.coerceAtLeast(leftPadding)
+            val rectEndX = endX.coerceAtMost(leftPadding + innerWidth)
+            val rectWidth = (rectEndX - rectStartX).coerceAtLeast(1.2f)
+            val isCurrentBit =
+                viewport.playheadSample >= segment.startSample.toFloat() &&
+                    viewport.playheadSample < segment.endSample.toFloat()
+            val isPastBit = segment.endSample.toFloat() <= viewport.playheadSample
+            val top =
+                when (segment.tone) {
+                    FskDominantTone.High -> upperTop
+                    FskDominantTone.Low -> lowerTop
+                    FskDominantTone.Unknown -> return@forEach
+                }
+            drawRect(
+                color =
+                    laneRectColor(
+                        isCurrent = isCurrentBit,
+                        isPast = isPastBit,
                         activeToneColor = activeToneColor,
                         inactiveToneColor = inactiveToneColor,
-                        glowPulse = glowPulse,
-                        minVisualWidth = segmentWidth,
-                        edgeFadeSamples = edgeFadeSamples,
-                    )
-
-                FskDominantTone.Low ->
-                    drawEnergyPulseClusterAcrossSegment(
-                        segment = segment,
-                        viewport = viewport,
-                        startX = drawBounds.startX,
-                        endX = drawBounds.endX,
-                        baselineY = centerY + lowerGap,
-                        direction = 1f,
-                        minBarHeight = maxEnergyHeight * 0.28f,
-                        maxBarHeight = maxEnergyHeight,
-                        activeToneColor = activeToneColor,
-                        inactiveToneColor = inactiveToneColor,
-                        glowPulse = glowPulse,
-                        minVisualWidth = segmentWidth,
-                        edgeFadeSamples = edgeFadeSamples,
-                    )
-
-                FskDominantTone.Unknown -> Unit
-            }
+                    ),
+                topLeft = Offset(rectStartX, top),
+                size = Size(rectWidth, contentHeight),
+            )
         }
     }
 }
 
-internal fun DrawScope.drawPitchLadderSegments(
+internal fun DrawScope.drawPitchSegments(
     segments: List<FlashSignalToneSegment>,
     viewport: FlashSignalViewport,
     leftPadding: Float,
@@ -215,7 +201,7 @@ internal fun DrawScope.drawPitchLadderSegments(
     }
 }
 
-internal fun DrawScope.drawToneTracks(
+internal fun DrawScope.drawLanes(
     buckets: List<FskEnergyBucket>,
     activeThresholdBucketIndex: Float,
     activeWindowBucketCount: Int,
@@ -244,7 +230,7 @@ internal fun DrawScope.drawToneTracks(
     buckets.forEachIndexed { index, bucket ->
         val isActiveBucket = index.toFloat() <= activeThresholdBucketIndex
         val x = leftPadding + bucketWidth * (index.toFloat() - bucketOffset)
-        val contentWidth = (bucketWidth - 1.dp.toPx()).coerceAtLeast(1.6f)
+        val contentWidth = (bucketWidth - 2.dp.toPx()).coerceAtLeast(2.4f)
         val heldHighStrength = bucket.heldToneStrength(buckets, index, FskDominantTone.High)
         val heldLowStrength = bucket.heldToneStrength(buckets, index, FskDominantTone.Low)
         val highAlpha =
@@ -282,20 +268,20 @@ internal fun DrawScope.drawToneTracks(
 
         drawRoundRect(
             color = highColor,
-            topLeft = Offset(x, upperTop + (laneHeight - highHeight) / 2f),
+            topLeft = Offset(x + (bucketWidth - contentWidth) / 2f, upperTop + (laneHeight - highHeight) / 2f),
             size = Size(contentWidth, highHeight),
-            cornerRadius = CornerRadius(contentWidth / 2f, contentWidth / 2f),
+            cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx()),
         )
         drawRoundRect(
             color = lowColor,
-            topLeft = Offset(x, lowerTop + (laneHeight - lowHeight) / 2f),
+            topLeft = Offset(x + (bucketWidth - contentWidth) / 2f, lowerTop + (laneHeight - lowHeight) / 2f),
             size = Size(contentWidth, lowHeight),
-            cornerRadius = CornerRadius(contentWidth / 2f, contentWidth / 2f),
+            cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx()),
         )
     }
 }
 
-internal fun DrawScope.drawToneEnergy(
+internal fun DrawScope.drawBitCells(
     buckets: List<FskEnergyBucket>,
     activeThresholdBucketIndex: Float,
     activeWindowBucketCount: Int,
@@ -311,10 +297,12 @@ internal fun DrawScope.drawToneEnergy(
     glowPulse: Float,
 ) {
     val centerY = topPadding + innerHeight / 2f
-    val upperGap = 3.dp.toPx()
-    val lowerGap = 3.dp.toPx()
-    val maxEnergyHeight = innerHeight * 0.42f
-    val strokeWidth = (bucketWidth * 0.58f).coerceAtLeast(1.8f)
+    val laneGap = 8.dp.toPx()
+    val laneHeight = (innerHeight - laneGap).coerceAtLeast(1f) / 2f
+    val upperTop = topPadding + laneHeight * 0.14f
+    val lowerTop = centerY + laneGap / 2f + laneHeight * 0.14f
+    val contentHeight = laneHeight * 0.72f
+    val currentBucketIndex = activeThresholdBucketIndex.toInt().coerceIn(0, buckets.lastIndex.coerceAtLeast(0))
 
     drawLine(
         color = centerLineColor,
@@ -323,59 +311,46 @@ internal fun DrawScope.drawToneEnergy(
         strokeWidth = 1.dp.toPx(),
     )
     buckets.forEachIndexed { index, bucket ->
-        val isActiveBucket = index.toFloat() <= activeThresholdBucketIndex
-        val x = leftPadding + bucketWidth * (index.toFloat() - bucketOffset) + bucketWidth / 2f
-        val heldHighStrength = bucket.heldToneStrength(buckets, index, FskDominantTone.High)
-        val heldLowStrength = bucket.heldToneStrength(buckets, index, FskDominantTone.Low)
-        val highHeight = maxEnergyHeight * heldHighStrength
-        val lowHeight = maxEnergyHeight * heldLowStrength
-        val highAlpha =
-            if (bucket.dominantTone == FskDominantTone.High) {
-                0.42f + 0.42f * glowPulse + bucket.confidence * 0.12f
-            } else {
-                0.18f + bucket.highStrength * 0.24f
+        if (bucket.dominantTone == FskDominantTone.Unknown) {
+            return@forEachIndexed
+        }
+        val isCurrentBucket = index == currentBucketIndex
+        val isPastBucket = index < currentBucketIndex
+        val x = leftPadding + bucketWidth * (index.toFloat() - bucketOffset)
+        val contentWidth = bucketWidth.coerceAtLeast(1.2f)
+        val top =
+            when (bucket.dominantTone) {
+                FskDominantTone.High -> upperTop
+                FskDominantTone.Low -> lowerTop
+                FskDominantTone.Unknown -> return@forEachIndexed
             }
-        val lowAlpha =
-            if (bucket.dominantTone == FskDominantTone.Low) {
-                0.42f + 0.42f * glowPulse + bucket.confidence * 0.12f
-            } else {
-                0.18f + bucket.lowStrength * 0.24f
-            }
-        val highHoldAlpha = if (heldHighStrength > bucket.highStrength) heldHighStrength * FlashToneHoldAlphaBoost else 0f
-        val lowHoldAlpha = if (heldLowStrength > bucket.lowStrength) heldLowStrength * FlashToneHoldAlphaBoost else 0f
-        val highColor =
-            toneBucketColor(
-                isActive = isActiveBucket && bucket.dominantTone == FskDominantTone.High,
-                activeColor = activeToneColor,
-                inactiveColor = inactiveToneColor,
-                alpha = highAlpha + highHoldAlpha,
-                strength = heldHighStrength,
-            )
-        val lowColor =
-            toneBucketColor(
-                isActive = isActiveBucket && bucket.dominantTone == FskDominantTone.Low,
-                activeColor = activeToneColor,
-                inactiveColor = inactiveToneColor,
-                alpha = lowAlpha + lowHoldAlpha,
-                strength = heldLowStrength,
-            )
-
-        drawLine(
-            color = highColor,
-            start = Offset(x, centerY - upperGap),
-            end = Offset(x, centerY - upperGap - highHeight),
-            strokeWidth = strokeWidth,
-        )
-        drawLine(
-            color = lowColor,
-            start = Offset(x, centerY + lowerGap),
-            end = Offset(x, centerY + lowerGap + lowHeight),
-            strokeWidth = strokeWidth,
+        drawRect(
+            color =
+                laneRectColor(
+                    isCurrent = isCurrentBucket,
+                    isPast = isPastBucket,
+                    activeToneColor = activeToneColor,
+                    inactiveToneColor = inactiveToneColor,
+                ),
+            topLeft = Offset(x, top),
+            size = Size(contentWidth, contentHeight),
         )
     }
 }
 
-internal fun DrawScope.drawPitchLadder(
+private fun laneRectColor(
+    isCurrent: Boolean,
+    isPast: Boolean,
+    activeToneColor: Color,
+    inactiveToneColor: Color,
+): Color =
+    when {
+        isCurrent -> activeToneColor.copy(alpha = 0.96f)
+        isPast -> activeToneColor.copy(alpha = 0.52f)
+        else -> inactiveToneColor.copy(alpha = 0.22f)
+    }
+
+internal fun DrawScope.drawPitch(
     buckets: List<FskEnergyBucket>,
     activeThresholdBucketIndex: Float,
     activeWindowBucketCount: Int,
@@ -589,51 +564,6 @@ private fun DrawScope.drawMicroBarsAcrossSegment(
     }
 }
 
-private fun DrawScope.drawEnergyPulseClusterAcrossSegment(
-    segment: FlashSignalToneSegment,
-    viewport: FlashSignalViewport,
-    startX: Float,
-    endX: Float,
-    baselineY: Float,
-    direction: Float,
-    minBarHeight: Float,
-    maxBarHeight: Float,
-    activeToneColor: Color,
-    inactiveToneColor: Color,
-    glowPulse: Float,
-    minVisualWidth: Float,
-    edgeFadeSamples: Float,
-) {
-    val visualWidth = (endX - startX).coerceAtLeast(minVisualWidth)
-    val strokeWidth = FlashEnergyPulseStrokeWidthDp.dp.toPx()
-    val pulseFractions = segmentPulseFractions(visualWidth, FlashSegmentPulseSpacingDp.dp.toPx())
-    pulseFractions.forEachIndexed { pulseIndex, fraction ->
-        val x = startX + visualWidth * fraction
-        val sample = segment.startSample.toFloat() + segment.sampleCount.toFloat() * fraction
-        val edgeGlow = activeEdgeGlow(sample, viewport, segment.sampleCount)
-        val texture = deterministicSignalTexture(segment, pulseIndex)
-        val envelope = bitSegmentEnvelope(pulseIndex, pulseFractions.size)
-        val height = minBarHeight + (maxBarHeight - minBarHeight) * (0.32f + 0.68f * texture * envelope)
-        val color =
-            flashSegmentColor(
-                isActive = sample <= viewport.playheadSample,
-                activeColor = activeToneColor,
-                inactiveColor = inactiveToneColor,
-                confidence = 0.72f + 0.28f * texture,
-                glowPulse = glowPulse,
-                edgeGlow = edgeGlow,
-                alphaMultiplier = viewportEdgeFadeMultiplier(sample, viewport, edgeFadeSamples),
-            )
-        drawLine(
-            color = color,
-            start = Offset(x, baselineY),
-            end = Offset(x, baselineY + direction * height),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round,
-        )
-    }
-}
-
 private fun segmentPulseFractions(
     visualWidth: Float,
     spacingPx: Float,
@@ -831,7 +761,6 @@ private val FlashToneHoldDecayByBucketOffset = floatArrayOf(0.52f, 0.26f)
 private const val FlashToneHoldAlphaBoost = 0.18f
 private const val FlashViewportEdgeMinAlpha = 0.52f
 private const val FlashSegmentMicroBarWidthDp = 2
-private const val FlashEnergyPulseStrokeWidthDp = 3
 private const val FlashSegmentPulseSpacingDp = 8
 private const val FlashBitSegmentGapDp = 1.6f
 private const val FlashPitchSegmentGapDp = 3

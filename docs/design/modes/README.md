@@ -13,7 +13,7 @@
 - [`flash/voicing-emotions.md`](flash/voicing-emotions.md)
   - `flash` 六种 emotion preset 的总览与 decode 边界。
 - [`flash/`](flash/)
-  - `Steady / Hostile / Litany / Collapse / Zeal / Void` 的逐 preset 详细设计。
+  - `Standard / Hostile / Litany / Collapse / Zeal / Void` 的逐 preset 详细设计。
 - [`mini.md`](mini.md)
   - Morse code 模式的输入规范、节奏单位、follow / visual 口径与主链路文件。
 - [`pro.md`](pro.md)

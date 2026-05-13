@@ -7,6 +7,11 @@
 
 ## First Read
 
+- 这里的文档指向默认按“主入口 -> 分支索引 -> 专题文档”使用：
+  - 先判断当前任务属于哪一类。
+  - 只展开当前分支需要的那一篇指向文档。
+  - 不要因为 `AGENTS.md` 里列出了多个指向，就一次性把它们全部读完。
+
 - `apps/audio_android` 是 Android 官方 `Gradle` root。
 - 先读 `apps/audio_android/README.md` 的“快速定位 / 常见改动入口”。
 - 想快速判断还要不要展开别的 Android 文档，先看：
@@ -27,22 +32,17 @@
   - `docs/design/android/android-translation-tooling-agent-index.md`
 - 如果改动涉及 UI 职责拆分或入口归属，再按需读：
   - `docs/architecture/android/android-ui-structure.md`
-- 如果改动涉及 Android 自动化覆盖面、测试分层、adb scenario 归属或补回归测试优先级，再按需读：
-  - `docs/architecture/android/android-automation-coverage.md`
+- 如果改动涉及任何 Android 自动化、adb scenario、capture 命令、summary、稳定 test tag 或回归分层，统一先读：
+  - `docs/architecture/android/android-automation-agent-index.md`
 - 如果改动涉及 Flash Visual、Lyrics 跟随、长音频可视化、动画卡顿/跳动或 debug 指标，再按需读：
   - `docs/architecture/android/android-flash-visual.md`
-- 如果改动涉及 Flash 真机 UI 回归、agent/adb 驱动调试、自动化 scenario 或稳定 test tags，再按需读：
-  - `docs/architecture/android/android-flash-automation.md`
-- 如果改动涉及 Mini 真机 UI 回归、agent/adb 驱动调试、slow/standard/fast Morse speed 采集或 Mini Visual/Lyrics 对齐数据，再按需读：
-  - `docs/architecture/android/android-mini-automation.md`
-- 如果改动涉及 `mini / pro / ultra` 生成音频时的编码进度条、phase 文案或 adb 采集，再按需读：
-  - `docs/architecture/android/android-encode-progress-automation.md`
 
 ## Hard Rules
 
 - 优先按职责找入口，不要默认从最大文件开始搜。
 - 动画卡顿、跳动、闪烁或长音频 visual 性能问题，不要先靠猜测重构；先读 `docs/architecture/android/android-flash-visual.md`，再用 debug-only `FlashVisualPerf` 指标和 adb 日志确认瓶颈层级。
-- Flash 真机自动化优先使用 `docs/architecture/android/android-flash-automation.md` 里的 debug scenario，不要默认走坐标点击、随机 sample 或无障碍服务。
+- Android 真机自动化先从 `docs/architecture/android/android-automation-agent-index.md` 选分支，不要在 `AGENTS.md` 里平铺展开所有自动化专题。
+- Flash 真机自动化优先使用对应自动化文档里的 debug scenario，不要默认走坐标点击、随机 sample 或无障碍服务。
 - 修改可见 XML 文案、本地化结构或样例文本时，必须先按 `.agent/workflows/translations/README.md` 选择 app text 或 sample text workflow；不要跳过 translation key alignment。
 - 新增 XML 文案 key 时，必须使用脚手架：`python tools/run.py android strings-add --file <strings_*.xml> --key <name> --en "<English text>"`。
 - `strings-add` 默认只写英文 `values/` 基线，并生成 translation key alignment 报告；不要手工把英文原文复制到 `values-*` 当本地化。

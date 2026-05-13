@@ -39,7 +39,7 @@ internal fun FlashVoicingSelectorSection(
         if (isFlashVoicingEnabled) {
             selectedFlashVoicingStyle
         } else {
-            FlashVoicingStyleOption.Steady
+            FlashVoicingStyleOption.Standard
         }
     var isVoicingStyleSheetOpen by rememberSaveable { mutableStateOf(false) }
 

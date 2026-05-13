@@ -8,6 +8,7 @@ import com.bag.audioandroid.domain.AudioCodecGateway
 import com.bag.audioandroid.domain.AudioIoGateway
 import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.PlaybackRuntimeGateway
+import com.bag.audioandroid.domain.SavedAudioDecodeCacheGateway
 import com.bag.audioandroid.domain.SavedAudioRepository
 
 class AudioAndroidViewModelFactory(
@@ -18,6 +19,7 @@ class AudioAndroidViewModelFactory(
     private val playbackRuntimeGateway: PlaybackRuntimeGateway,
     private val savedAudioRepository: SavedAudioRepository,
     private val generatedAudioCacheGateway: GeneratedAudioCacheGateway,
+    private val savedAudioDecodeCacheGateway: SavedAudioDecodeCacheGateway,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AudioAndroidViewModel::class.java)) {
@@ -30,6 +32,7 @@ class AudioAndroidViewModelFactory(
                 playbackRuntimeGateway,
                 savedAudioRepository,
                 generatedAudioCacheGateway,
+                savedAudioDecodeCacheGateway,
             ) as T
         }
         throw IllegalArgumentException("Unsupported ViewModel class: ${modelClass.name}")

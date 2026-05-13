@@ -150,11 +150,12 @@ internal fun AudioInputActionsCard(
                 )
 
                 if (isEncodingBusy) {
+                    val currentEncodeProgress = requireNotNull(encodeProgress)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        val encodePercent = ((encodeProgress ?: 0f).coerceIn(0f, 1f) * 100f).roundToInt()
+                        val encodePercent = (currentEncodeProgress.coerceIn(0f, 1f) * 100f).roundToInt()
                         ActionButton(
                             text = stringResource(R.string.audio_action_encode_busy_progress, encodePercent),
                             onClick = {},

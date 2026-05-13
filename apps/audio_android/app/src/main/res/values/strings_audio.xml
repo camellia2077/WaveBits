@@ -56,7 +56,7 @@
     <string name="audio_action_export_to_file">Export to file</string>
     <string name="audio_action_playback_speed_short">Speed</string>
     <string name="audio_action_open_playback_speed_menu">Open playback speed menu</string>
-    <string name="audio_action_toggle_playback_speed_slider">Toggle playback speed adjustment</string>
+    <string name="audio_action_toggle_playback_speed_slider">Toggle playback speed presets</string>
     <!-- CONTEXT: Accessibility label for the playback-speed button in the player controls. %1$s is the current speed, such as 1.0x or 0.75x. -->
     <string name="audio_action_cycle_playback_speed">Playback speed %1$s</string>
     <!-- CONTEXT: Action/icon label that opens the saved-audio list or picker from the audio screen/mini player. -->
@@ -153,7 +153,7 @@
     <!-- CONTEXT: Tab label for the playback screen's visual mode. Shows waveform/visualizer rather than lyric/data text. -->
     <string name="audio_playback_view_visual">Visual</string>
     <!-- CONTEXT: Tab label for the playback screen's lyric/text-follow mode. -->
-    <string name="audio_playback_view_lyrics">Lyrics</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <!-- CONTEXT: Placeholder text in the pro visualizer before follow/token data is available for explaining the current byte. -->
     <string name="audio_pro_visual_waiting_follow">Waiting for follow data</string>
     <!-- CONTEXT: Intro line in the pro visualizer explaining that each byte emits two symbols: high nibble first, then low nibble. -->
@@ -243,7 +243,7 @@
     <!-- CONTEXT: Message in playback follow/lyrics sections when text follow data is currently unavailable. -->
     <string name="audio_follow_text_unavailable">Text follow is unavailable for this audio right now.</string>
     <!-- CONTEXT: Tab label in the playback follow section for lyric/text-style following. -->
-    <string name="audio_follow_display_lyrics">Lyrics</string>
+    <string name="audio_follow_display_lyrics">Tokens</string>
     <!-- CONTEXT: Tab label in the playback follow section for data-oriented following. -->
     <string name="audio_follow_display_data">Data</string>
     <!-- CONTEXT: View-mode label in the playback follow data section for hexadecimal output. -->
@@ -276,11 +276,11 @@
     <!-- CONTEXT: Value label for generated audio that came from the built-in sample library. -->
     <string name="audio_generated_input_source_sample">Sample</string>
     <!-- CONTEXT: Short mode label in the flash visualizer for separate low/high tone lanes. -->
-    <string name="audio_flash_visualizer_mode_tone_tracks">Lanes</string>
-    <!-- CONTEXT: Short mode label in the flash visualizer for low/high tone energy. -->
-    <string name="audio_flash_visualizer_mode_tone_energy">Energy</string>
+    <string name="audio_flash_visualizer_mode_lanes">Lanes</string>
+    <!-- CONTEXT: Short mode label in the flash visualizer for the per-bit pulse train view. This one can be translated per locale. -->
+    <string name="audio_flash_visualizer_mode_pulse">Pulse</string>
     <!-- CONTEXT: Short mode label in the flash visualizer for a low/high pitch step line. -->
-    <string name="audio_flash_visualizer_mode_pitch_ladder">Pitch</string>
+    <string name="audio_flash_visualizer_mode_pitch">Pitch</string>
     <!-- CONTEXT: Transport mode label shown in selectors, status lines, and saved metadata. Keep lowercase to match the product style. -->
     <string name="transport_mode_flash_label">flash</string>
     <!-- CONTEXT: Transport mode label shown in selectors, status lines, and saved metadata. Keep lowercase to match the product style. -->
@@ -439,10 +439,16 @@
     <string name="demo_hint_generate_audio">Generate audio</string>
     <string name="demo_hint_decode_audio">Decode audio</string>
     <string name="demo_hint_open_mini_player">Open mini player</string>
-    <string name="demo_hint_switch_to_lyrics">Switched to Lyrics</string>
+    <string name="demo_hint_switch_to_lyrics">Switched to Tokens</string>
     <string name="demo_hint_switch_to_visual">Switched to Visual</string>
     <string name="demo_hint_play">Playback started</string>
     <string name="demo_hint_pause">Playback paused</string>
     <string name="demo_hint_theme_changed">Theme changed</string>
     <string name="demo_hint_language_changed">Language changed and sample refreshed</string>
+    <!-- CONTEXT: Shown in the Saved player detail sheet the first time the app reads a saved clip to build reusable text/lyrics data. -->
+    <string name="audio_saved_audio_decode_loading_title">Reading saved audio…</string>
+    <!-- CONTEXT: Body text shown while the app performs the first saved-audio parse and writes the reusable decode result into app-private storage. -->
+    <string name="audio_saved_audio_decode_loading_body">This clip is being read once to build its reusable text and lyrics view. The result stays only inside this app for faster reopening.</string>
+    <!-- CONTEXT: Tab label for the playback screen's mixed mode that combines the visualizer and token view. Keep it short and preserve the English product term Mix in all locales. -->
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>

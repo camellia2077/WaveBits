@@ -65,7 +65,6 @@ internal class AudioSessionEditingActions(
                     mode = currentState.transportMode,
                     flavor = currentState.currentSampleFlavor,
                     isDecorationEnabled = currentState.isSampleDecorationEnabled,
-                    decorationStyle = currentState.sampleDecorationStyle,
                     currentState = it.sampleEmojiShuffleState,
                     random = random,
                 )

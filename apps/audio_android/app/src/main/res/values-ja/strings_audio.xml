@@ -94,7 +94,7 @@
     <string name="audio_player_detail_decoded_title">読み取り結果</string>
     <string name="audio_player_detail_decoded_empty">結果はまだありません。必要な時に「読み取り」をタップしてください。</string>
     <string name="audio_playback_view_visual">ビジュアル</string>
-    <string name="audio_playback_view_lyrics">歌詞</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">フォローデータを待機中</string>
     <string name="audio_pro_visual_symbol_order">現在のバイトは2つのシンボルを発信します：上位ニブル、次に下位ニブル</string>
     <string name="audio_pro_visual_step_1">ステップ 1</string>
@@ -160,9 +160,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d バイト</string>
     <string name="audio_generated_input_source_manual">手動</string>
     <string name="audio_generated_input_source_sample">サンプル</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">レーン</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">エネルギー</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">ピッチ</string>
+    <string name="audio_flash_visualizer_mode_lanes">レーン</string>
+    <string name="audio_flash_visualizer_mode_pulse">パルス</string>
+    <string name="audio_flash_visualizer_mode_pitch">ピッチ</string>
     <!-- CONTEXT: Transport mode name shown in tabs/chips. Do not translate flash/pro/ultra as ordinary adjectives. -->
     <string name="transport_mode_flash_label">flash</string>
     <!-- CONTEXT: Transport mode name shown in tabs/chips. -->
@@ -256,10 +256,14 @@
     <string name="demo_hint_generate_audio">オーディオを生成</string>
     <string name="demo_hint_decode_audio">オーディオを解析</string>
     <string name="demo_hint_open_mini_player">mini player を開く</string>
-    <string name="demo_hint_switch_to_lyrics">Lyrics に切り替え</string>
+    <string name="demo_hint_switch_to_lyrics">Tokens に切り替え</string>
     <string name="demo_hint_switch_to_visual">Visual に切り替え</string>
     <string name="demo_hint_play">再生開始</string>
     <string name="demo_hint_pause">再生一時停止</string>
     <string name="demo_hint_theme_changed">テーマを変更</string>
     <string name="demo_hint_language_changed">言語を変更し、サンプルを更新</string>
+    <string name="audio_saved_audio_decode_loading_title">保存済み音声を読み取り中…</string>
+    <string name="audio_saved_audio_decode_loading_body">このクリップは、再利用できるテキスト表示と歌詞表示を作るために一度だけ読み取られます。結果は再度開くときに速くするため、このアプリ内にのみ保存されます。</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

@@ -1,7 +1,6 @@
 package com.bag.audioandroid.audio
 
 import android.media.AudioTrack
-import android.media.PlaybackParams
 import kotlin.math.roundToInt
 
 internal fun safelyStopTrack(track: AudioTrack) {
@@ -55,7 +54,7 @@ internal fun setPlaybackSpeedSafely(
     val resolvedPlaybackSpeed = playbackSpeed.coerceAtLeast(0.1f)
     return try {
         track.playbackParams =
-            (track.playbackParams ?: PlaybackParams())
+            track.playbackParams
                 .allowDefaults()
                 .setPitch(1.0f)
                 .setSpeed(resolvedPlaybackSpeed)

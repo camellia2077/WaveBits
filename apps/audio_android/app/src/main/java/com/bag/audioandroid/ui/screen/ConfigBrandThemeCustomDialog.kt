@@ -237,7 +237,7 @@ internal fun CustomBrandThemeDialog(
                                 val random = randomCustomBrandThemeColors()
                                 backgroundHex = random.backgroundHex
                                 accentHex = random.accentHex
-                                outlineHexValue = random.outlineHex ?: ""
+                                outlineHexValue = random.outlineHex
                             },
                             colors =
                                 IconButtonDefaults.filledIconButtonColors(

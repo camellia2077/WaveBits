@@ -105,8 +105,8 @@ audio_io_metadata_flash_voicing_style MapFlashVoicingStyle(JNIEnv* env, jobject 
 
     jstring style_id = static_cast<jstring>(env->CallObjectMethod(flash_style_object, get_id));
     const std::string style_id_text = JStringToStdString(env, style_id);
-    if (style_id_text == "steady") {
-        return AUDIO_IO_METADATA_FLASH_VOICING_STYLE_STEADY;
+    if (style_id_text == "standard") {
+        return AUDIO_IO_METADATA_FLASH_VOICING_STYLE_STANDARD;
     }
     if (style_id_text == "litany") {
         return AUDIO_IO_METADATA_FLASH_VOICING_STYLE_LITANY;

@@ -24,6 +24,7 @@
 
 - Android 相关入口与编译/测试命令看 `<repo-root>/apps/audio_android/AGENTS.md`。
 - CLI 相关入口与编译/测试命令看 `<repo-root>/apps/audio_cli/AGENTS.md`。
+- `libs/` 相关入口、扫描策略与模块级文档指向看 `<repo-root>/libs/AGENTS.md`。
 
 ## Temp Files
 

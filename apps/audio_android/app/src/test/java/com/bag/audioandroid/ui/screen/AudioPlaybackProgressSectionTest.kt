@@ -179,6 +179,33 @@ class AudioPlaybackProgressSectionTest {
     }
 
     @Test
+    fun `lyrics expand toggle appears and can be toggled`() {
+        composeRule.setContent {
+            AudioPlaybackProgressSection(
+                displayedSamples = 0,
+                totalSamples = 8,
+                isScrubbing = false,
+                waveformPcm = shortArrayOf(1, 2, 3, 4),
+                sampleRateHz = 44100,
+                transportMode = TransportModeOption.Pro,
+                isFlashMode = false,
+                flashVoicingStyle = null,
+                followData = sampleFollowData(),
+                displayedTime = "0:00",
+                totalTime = "0:01",
+                isPlaying = false,
+                onScrubStarted = {},
+                onScrubChanged = {},
+                onScrubFinished = {},
+                initialDisplayMode = PlaybackDisplayMode.Lyrics,
+            )
+        }
+
+        composeRule.onNodeWithTag("playback-lyrics-expand-toggle").assertIsDisplayed().performClick()
+        composeRule.onNodeWithTag("playback-lyrics-expand-toggle").assertIsDisplayed().performClick()
+    }
+
+    @Test
     fun `flash visual keeps visualization switcher`() {
         composeRule.setContent {
             AudioPlaybackProgressSection(

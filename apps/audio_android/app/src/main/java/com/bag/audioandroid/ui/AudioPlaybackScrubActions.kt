@@ -13,6 +13,8 @@ internal class AudioPlaybackScrubActions(
     private val playbackRuntimeGateway: PlaybackRuntimeGateway,
     private val playbackSourceCoordinator: PlaybackSourceCoordinator,
     private val playbackUiStateSync: AudioPlaybackUiStateSync,
+    private val followDataWindowActions: FollowDataWindowActions? = null,
+    private val flashVisualWindowActions: FlashVisualWindowActions? = null,
     private val startPlaybackFromTarget: (PlaybackSourceCoordinator.PlaybackTarget) -> Unit,
 ) {
     fun onScrubStarted() {
@@ -42,6 +44,11 @@ internal class AudioPlaybackScrubActions(
         playbackCoordinator.updateScrub(playbackSourceCoordinator.sourceKey(playbackTarget.source), clampedTarget)
         playbackUiStateSync.updatePlaybackState(playbackTarget.source) {
             playbackRuntimeGateway.scrubChanged(it, clampedTarget)
+        }
+        val generatedSource = playbackTarget.source as? com.bag.audioandroid.ui.model.AudioPlaybackSource.Generated
+        if (generatedSource != null) {
+            followDataWindowActions?.ensureCurrentWindow(generatedSource.mode, clampedTarget)
+            flashVisualWindowActions?.ensureCurrentWindow(generatedSource.mode, clampedTarget)
         }
     }
 

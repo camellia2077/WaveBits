@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.GraphicEq
@@ -48,7 +49,7 @@ internal fun MiniPlayerBar(
     // Keep the mini-player fully opaque. A translucent card lets the screen content show through
     // and makes the title/subtitle harder to read while the dock is floating above the page.
     Surface(
-        shape = MaterialTheme.shapes.large,
+        shape = RoundedCornerShape(26.dp),
         color = containerColor,
         // We force tonalElevation to 0.dp to ensure the Dock System (Player + Bottom Bar)
         // stays color-consistent and does not get tinted by Material 3's primary color.

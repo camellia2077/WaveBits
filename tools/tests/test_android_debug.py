@@ -64,10 +64,12 @@ def test_capture_flash_defaults_ui_play_ms_to_longer_duration(monkeypatch, tmp_p
             wait_ms=90000,
             scenario="ui",
             style="litany",
+            display="mix",
             visual="lanes",
             input_text=None,
             sample_length="long",
             sample_id=None,
+            playback_speed=0.1,
             play_ms=None,
             no_encode=False,
             no_play=False,
@@ -77,6 +79,8 @@ def test_capture_flash_defaults_ui_play_ms_to_longer_duration(monkeypatch, tmp_p
 
     assert captured[0]["wait_ms"] == 90000
     assert started[0][0] == capture.FLASH_ACTION
+    assert started[0][1][started[0][1].index("wb.display") + 1] == "mix"
+    assert started[0][1][started[0][1].index("wb.playback.speed") + 1] == "0.1"
     assert "--el" in started[0][1]
     assert started[0][1][started[0][1].index("wb.play.ms") + 1] == "30000"
 
@@ -105,10 +109,12 @@ def test_capture_flash_defaults_headless_play_ms_to_short_duration(monkeypatch, 
             wait_ms=12000,
             scenario="headless",
             style="litany",
+            display="lyrics",
             visual="lanes",
             input_text="flash smoke",
             sample_length=None,
             sample_id=None,
+            playback_speed=1.0,
             play_ms=None,
             no_encode=False,
             no_play=False,

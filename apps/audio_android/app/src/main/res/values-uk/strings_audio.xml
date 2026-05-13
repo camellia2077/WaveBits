@@ -80,7 +80,7 @@
     <string name="audio_player_detail_decoded_title">Результат читання</string>
     <string name="audio_player_detail_decoded_empty">Результату ще немає. Натисніть Прочитати, коли буде потрібно.</string>
     <string name="audio_playback_view_visual">Візуал</string>
-    <string name="audio_playback_view_lyrics">Лірика</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">Очікування супровідних даних</string>
     <string name="audio_pro_visual_symbol_order">Поточний байт передає 2 символи: спочатку старший нібл, потім молодший</string>
     <string name="audio_pro_visual_step_1">Крок 1</string>
@@ -142,9 +142,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d байт</string>
     <string name="audio_generated_input_source_manual">Вручну</string>
     <string name="audio_generated_input_source_sample">Зразок</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">Доріжки</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">Енергія</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">Тон</string>
+    <string name="audio_flash_visualizer_mode_lanes">Доріжки</string>
+    <string name="audio_flash_visualizer_mode_pulse">Імпульс</string>
+    <string name="audio_flash_visualizer_mode_pitch">Тон</string>
     <string name="transport_mode_flash_label">flash</string>
     <string name="transport_mode_pro_label">pro</string>
     <string name="transport_mode_ultra_label">ultra</string>
@@ -235,10 +235,14 @@
     <string name="demo_hint_generate_audio">Створити аудіо</string>
     <string name="demo_hint_decode_audio">Декодувати аудіо</string>
     <string name="demo_hint_open_mini_player">Відкрити mini player</string>
-    <string name="demo_hint_switch_to_lyrics">Перемкнено на Lyrics</string>
+    <string name="demo_hint_switch_to_lyrics">Перемкнено на Tokens</string>
     <string name="demo_hint_switch_to_visual">Перемкнено на Visual</string>
     <string name="demo_hint_play">Відтворення розпочато</string>
     <string name="demo_hint_pause">Відтворення призупинено</string>
     <string name="demo_hint_theme_changed">Тему змінено</string>
     <string name="demo_hint_language_changed">Мову змінено, зразок оновлено</string>
+    <string name="audio_saved_audio_decode_loading_title">Читання збереженого аудіо…</string>
+    <string name="audio_saved_audio_decode_loading_body">Цей кліп зчитується один раз, щоб створити його повторно використовуваний текстовий і ліричний вигляд. Результат зберігається лише в цьому застосунку, щоб повторне відкриття було швидшим.</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

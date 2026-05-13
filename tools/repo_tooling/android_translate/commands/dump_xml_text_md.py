@@ -3,10 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from core.translation_paths import DEFAULT_RES_DIRECTORY, TEXT_TYPES, get_review_groups_for_text_type
+from core.translation_paths import (
+    DEFAULT_RES_DIRECTORY,
+    DEFAULT_TRANSLATION_XML_DUMPS_DIRECTORY,
+    TEXT_TYPES,
+    get_review_groups_for_text_type,
+)
 from core.translation_resources import AndroidStringResourceRepository
 
-DEFAULT_OUTPUT_DIRECTORY = Path(__file__).resolve().parents[5] / "temp" / "xml_text_checks"
+DEFAULT_OUTPUT_DIRECTORY = DEFAULT_TRANSLATION_XML_DUMPS_DIRECTORY
 
 
 @dataclass(frozen=True)

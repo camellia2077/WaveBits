@@ -10,8 +10,10 @@ import androidx.compose.runtime.setValue
 internal data class PlaybackDisplaySectionState(
     val playbackDisplayMode: PlaybackDisplayMode,
     val flashVisualizationModeName: String,
+    val lyricsExpanded: Boolean,
     val onDisplayModeSelected: (PlaybackDisplayMode) -> Unit,
     val onFlashVisualizationModeSelected: (FlashSignalVisualizationMode) -> Unit,
+    val onLyricsExpandedChanged: (Boolean) -> Unit,
 )
 
 @Composable
@@ -19,13 +21,14 @@ internal fun rememberPlaybackDisplaySectionState(
     isFlashMode: Boolean,
     onLyricsRequested: () -> Unit,
     initialDisplayMode: PlaybackDisplayMode = PlaybackDisplayMode.Lyrics,
-    initialFlashVisualizationMode: FlashSignalVisualizationMode = FlashSignalVisualizationMode.ToneTracks,
+    initialFlashVisualizationMode: FlashSignalVisualizationMode = FlashSignalVisualizationMode.Lanes,
     onDisplayModeSelected: (PlaybackDisplayMode) -> Unit = {},
 ): PlaybackDisplaySectionState {
     var playbackDisplayModeName by rememberSaveable { mutableStateOf(initialDisplayMode.name) }
     var flashVisualizationModeName by rememberSaveable(isFlashMode, initialFlashVisualizationMode) {
         mutableStateOf(initialFlashVisualizationMode.name)
     }
+    var lyricsExpanded by rememberSaveable { mutableStateOf(false) }
     val playbackDisplayMode =
         remember(playbackDisplayModeName) {
             PlaybackDisplayMode.entries.firstOrNull { it.name == playbackDisplayModeName } ?: PlaybackDisplayMode.Lyrics
@@ -34,12 +37,14 @@ internal fun rememberPlaybackDisplaySectionState(
     return remember(
         playbackDisplayMode,
         flashVisualizationModeName,
+        lyricsExpanded,
         onLyricsRequested,
         onDisplayModeSelected,
     ) {
         PlaybackDisplaySectionState(
             playbackDisplayMode = playbackDisplayMode,
             flashVisualizationModeName = flashVisualizationModeName,
+            lyricsExpanded = lyricsExpanded,
             onDisplayModeSelected = { option ->
                 playbackDisplayModeName = option.name
                 onDisplayModeSelected(option)
@@ -49,6 +54,9 @@ internal fun rememberPlaybackDisplaySectionState(
             },
             onFlashVisualizationModeSelected = { selectedMode ->
                 flashVisualizationModeName = selectedMode.name
+            },
+            onLyricsExpandedChanged = { expanded ->
+                lyricsExpanded = expanded
             },
         )
     }

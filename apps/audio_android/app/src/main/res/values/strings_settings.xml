@@ -57,14 +57,14 @@
     <string name="palette_family_neutrals">Neutrals</string>
     <string name="config_flash_style_title">Flash style</string>
     <string name="config_flash_style_subtitle">Choose how flash audio should sound.</string>
-    <string name="config_flash_style_steady_label">Stasis</string>
-    <string name="config_flash_style_steady_description">Clear, stable machine signaling.</string>
+    <string name="config_flash_style_standard_label">Standard</string>
+    <string name="config_flash_style_standard_description">Clear, stable machine signaling.</string>
     <string name="config_flash_style_hostile_label">Hostility</string>
     <string name="config_flash_style_hostile_description">An angry command preset with shorter, harder signal timing.</string>
     <string name="config_flash_style_litany_label">Litany</string>
     <string name="config_flash_style_litany_description">A reverent prayer preset using the slower ritual signal cadence.</string>
     <string name="config_flash_style_collapse_label">Collapse</string>
-    <string name="config_flash_style_collapse_description">A fear and breakdown preset; currently uses the steady signal shell.</string>
+    <string name="config_flash_style_collapse_description">A fear and breakdown preset; currently uses the standard signal shell.</string>
     <string name="config_about_title">About</string>
     <string name="config_about_subtitle">Author, project link, and licenses</string>
     <string name="palette_ruby_title">Ruby Red</string>
@@ -193,9 +193,6 @@
     <string name="config_flash_style_void_description">A low, sparse preset using a slower signal cadence.</string>
     <string name="config_sample_decoration_title">Sample decoration</string>
     <string name="config_sample_decoration_subtitle">Add optional prefix markers to randomized sample text.</string>
-    <string name="config_sample_decoration_style_title">Style</string>
-    <string name="config_sample_decoration_style_none">None</string>
-    <string name="config_sample_decoration_style_emoji">Emoji (flavor-based)</string>
     <string name="config_demo_mode_title">Demo mode</string>
     <string name="config_demo_mode_subtitle">Show tap feedback and key action hints for recording.</string>
     <!-- CONTEXT: Dialog title for importing one custom dual-tone preset from pasted text. -->

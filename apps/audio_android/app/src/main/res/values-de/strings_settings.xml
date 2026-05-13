@@ -57,14 +57,14 @@
     <string name="palette_family_neutrals">Neutral</string>
     <string name="config_flash_style_title">Flash-Stil</string>
     <string name="config_flash_style_subtitle">Wähle, wie Flash-Audio klingen soll.</string>
-    <string name="config_flash_style_steady_label">Stase</string>
-    <string name="config_flash_style_steady_description">Klare, stabile Maschinensignale.</string>
+    <string name="config_flash_style_standard_label">Standard</string>
+    <string name="config_flash_style_standard_description">Klare, stabile Maschinensignale.</string>
     <string name="config_flash_style_hostile_label">Feindseligkeit</string>
     <string name="config_flash_style_hostile_description">Ein wütendes Befehls-Preset mit kürzerem, härterem Signaltiming.</string>
     <string name="config_flash_style_litany_label">Litanei</string>
     <string name="config_flash_style_litany_description">Ein ehrfürchtiges Gebets-Preset mit langsamerem rituellem Signaltakt.</string>
     <string name="config_flash_style_collapse_label">Zusammenbruch</string>
-    <string name="config_flash_style_collapse_description">Ein Angst- und Zusammenbruchs-Preset; nutzt derzeit die stabile Signalhülle.</string>
+    <string name="config_flash_style_collapse_description">Ein Furcht- und Zusammenbruch-Preset; verwendet derzeit die Standard-Signalhülle.</string>
     <string name="config_flash_style_zeal_label">Eifer</string>
     <string name="config_flash_style_zeal_description">Helles, dichtes Preset mit variablem schnellen Timing und Interpunktionspausen.</string>
     <string name="config_flash_style_void_label">Leere</string>
@@ -194,9 +194,6 @@
 
     <string name="config_sample_decoration_title">Sample-Dekoration</string>
     <string name="config_sample_decoration_subtitle">Fügt dem zufälligen Sample-Text optionale Präfixmarker hinzu.</string>
-    <string name="config_sample_decoration_style_title">Stil</string>
-    <string name="config_sample_decoration_style_none">Keine</string>
-    <string name="config_sample_decoration_style_emoji">Emoji (fraktionsbasiert)</string>
     <string name="config_demo_mode_title">Demo-Modus</string>
     <string name="config_demo_mode_subtitle">Zeigt Tipp-Feedback und Aktionshinweise für Aufnahmen.</string>
     <string name="config_custom_brand_theme_import_title">Benutzerdefinierten dual-tone importieren</string>

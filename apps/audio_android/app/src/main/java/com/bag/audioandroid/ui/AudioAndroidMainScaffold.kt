@@ -3,8 +3,8 @@ package com.bag.audioandroid.ui
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -25,6 +25,7 @@ import com.bag.audioandroid.ui.model.SavedAudioModeFilter
 import com.bag.audioandroid.ui.model.asString
 import com.bag.audioandroid.ui.screen.AudioTabScreen
 import com.bag.audioandroid.ui.screen.ConfigTabScreen
+import com.bag.audioandroid.ui.screen.DebugPlaybackDisplayModeRequest
 import com.bag.audioandroid.ui.screen.LibraryTabScreen
 import com.bag.audioandroid.ui.screen.MiniPlayerBar
 import com.bag.audioandroid.ui.screen.PlayerDetailSheetContent
@@ -47,6 +48,10 @@ internal fun AudioAndroidMainScaffold(
     onImportAudio: () -> Unit,
     viewModel: AudioAndroidViewModel,
     debugScenario: FlashDebugScenario? = null,
+    debugExpandLyricsRequestId: Long? = null,
+    onDebugExpandLyricsHandled: (Long) -> Unit = {},
+    debugPlaybackDisplayModeRequest: DebugPlaybackDisplayModeRequest? = null,
+    onDebugPlaybackDisplayModeHandled: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val currentSession = uiState.currentSession
@@ -145,10 +150,12 @@ internal fun AudioAndroidMainScaffold(
     if (uiState.showPlayerDetailSheet && miniPlayerModel != null) {
         ModalBottomSheet(
             onDismissRequest = viewModel::onClosePlayerDetailSheet,
-            modifier = Modifier.safeDrawingPadding(),
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ) {
             Scaffold(
+                containerColor = Color.Transparent,
                 snackbarHost = {
                     SnackbarHost(hostState = playerDetailSnackbarHostState)
                 },
@@ -178,6 +185,12 @@ internal fun AudioAndroidMainScaffold(
                     followData = uiState.currentPlaybackFollowData,
                     flashVisualWindow = uiState.currentPlaybackFlashVisualWindow,
                     savedAudioItem = uiState.currentSavedAudioItem,
+                    showSavedAudioDecodeLoadingNotice =
+                        uiState.selectedSavedAudio
+                            ?.takeIf { selection -> selection.item.itemId == uiState.currentSavedAudioItem?.itemId }
+                            ?.let { it.needsDecodedContent || it.isDecodingContent }
+                            ?: false,
+                    isFlashVisualPerfOverlayEnabled = uiState.isFlashVisualPerfOverlayEnabled,
                     onTogglePlayback = viewModel::onTogglePlayback,
                     onSkipToPreviousTrack = viewModel::onSkipToPreviousTrack,
                     onSkipToNextTrack = viewModel::onSkipToNextTrack,
@@ -194,6 +207,10 @@ internal fun AudioAndroidMainScaffold(
                     onPlaybackDisplayModeSelected = { mode ->
                         viewModel.onPlaybackDisplayModeSelected(mode == com.bag.audioandroid.ui.screen.PlaybackDisplayMode.Lyrics)
                     },
+                    debugExpandLyricsRequestId = debugExpandLyricsRequestId,
+                    onDebugExpandLyricsHandled = onDebugExpandLyricsHandled,
+                    debugPlaybackDisplayModeRequest = debugPlaybackDisplayModeRequest,
+                    onDebugPlaybackDisplayModeHandled = onDebugPlaybackDisplayModeHandled,
                     initialFlashVisualizationMode = debugScenario?.visualMode,
                     modifier = Modifier.padding(sheetInnerPadding),
                 )
@@ -258,8 +275,8 @@ internal fun AudioAndroidMainScaffold(
                     onDemoModeEnabledChange = viewModel::onDemoModeEnabledChanged,
                     isSampleDecorationEnabled = uiState.isSampleDecorationEnabled,
                     onSampleDecorationEnabledChange = viewModel::onSampleDecorationEnabledChanged,
-                    sampleDecorationStyle = uiState.sampleDecorationStyle,
-                    onSampleDecorationStyleSelected = viewModel::onSampleDecorationStyleSelected,
+                    isFlashVisualPerfOverlayEnabled = uiState.isFlashVisualPerfOverlayEnabled,
+                    onFlashVisualPerfOverlayEnabledChange = viewModel::onFlashVisualPerfOverlayEnabledChanged,
                     selectedPalette = uiState.selectedPalette,
                     onPaletteSelected = viewModel::onPaletteSelected,
                     materialPalettes = materialPalettes,

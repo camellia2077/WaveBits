@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -29,7 +34,6 @@ import com.bag.audioandroid.ui.model.AppLanguageOption
 import com.bag.audioandroid.ui.model.BrandThemeOption
 import com.bag.audioandroid.ui.model.CustomBrandThemeSettings
 import com.bag.audioandroid.ui.model.PaletteOption
-import com.bag.audioandroid.ui.model.SampleDecorationStyleOption
 import com.bag.audioandroid.ui.model.ThemeModeOption
 import com.bag.audioandroid.ui.model.ThemeStyleOption
 import com.bag.audioandroid.ui.theme.AppThemeAccentTokens
@@ -58,8 +62,8 @@ fun ConfigTabScreen(
     onDemoModeEnabledChange: (Boolean) -> Unit,
     isSampleDecorationEnabled: Boolean,
     onSampleDecorationEnabledChange: (Boolean) -> Unit,
-    sampleDecorationStyle: SampleDecorationStyleOption,
-    onSampleDecorationStyleSelected: (SampleDecorationStyleOption) -> Unit,
+    isFlashVisualPerfOverlayEnabled: Boolean,
+    onFlashVisualPerfOverlayEnabledChange: (Boolean) -> Unit,
     selectedPalette: PaletteOption,
     onPaletteSelected: (PaletteOption) -> Unit,
     materialPalettes: List<PaletteOption>,
@@ -114,27 +118,64 @@ fun ConfigTabScreen(
             tonalElevation = 0.dp,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                Text("Debug", fontWeight = FontWeight.SemiBold)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(stringResource(R.string.config_demo_mode_title), fontWeight = FontWeight.SemiBold)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            stringResource(R.string.config_demo_mode_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text("Demo mode", fontWeight = FontWeight.SemiBold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Show tap feedback and key action hints for recording.",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                    Switch(
+                        checked = isDemoModeEnabled,
+                        onCheckedChange = onDemoModeEnabledChange,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text("Visual perf overlay", fontWeight = FontWeight.SemiBold)
+                    }
+                    IconButton(
+                        onClick = { onFlashVisualPerfOverlayEnabledChange(!isFlashVisualPerfOverlayEnabled) },
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isFlashVisualPerfOverlayEnabled) {
+                                    Icons.Outlined.Visibility
+                                } else {
+                                    Icons.Outlined.VisibilityOff
+                                },
+                            contentDescription = null,
+                            tint =
+                                if (isFlashVisualPerfOverlayEnabled) {
+                                    accentTokens.disclosureAccentTint
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                         )
                     }
                 }
-                Switch(
-                    checked = isDemoModeEnabled,
-                    onCheckedChange = onDemoModeEnabledChange,
-                )
             }
         }
 
@@ -166,26 +207,6 @@ fun ConfigTabScreen(
                         checked = isSampleDecorationEnabled,
                         onCheckedChange = onSampleDecorationEnabledChange,
                     )
-                }
-
-                if (isSampleDecorationEnabled) {
-                    Text(
-                        text = stringResource(R.string.config_sample_decoration_style_title),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        SampleDecorationStyleOption.entries.forEach { option ->
-                            androidx.compose.material3.FilterChip(
-                                selected = sampleDecorationStyle == option,
-                                onClick = { onSampleDecorationStyleSelected(option) },
-                                label = { Text(stringResource(option.labelResId)) },
-                            )
-                        }
-                    }
                 }
             }
         }

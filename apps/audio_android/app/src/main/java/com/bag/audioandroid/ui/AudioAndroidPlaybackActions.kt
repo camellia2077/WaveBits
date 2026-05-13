@@ -49,6 +49,8 @@ internal class AudioAndroidPlaybackActions(
             playbackRuntimeGateway = playbackRuntimeGateway,
             playbackSourceCoordinator = playbackSourceCoordinator,
             playbackUiStateSync = playbackUiStateSync,
+            followDataWindowActions = followDataWindowActions,
+            flashVisualWindowActions = flashVisualWindowActions,
             startPlaybackFromTarget = commandActions::startPlaybackFromTarget,
         )
 

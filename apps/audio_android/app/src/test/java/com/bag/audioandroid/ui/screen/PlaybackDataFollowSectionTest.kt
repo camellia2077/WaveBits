@@ -9,7 +9,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -29,6 +28,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
+@Suppress("LargeClass")
 class PlaybackDataFollowSectionTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
@@ -60,8 +60,44 @@ class PlaybackDataFollowSectionTest {
 
         composeRule.onNodeWithTag("follow-token-strip").assertIsDisplayed()
         composeRule.onNodeWithText("BELL").assertIsDisplayed()
-        composeRule.onNodeWithText("42").assertIsDisplayed()
-        composeRule.onAllNodesWithText("4C").assertCountEquals(1)
+        composeRule.onNodeWithText("01000010").assertIsDisplayed()
+        composeRule.onAllNodesWithText("01001100", useUnmergedTree = true).assertCountEquals(2)
+    }
+
+    @Test
+    fun `flash mode shows binary before hex in annotation switcher`() {
+        composeRule.setContent {
+            PlaybackDataFollowSection(
+                followData = sampleFollowData(),
+                displayedSamples = 7,
+                transportMode = TransportModeOption.Flash,
+            )
+        }
+        composeRule.waitForIdle()
+
+        val binaryBounds = composeRule.onNodeWithTag("follow-annotation-binary").getUnclippedBoundsInRoot()
+        val hexBounds = composeRule.onNodeWithTag("follow-annotation-hex").getUnclippedBoundsInRoot()
+
+        assertTrue(binaryBounds.left < hexBounds.left)
+    }
+
+    @Test
+    fun `long preview waveform lyrics must use real playback samples instead of preview samples`() {
+        val followData =
+            PayloadFollowViewData(
+                textTokens = listOf("ASH", "BELL", "RITE"),
+                textTokenTimeline =
+                    listOf(
+                        TextFollowTimelineEntry(0, 5_000, 0),
+                        TextFollowTimelineEntry(9_000, 5_000, 1),
+                        TextFollowTimelineEntry(20_000, 5_000, 2),
+                    ),
+                textFollowAvailable = true,
+                followAvailable = true,
+            )
+
+        assertEquals(1, followActiveTextTimelineIndex(followData, displayedSamples = 10_000))
+        assertEquals(0, followActiveTextTimelineIndex(followData, displayedSamples = 409))
     }
 
     @Test
@@ -288,6 +324,179 @@ class PlaybackDataFollowSectionTest {
         assertEquals(4, annotationByteGroupsPerRow(PlaybackFollowViewMode.Binary, availableWidthDp = 320f))
         assertEquals(3, annotationByteGroupsPerRow(PlaybackFollowViewMode.Binary, availableWidthDp = 300f))
         assertEquals(3, annotationByteGroupsPerRow(PlaybackFollowViewMode.Binary, availableWidthDp = 220f))
+    }
+
+    @Test
+    fun `annotation rows cap visible row counts by mode`() {
+        assertEquals(3, annotationMaxVisibleRows(PlaybackFollowViewMode.Hex))
+        assertEquals(4, annotationMaxVisibleRows(PlaybackFollowViewMode.Binary))
+        assertTrue(annotationMaxVisibleRows(PlaybackFollowViewMode.Morse) > 1000)
+    }
+
+    @Test
+    fun `annotation window keeps previous start while active byte stays in comfort zone`() {
+        assertEquals(
+            4,
+            resolveWindowStartIndex(
+                activeIndex = 10,
+                previousStartIndex = 4,
+                capacity = 16,
+                lastPossibleStart = 20,
+            ),
+        )
+    }
+
+    @Test
+    fun `annotation window recenters once active byte leaves comfort zone`() {
+        assertEquals(
+            12,
+            resolveWindowStartIndex(
+                activeIndex = 18,
+                previousStartIndex = 4,
+                capacity = 16,
+                lastPossibleStart = 20,
+            ),
+        )
+    }
+
+    @Test
+    fun `annotation window reports overflow around active byte for long tokens`() {
+        val window =
+            resolveAnnotationWindow(
+                annotationByteGroups = (0 until 32).map { index -> "g$index" },
+                byteGroupsPerRow = 8,
+                maxVisibleRows = 3,
+                activeByteIndexWithinToken = 18,
+                centerActiveGroup = true,
+                previousStartIndex = 0,
+            )
+
+        assertEquals(8, window.startIndex)
+        assertEquals(24, window.groups.size)
+        assertTrue(window.hasLeadingOverflow)
+        assertFalse(window.hasTrailingOverflow)
+    }
+
+    @Test
+    fun `tokens preview line count stays larger for shorter token strip`() {
+        assertEquals(
+            4,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Flash,
+                tokenStripHeightDp = null,
+                prefersWrappedLines = false,
+            ),
+        )
+        assertEquals(
+            4,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Flash,
+                tokenStripHeightDp = 188.2f,
+                prefersWrappedLines = false,
+            ),
+        )
+    }
+
+    @Test
+    fun `tokens preview line count yields space to taller or wrapped token strip`() {
+        assertEquals(
+            3,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Flash,
+                tokenStripHeightDp = 203.4f,
+                prefersWrappedLines = false,
+            ),
+        )
+        assertEquals(
+            3,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Flash,
+                tokenStripHeightDp = 188.2f,
+                prefersWrappedLines = true,
+            ),
+        )
+        assertEquals(
+            2,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Flash,
+                tokenStripHeightDp = 236.2f,
+                prefersWrappedLines = true,
+            ),
+        )
+    }
+
+    @Test
+    fun `tokens preview bonus line only adds one line on top of the base policy`() {
+        assertEquals(
+            5,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Flash,
+                tokenStripHeightDp = 188.2f,
+                prefersWrappedLines = false,
+                applyBonusLine = true,
+            ),
+        )
+        assertEquals(
+            4,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Flash,
+                tokenStripHeightDp = 203.4f,
+                prefersWrappedLines = false,
+                applyBonusLine = true,
+            ),
+        )
+        assertEquals(
+            3,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Flash,
+                tokenStripHeightDp = 236.2f,
+                prefersWrappedLines = true,
+                applyBonusLine = true,
+            ),
+        )
+    }
+
+    @Test
+    fun `mini tokens preview adds two extra lines over the base policy`() {
+        assertEquals(
+            7,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Mini,
+                tokenStripHeightDp = null,
+                prefersWrappedLines = false,
+            ),
+        )
+        assertEquals(
+            7,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Mini,
+                tokenStripHeightDp = 188.2f,
+                prefersWrappedLines = false,
+            ),
+        )
+        assertEquals(
+            7,
+            lyricsPreviewVisibleLineCount(
+                transportMode = TransportModeOption.Mini,
+                tokenStripHeightDp = 203.4f,
+                prefersWrappedLines = false,
+            ),
+        )
+    }
+
+    @Test
+    fun `mini visual lyrics recovery stays conservative at one extra line`() {
+        assertEquals(
+            7,
+            computeCompactLyricsVisibleLineCount(
+                transportMode = TransportModeOption.Mini,
+                playbackDisplayMode = PlaybackDisplayMode.Visual,
+                prefersWrappedLines = false,
+                effectiveExtraLyricsRecoveryHeight = 120.dp,
+                tokenStripHeightDp = null,
+                applyLyricsPreviewBonusLine = false,
+            ),
+        )
     }
 
     @Test

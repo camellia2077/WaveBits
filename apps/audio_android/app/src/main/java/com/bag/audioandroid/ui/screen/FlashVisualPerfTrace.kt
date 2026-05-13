@@ -1,7 +1,6 @@
 package com.bag.audioandroid.ui.screen
 
 import android.util.Log
-import com.bag.audioandroid.BuildConfig
 import com.bag.audioandroid.ui.state.FlashVisualWindowState
 
 internal object FlashVisualPerfTrace {
@@ -68,6 +67,14 @@ internal object FlashVisualPerfTrace {
     private var lastVisualBitOffset: Int? = null
     private var lastRawBitOffset: Int? = null
     private var latestSnapshot = FlashVisualPerfSnapshot()
+    private var enabled = false
+
+    fun setEnabled(value: Boolean) {
+        enabled = value
+        if (!value) {
+            latestSnapshot = FlashVisualPerfSnapshot()
+        }
+    }
 
     fun recordCompose(
         mode: FlashSignalVisualizationMode,
@@ -85,7 +92,7 @@ internal object FlashVisualPerfTrace {
         windowStartSample: Int,
         windowEndSample: Int,
     ) {
-        if (!BuildConfig.DEBUG) {
+        if (!enabled) {
             return
         }
         composeCount += 1
@@ -127,7 +134,7 @@ internal object FlashVisualPerfTrace {
         windowStartSample: Int,
         windowEndSample: Int,
     ) {
-        if (!BuildConfig.DEBUG) {
+        if (!enabled) {
             return
         }
         drawCount += 1
@@ -155,7 +162,7 @@ internal object FlashVisualPerfTrace {
     }
 
     fun recordWindowActiveJobSkip() {
-        if (!BuildConfig.DEBUG) {
+        if (!enabled) {
             return
         }
         windowActiveJobSkipCount += 1
@@ -167,7 +174,7 @@ internal object FlashVisualPerfTrace {
         currentWindow: FlashVisualWindowState,
         comfortablyInside: Boolean,
     ) {
-        if (!BuildConfig.DEBUG) {
+        if (!enabled) {
             return
         }
         windowRequestCount += 1
@@ -189,7 +196,7 @@ internal object FlashVisualPerfTrace {
         windowSamples: Int,
         totalSamples: Int,
     ) {
-        if (!BuildConfig.DEBUG) {
+        if (!enabled) {
             return
         }
         windowBuildCount += 1
@@ -217,7 +224,7 @@ internal object FlashVisualPerfTrace {
         windowStartSample: Int,
         viewportStartSample: Float,
     ) {
-        if (!BuildConfig.DEBUG || sampleRateHz <= 0 || viewportSamples <= 0) {
+        if (!enabled || sampleRateHz <= 0 || viewportSamples <= 0) {
             return
         }
         motionSampleRateHz = sampleRateHz
@@ -266,7 +273,7 @@ internal object FlashVisualPerfTrace {
         previousSmoothSample: Float,
         sampleRateHz: Int,
     ) {
-        if (!BuildConfig.DEBUG || sampleRateHz <= 0) {
+        if (!enabled || sampleRateHz <= 0) {
             return
         }
         smoothResetCount += 1
@@ -283,7 +290,7 @@ internal object FlashVisualPerfTrace {
         visualBitOffset: Int?,
         rawBitOffset: Int?,
     ) {
-        if (!BuildConfig.DEBUG) {
+        if (!enabled) {
             return
         }
         lastReadoutSample = readoutSample
@@ -500,7 +507,7 @@ internal object FlashVisualPerfTrace {
     }
 
     fun snapshot(): FlashVisualPerfSnapshot =
-        if (BuildConfig.DEBUG) {
+        if (enabled) {
             latestSnapshot
         } else {
             FlashVisualPerfSnapshot()

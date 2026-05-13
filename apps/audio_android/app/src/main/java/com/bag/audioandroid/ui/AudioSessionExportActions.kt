@@ -2,6 +2,7 @@ package com.bag.audioandroid.ui
 
 import com.bag.audioandroid.R
 import com.bag.audioandroid.domain.AudioExportResult
+import com.bag.audioandroid.domain.GeneratedAudioCacheGateway
 import com.bag.audioandroid.domain.SavedAudioRepository
 import com.bag.audioandroid.ui.model.UiText
 import com.bag.audioandroid.ui.state.AudioAppUiState
@@ -19,6 +20,7 @@ internal class AudioSessionExportActions(
     private val scope: CoroutineScope,
     private val sessionStateStore: AudioSessionStateStore,
     private val savedAudioRepository: SavedAudioRepository,
+    private val generatedAudioCacheGateway: GeneratedAudioCacheGateway,
     private val sampleRateHz: Int,
     private val refreshSavedAudioItems: () -> Unit,
     private val workerDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -58,6 +60,7 @@ internal class AudioSessionExportActions(
                     sessionStateStore
                         .updateCurrentSession {
                             it.copy(
+                                generatedPcmFilePath = null,
                                 statusText =
                                     UiText.Resource(
                                         R.string.status_audio_saved,
@@ -65,6 +68,8 @@ internal class AudioSessionExportActions(
                                     ),
                             )
                         }.also {
+                            generatedAudioCacheGateway.deleteCachedFile(session.generatedPcmFilePath)
+                            generatedAudioCacheGateway.enforceGeneratedAudioCachePolicy(uiState.value)
                             emitSnackbar(UiText.Resource(R.string.snackbar_audio_saved_to_library))
                             refreshSavedAudioItems()
                         }

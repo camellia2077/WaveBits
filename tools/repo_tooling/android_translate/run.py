@@ -16,6 +16,11 @@ from commands.check_translation_key_alignment import (
 from commands.compare_translation_quality import generate_comparisons_for_res
 from commands.dump_xml_text_md import generate_xml_text_dump
 from commands.build_replacements_from_suggestions import build_replacements_from_suggestions
+from commands.suggest_translation_terms import (
+    build_term_suggestion_payload,
+    print_term_suggestion_report,
+    suggest_translation_terms,
+)
 from commands.translation_lint_and_autofix import (
     filter_new_lint_issues,
     load_lint_baseline,
@@ -40,7 +45,15 @@ from core.translation_job_manifest import (
     update_job_manifest,
     normalize_path_string,
 )
-from core.translation_paths import DEFAULT_RES_DIRECTORY, TEXT_TYPES, get_review_groups_for_text_type
+from core.translation_paths import (
+    DEFAULT_RES_DIRECTORY,
+    DEFAULT_TRANSLATION_KEY_ALIGNMENT_DIRECTORY,
+    DEFAULT_TRANSLATION_LINT_BASELINE_FILE,
+    DEFAULT_TRANSLATION_REVIEWS_DIRECTORY,
+    DEFAULT_TRANSLATION_XML_DUMPS_DIRECTORY,
+    TEXT_TYPES,
+    get_review_groups_for_text_type,
+)
 from core.translation_resources import AndroidStringResourceRepository
 
 
@@ -90,7 +103,7 @@ def parse_args() -> argparse.Namespace:
     )
     compare_parser.add_argument(
         "--output-dir",
-        default="",
+        default=str(DEFAULT_TRANSLATION_REVIEWS_DIRECTORY),
         help="Override output directory for generated review markdown.",
     )
     compare_parser.add_argument(
@@ -122,7 +135,7 @@ def parse_args() -> argparse.Namespace:
     )
     compare_parser.add_argument(
         "--job-dir",
-        default="",
+        default=str(DEFAULT_TRANSLATION_REVIEWS_DIRECTORY),
         help="Optional agent job directory. When set, compare updates <job-dir>/job_manifest.json.",
     )
     compare_parser.add_argument(
@@ -146,7 +159,7 @@ def parse_args() -> argparse.Namespace:
     )
     dump_parser.add_argument(
         "--output-dir",
-        default="",
+        default=str(DEFAULT_TRANSLATION_XML_DUMPS_DIRECTORY),
         help="Override output directory for generated dump markdown.",
     )
     dump_parser.add_argument(
@@ -243,7 +256,7 @@ def parse_args() -> argparse.Namespace:
     )
     key_alignment_parser.add_argument(
         "--output-dir",
-        default="",
+        default=str(DEFAULT_TRANSLATION_KEY_ALIGNMENT_DIRECTORY),
         help="Override output directory for generated key-alignment task reports.",
     )
     key_alignment_parser.add_argument(
@@ -334,6 +347,51 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Emit machine-readable JSON instead of human-readable text.",
     )
+    term_suggestions_parser = subparsers.add_parser(
+        "term-suggestions",
+        help="Inspect one English term across localized XML and suggest current per-language term candidates.",
+    )
+    term_suggestions_parser.add_argument(
+        "--res-dir",
+        default=str(DEFAULT_RES_DIRECTORY),
+        help="Android res root. Defaults to apps/audio_android/app/src/main/res.",
+    )
+    term_suggestions_parser.add_argument(
+        "--term",
+        required=True,
+        help="English source term to inspect, such as Standard or payload.",
+    )
+    term_suggestions_parser.add_argument(
+        "--lang",
+        default="",
+        help="Optional language folder suffix such as de, ja, or zh-rTW. Defaults to all languages.",
+    )
+    term_suggestions_parser.add_argument(
+        "--text-type",
+        default="",
+        choices=("", *TEXT_TYPES),
+        help="Optional text type scope: app_text or sample_text.",
+    )
+    term_suggestions_parser.add_argument(
+        "--group",
+        default="",
+        help="Optional review group scope such as strings_settings or exquisite_fall.",
+    )
+    term_suggestions_parser.add_argument(
+        "--whole-word",
+        action="store_true",
+        help="Match the term as a whole word rather than a raw substring.",
+    )
+    term_suggestions_parser.add_argument(
+        "--case-sensitive",
+        action="store_true",
+        help="Use case-sensitive matching.",
+    )
+    term_suggestions_parser.add_argument(
+        "--json-output",
+        action="store_true",
+        help="Emit machine-readable JSON instead of human-readable text.",
+    )
     fix_escapes_parser = subparsers.add_parser(
         "fix-resource-escapes",
         help="Normalize Android string resource escaping inside values*/ XML files.",
@@ -418,7 +476,7 @@ def parse_args() -> argparse.Namespace:
     )
     lint_parser.add_argument(
         "--baseline-file",
-        default="",
+        default=str(DEFAULT_TRANSLATION_LINT_BASELINE_FILE),
         help="Optional lint baseline JSON path used by --fail-on-new and --write-baseline.",
     )
     lint_parser.add_argument(
@@ -489,7 +547,7 @@ def run() -> int:
         try:
             result = generate_comparisons_for_res(
                 res_dir=args.res_dir,
-                output_dir=args.output_dir or None,
+                output_dir=args.output_dir,
                 lang=args.lang or None,
                 text_type=args.text_type or None,
                 group=args.group or None,
@@ -517,7 +575,7 @@ def run() -> int:
     if command == "dump-xml-md":
         result = generate_xml_text_dump(
             res_dir=args.res_dir,
-            output_dir=args.output_dir or None,
+            output_dir=args.output_dir,
             lang=args.lang or None,
             text_type=args.text_type or None,
             group=args.group or None,
@@ -640,6 +698,21 @@ def run() -> int:
         else:
             for error in result.errors:
                 print(error)
+        return result.exit_code
+    if command == "term-suggestions":
+        result = suggest_translation_terms(
+            term=args.term,
+            res_dir=args.res_dir,
+            lang=args.lang or None,
+            text_type=args.text_type or None,
+            group=args.group or None,
+            whole_word=args.whole_word,
+            case_sensitive=args.case_sensitive,
+        )
+        if json_output:
+            emit_json_payload(build_term_suggestion_payload(result))
+        else:
+            print_term_suggestion_report(result)
         return result.exit_code
     if command == "fix-resource-escapes":
         result = run_fix_android_resource_escapes(

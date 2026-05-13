@@ -94,7 +94,7 @@
     <string name="audio_player_detail_decoded_title">읽기 결과</string>
     <string name="audio_player_detail_decoded_empty">아직 결과가 없습니다. 필요할 때 읽기를 누르세요.</string>
     <string name="audio_playback_view_visual">시각화</string>
-    <string name="audio_playback_view_lyrics">가사</string>
+    <string name="audio_playback_view_lyrics">Tokens</string>
     <string name="audio_pro_visual_waiting_follow">팔로우 데이터 대기 중</string>
     <string name="audio_pro_visual_symbol_order">현재 바이트는 2개의 심볼을 내보냅니다: 상위 니블 먼저, 그다음 하위 니블</string>
     <string name="audio_pro_visual_step_1">1단계</string>
@@ -160,9 +160,9 @@
     <string name="audio_player_detail_saved_payload_bytes_value">%1$d 바이트</string>
     <string name="audio_generated_input_source_manual">수동</string>
     <string name="audio_generated_input_source_sample">샘플</string>
-    <string name="audio_flash_visualizer_mode_tone_tracks">레인</string>
-    <string name="audio_flash_visualizer_mode_tone_energy">에너지</string>
-    <string name="audio_flash_visualizer_mode_pitch_ladder">피치</string>
+    <string name="audio_flash_visualizer_mode_lanes">레인</string>
+    <string name="audio_flash_visualizer_mode_pulse">펄스</string>
+    <string name="audio_flash_visualizer_mode_pitch">피치</string>
     <!-- CONTEXT: Transport mode name shown in tabs/chips. Do not translate flash/pro/ultra as ordinary adjectives. -->
     <string name="transport_mode_flash_label">flash</string>
     <!-- CONTEXT: Transport mode name shown in tabs/chips. -->
@@ -256,10 +256,14 @@
     <string name="demo_hint_generate_audio">Generate audio</string>
     <string name="demo_hint_decode_audio">Decode audio</string>
     <string name="demo_hint_open_mini_player">Open mini player</string>
-    <string name="demo_hint_switch_to_lyrics">Switched to Lyrics</string>
+    <string name="demo_hint_switch_to_lyrics">Switched to Tokens</string>
     <string name="demo_hint_switch_to_visual">Switched to Visual</string>
     <string name="demo_hint_play">Playback started</string>
     <string name="demo_hint_pause">Playback paused</string>
     <string name="demo_hint_theme_changed">Theme changed</string>
     <string name="demo_hint_language_changed">Language changed and sample refreshed</string>
+    <string name="audio_saved_audio_decode_loading_title">저장된 오디오 읽는 중…</string>
+    <string name="audio_saved_audio_decode_loading_body">이 클립은 재사용 가능한 텍스트 및 가사 보기를 만들기 위해 한 번만 읽습니다. 결과는 더 빠르게 다시 열 수 있도록 이 앱 안에만 저장됩니다.</string>
+    <string name="audio_playback_view_mix">Mix</string>
 </resources>
+

@@ -15,7 +15,7 @@ internal fun rememberPlaybackFollowPresentationState(
     val followViewMode =
         remember(selectedAnnotationModeName) {
             PlaybackFollowViewMode.entries.firstOrNull { it.name == selectedAnnotationModeName }
-                ?: PlaybackFollowViewMode.Hex
+                ?: PlaybackFollowViewMode.Binary
         }
     val activeLineIndex =
         remember(followData.lyricLineTimeline, displayedSamples) {

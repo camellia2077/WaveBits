@@ -12,6 +12,8 @@ import com.bag.audioandroid.domain.SavedAudioImportResult
 import com.bag.audioandroid.domain.SavedAudioItem
 import com.bag.audioandroid.domain.SavedAudioLibraryGateway
 import com.bag.audioandroid.domain.SavedAudioRenameResult
+import com.bag.audioandroid.util.measureElapsedMs
+import com.bag.audioandroid.util.safeDebugLog
 
 class MediaStoreSavedAudioLibraryGateway(
     context: Context,
@@ -36,21 +38,45 @@ class MediaStoreSavedAudioLibraryGateway(
         }
 
     override fun loadSavedAudio(itemId: String): SavedAudioContent? {
+        val loadStartedAtNs = System.nanoTime()
         val savedAudioItem = findSavedAudioItem(itemId) ?: return null
         val uri = queries.uriForItemId(itemId) ?: return null
         val row = queries.findRow(itemId)
-        val metadata =
-            if (row != null) {
-                cachedMetadataForRow(row)
-            } else {
-                metadataReader.readAudioMetadataHeader(contentResolver, uri)
+        val (metadata, metadataMs) =
+            measureElapsedMs {
+                if (row != null) {
+                    cachedMetadataForRow(row)
+                } else {
+                    metadataReader.readAudioMetadataHeader(contentResolver, uri)
+                }
             }
-        if (shouldUseFileBackedLoad(savedAudioItem, metadata)) {
-            return loadSavedAudioFileBacked(savedAudioItem, uri, metadata)
+        val useFileBacked = shouldUseFileBackedLoad(savedAudioItem, metadata)
+        safeDebugLog(
+            SavedAudioPerfTag,
+            "gatewayLoadStart itemId=$itemId metadataMs=$metadataMs fileBacked=$useFileBacked " +
+                "durationMs=${savedAudioItem.durationMs} fileSizeBytes=${savedAudioItem.fileSizeBytes ?: 0L}",
+        )
+        if (useFileBacked) {
+            val (content, loadMs) = measureElapsedMs { loadSavedAudioFileBacked(savedAudioItem, uri, metadata) }
+            safeDebugLog(
+                SavedAudioPerfTag,
+                "gatewayLoadEnd itemId=$itemId fileBacked=true elapsedMs=$loadMs " +
+                    "totalElapsedMs=${(System.nanoTime() - loadStartedAtNs) / 1_000_000L} loaded=${content != null}",
+            )
+            return content
         }
-        val fileBytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
-        val wavInfo = audioIoGateway.probeMonoPcm16WavBytes(fileBytes)
-        val decoded = audioIoGateway.decodeMonoPcm16WavBytes(fileBytes)
+        val (fileBytes, readBytesMs) =
+            measureElapsedMs {
+                contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            }
+        fileBytes ?: return null
+        val (wavInfo, probeMs) = measureElapsedMs { audioIoGateway.probeMonoPcm16WavBytes(fileBytes) }
+        val (decoded, decodeMs) = measureElapsedMs { audioIoGateway.decodeMonoPcm16WavBytes(fileBytes) }
+        safeDebugLog(
+            SavedAudioPerfTag,
+            "gatewayInMemoryLoad itemId=$itemId readBytesMs=$readBytesMs probeMs=$probeMs decodeMs=$decodeMs " +
+                "pcmSamples=${decoded.pcm.size}",
+        )
         if (!decoded.isWavSuccess ||
             decoded.wavStatusCode != AudioIoWavCodes.STATUS_OK ||
             decoded.channels != 1 ||
@@ -204,17 +230,33 @@ class MediaStoreSavedAudioLibraryGateway(
     ): SavedAudioContent? {
         val cacheWriter = generatedAudioCacheGateway.createPcmCacheWriter(savedAudioItem.modeWireName)
         return try {
-            val extraction =
-                contentResolver.openInputStream(uri)?.use { input ->
-                    extractMonoPcm16WavToCache(input, cacheWriter::appendPcm)
-                } ?: return null
+            val (extraction, extractMs) =
+                measureElapsedMs {
+                    contentResolver.openInputStream(uri)?.use { input ->
+                        extractMonoPcm16WavToCache(input, cacheWriter::appendPcm)
+                    }
+                }
+            extraction ?: return null
             cacheWriter.finish()
-            val waveformPcm =
-                buildWaveformPreviewFromPcmFile(
-                    pcmFilePath = cacheWriter.filePath,
-                    totalSamples = extraction.sampleCount,
-                    targetPoints = LONG_AUDIO_WAVEFORM_PREVIEW_POINTS,
-                )
+            safeDebugLog(
+                SavedAudioPerfTag,
+                "gatewayFileBackedExtract itemId=${savedAudioItem.itemId} elapsedMs=$extractMs " +
+                    "sampleRateHz=${extraction.sampleRateHz} sampleCount=${extraction.sampleCount} " +
+                    "cachePath=${cacheWriter.filePath}",
+            )
+            val (waveformPcm, waveformMs) =
+                measureElapsedMs {
+                    buildWaveformPreviewFromPcmFile(
+                        pcmFilePath = cacheWriter.filePath,
+                        totalSamples = extraction.sampleCount,
+                        targetPoints = LONG_AUDIO_WAVEFORM_PREVIEW_POINTS,
+                    )
+                }
+            safeDebugLog(
+                SavedAudioPerfTag,
+                "gatewayFileBackedWaveform itemId=${savedAudioItem.itemId} elapsedMs=$waveformMs " +
+                    "previewPoints=${waveformPcm.size}",
+            )
             SavedAudioContent(
                 item = savedAudioItem,
                 pcm = shortArrayOf(),
@@ -255,6 +297,7 @@ class MediaStoreSavedAudioLibraryGateway(
         const val LONG_AUDIO_FILE_THRESHOLD_MS = 120_000L
         const val LONG_AUDIO_FILE_THRESHOLD_SAMPLES = 44100 * 120
         const val LONG_AUDIO_WAVEFORM_PREVIEW_POINTS = 4096
+        const val SavedAudioPerfTag = "SavedAudioPerf"
     }
 }
 

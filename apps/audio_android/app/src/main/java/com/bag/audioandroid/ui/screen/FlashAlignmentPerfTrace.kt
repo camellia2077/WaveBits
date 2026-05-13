@@ -13,9 +13,11 @@ internal object FlashAlignmentPerfTrace {
     private var rawSample = 0
     private var readoutSample = 0
     private var readoutBit = -1
+    private var readoutBitValue = "_"
     private var revealedBit = -1
     private var visualBit = -1
     private var rawBit = -1
+    private var visualCurrentBitValue = "_"
     private var fallback = false
     private var bitReadout = false
     private var mode = "unknown"
@@ -30,6 +32,18 @@ internal object FlashAlignmentPerfTrace {
     private var lyricBit = -1
     private var lyricBitOffset = -1
     private var tone = false
+    private var displayUnitByteOffset = -1
+    private var displayUnitByteCount = -1
+    private var displayUnitHex = "_"
+    private var displayUnitBinary = "_"
+    private var displayCardHex = "_"
+    private var displayCardBinary = "_"
+    private var displayBitInByte = -1
+    private var displayGlobalBit = -1
+    private var cardCurrentBitValue = "_"
+    private var displayGroupIndex = -1
+    private var displayGroupBits = "_"
+    private var lastTokenUnitDumpKey = ""
 
     fun recordVisual(
         mode: FlashSignalVisualizationMode,
@@ -38,9 +52,11 @@ internal object FlashAlignmentPerfTrace {
         rawSample: Float,
         readoutSample: Float,
         readoutBit: Int?,
+        readoutBitValue: Char?,
         revealedBit: Int,
         visualBit: Int?,
         rawBit: Int?,
+        visualBitValue: Char?,
         usesFallbackTimeline: Boolean,
         hasBitReadout: Boolean,
     ) {
@@ -53,9 +69,11 @@ internal object FlashAlignmentPerfTrace {
         this.rawSample = rawSample.toInt()
         this.readoutSample = readoutSample.toInt()
         this.readoutBit = readoutBit ?: -1
+        this.readoutBitValue = readoutBitValue?.toString() ?: "_"
         this.revealedBit = revealedBit
         this.visualBit = visualBit ?: -1
         this.rawBit = rawBit ?: -1
+        visualCurrentBitValue = visualBitValue?.toString() ?: "_"
         fallback = usesFallbackTimeline
         bitReadout = hasBitReadout
         maybeReport()
@@ -82,6 +100,117 @@ internal object FlashAlignmentPerfTrace {
         tone = state.tone
     }
 
+    fun recordTokenCard(
+        followData: com.bag.audioandroid.domain.PayloadFollowViewData,
+        presentationState: PlaybackFollowPresentationState,
+    ) {
+        if (!BuildConfig.DEBUG) {
+            return
+        }
+        val activeTokenIndex = presentationState.activeTextIndex
+        val activeByteIndexWithinToken = presentationState.activeByteIndexWithinToken
+        val activeBitIndexWithinByte = presentationState.activeBitIndexWithinByte
+        val activeTokenUnits = presentationState.rawDisplayUnitsByToken[activeTokenIndex].orEmpty()
+        val activeUnit =
+            activeTokenUnits
+                .firstOrNull { it.byteIndexWithinToken == activeByteIndexWithinToken }
+
+        displayUnitByteOffset = activeUnit?.byteOffset ?: -1
+        displayUnitByteCount = activeUnit?.byteCount ?: -1
+        displayUnitHex =
+            activeUnit
+                ?.hexText
+                ?.logSafe()
+                .orEmpty()
+                .ifBlank { "_" }
+        displayUnitBinary =
+            activeUnit
+                ?.binaryText
+                ?.logSafe()
+                .orEmpty()
+                .ifBlank { "_" }
+        displayBitInByte = activeBitIndexWithinByte
+        displayGlobalBit =
+            activeUnit
+                ?.takeIf { activeBitIndexWithinByte >= 0 }
+                ?.let { it.byteOffset * 8 + activeBitIndexWithinByte }
+                ?: -1
+        cardCurrentBitValue =
+            activeUnit
+                ?.binaryText
+                ?.filter { it == '0' || it == '1' }
+                ?.getOrNull(activeBitIndexWithinByte)
+                ?.toString()
+                ?: "_"
+        val activeNibble =
+            activeUnit
+                ?.hexText
+                ?.let { hexNibbleGroups(it) }
+                ?.let { nibbles ->
+                    val nibbleIndex =
+                        if (activeBitIndexWithinByte >= 4 && nibbles.size > 1) {
+                            1
+                        } else {
+                            0
+                        }.coerceAtMost(nibbles.lastIndex.coerceAtLeast(0))
+                    nibbles.getOrNull(nibbleIndex)
+                }
+        displayCardHex =
+            activeNibble
+                ?.hex
+                ?.logSafe()
+                .orEmpty()
+                .ifBlank { displayUnitHex }
+        displayCardBinary =
+            activeNibble
+                ?.binary
+                ?.logSafe()
+                .orEmpty()
+                .ifBlank { displayUnitBinary }
+        val activeGroup =
+            followData.binaryGroupTimeline.firstOrNull { entry ->
+                displayGlobalBit >= 0 &&
+                    displayGlobalBit >= entry.bitOffset &&
+                    displayGlobalBit < entry.bitOffset + entry.bitCount
+            }
+        visualCurrentBitValue =
+            activeGroup
+                ?.let { group ->
+                    followData.binaryTokens
+                        .getOrNull(group.groupIndex)
+                        ?.filter { it == '0' || it == '1' }
+                        ?.getOrNull(displayGlobalBit - group.bitOffset)
+                }?.toString()
+                ?: "_"
+        displayGroupIndex = activeGroup?.groupIndex ?: -1
+        displayGroupBits =
+            activeGroup
+                ?.groupIndex
+                ?.let { followData.binaryTokens.getOrNull(it) }
+                ?.logSafe()
+                .orEmpty()
+                .ifBlank { "_" }
+        val tokenUnitDumpKey =
+            buildString {
+                append(activeTokenIndex)
+                append(':')
+                append(
+                    activeTokenUnits.joinToString(separator = "|") {
+                        "${it.byteIndexWithinToken}:${it.byteOffset}:${it.hexText}@${it.startSample}+${it.sampleCount}"
+                    },
+                )
+            }
+        if (activeTokenIndex >= 0 && tokenUnitDumpKey != lastTokenUnitDumpKey) {
+            lastTokenUnitDumpKey = tokenUnitDumpKey
+            logDebug(
+                "tokenUnits token=$activeTokenIndex tokenText=${followData.textTokens.getOrNull(activeTokenIndex).orEmpty().logSafe()} " +
+                    "units=${activeTokenUnits.joinToString(separator = ",") {
+                        "idx=${it.byteIndexWithinToken}/off=${it.byteOffset}/hex=${it.hexText.logSafe()}/start=${it.startSample}/count=${it.sampleCount}"
+                    }}",
+            )
+        }
+    }
+
     private fun maybeReport() {
         val now = System.nanoTime()
         if (lastReportNanos == 0L) {
@@ -95,12 +224,22 @@ internal object FlashAlignmentPerfTrace {
         logDebug(
             "mode=$mode visualPlaying=$visualPlaying lyricsPlaying=$lyricsPlaying " +
                 "visualSample=$visualSample rawSample=$rawSample readoutSample=$readoutSample " +
-                "readoutBit=$readoutBit revealedBit=$revealedBit visualBit=$visualBit rawBit=$rawBit " +
+                "readoutGlobalBit=$readoutBit revealedGlobalBit=$revealedBit " +
+                "readoutCurrentBitValue=$readoutBitValue " +
+                "visualGlobalBit=$visualBit rawGlobalBit=$rawBit visualCurrentBitValue=$visualCurrentBitValue " +
                 "fallback=$fallback bitReadout=$bitReadout " +
                 "lyricsSample=$lyricsSample token=$token tokenText=$tokenText " +
                 "tokenStart=$tokenStart tokenEnd=$tokenEnd tokenProgress=$tokenProgress " +
-                "byte=$byte lyricBit=$lyricBit lyricBitOffset=$lyricBitOffset tone=$tone " +
-                "sampleDelta=${visualSample - lyricsSample} bitDelta=${readoutBit - lyricBitOffset}",
+                "tokenByteIndex=$byte tokenBitIndexWithinByte=$lyricBit " +
+                "tokenBitOffsetWithinToken=$lyricBitOffset tokenToneActive=$tone " +
+                "cardByteOffsetGlobal=$displayUnitByteOffset cardByteCount=$displayUnitByteCount " +
+                "cardByteHex=$displayUnitHex cardByteBinary=$displayUnitBinary " +
+                "cardNibbleHex=$displayCardHex cardNibbleBinary=$displayCardBinary " +
+                "cardBitIndexWithinByte=$displayBitInByte cardGlobalBitOffset=$displayGlobalBit cardCurrentBitValue=$cardCurrentBitValue " +
+                "cardGlobalGroupIndex=$displayGroupIndex cardGlobalGroupBits=$displayGroupBits " +
+                "visualMinusLyricsSample=${visualSample - lyricsSample} " +
+                "globalBitMinusTokenBit=${readoutBit - lyricBitOffset} " +
+                "globalBitMinusCardBit=${readoutBit - displayGlobalBit}",
         )
     }
 

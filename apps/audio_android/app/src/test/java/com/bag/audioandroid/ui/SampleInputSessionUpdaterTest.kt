@@ -3,7 +3,6 @@ package com.bag.audioandroid.ui
 import com.bag.audioandroid.data.SampleInput
 import com.bag.audioandroid.data.SampleInputTextProvider
 import com.bag.audioandroid.ui.model.AppLanguageOption
-import com.bag.audioandroid.ui.model.SampleDecorationStyleOption
 import com.bag.audioandroid.ui.model.SampleFlavor
 import com.bag.audioandroid.ui.model.SampleInputLengthOption
 import com.bag.audioandroid.ui.model.TransportModeOption
@@ -45,7 +44,6 @@ class SampleInputSessionUpdaterTest {
                 language = AppLanguageOption.English,
                 flavor = SampleFlavor.SacredMachine,
                 isDecorationEnabled = true,
-                decorationStyle = SampleDecorationStyleOption.Emoji,
             )
 
         val flashSession = updated.getValue(TransportModeOption.Flash)

@@ -140,7 +140,7 @@ class AppSettingsRepository(
                 }
             }.map { preferences -> preferences[Keys.SampleDecorationEnabled] ?: true }
 
-    val sampleDecorationStyleId: Flow<String?> =
+    val isFlashVisualPerfOverlayEnabled: Flow<Boolean> =
         appContext.appSettingsDataStore.data
             .catch { exception ->
                 if (exception is IOException) {
@@ -148,7 +148,7 @@ class AppSettingsRepository(
                 } else {
                     throw exception
                 }
-            }.map { preferences -> preferences[Keys.SampleDecorationStyleId] }
+            }.map { preferences -> preferences[Keys.FlashVisualPerfOverlayEnabled] ?: false }
 
     suspend fun setSelectedPaletteId(paletteId: String) {
         appContext.appSettingsDataStore.edit { preferences ->
@@ -222,9 +222,9 @@ class AppSettingsRepository(
         }
     }
 
-    suspend fun setSampleDecorationStyleId(styleId: String) {
+    suspend fun setFlashVisualPerfOverlayEnabled(enabled: Boolean) {
         appContext.appSettingsDataStore.edit { preferences ->
-            preferences[Keys.SampleDecorationStyleId] = styleId
+            preferences[Keys.FlashVisualPerfOverlayEnabled] = enabled
         }
     }
 
@@ -241,6 +241,6 @@ class AppSettingsRepository(
         val ConfigThemeAppearanceExpanded: Preferences.Key<Boolean> = booleanPreferencesKey("config_theme_appearance_expanded")
         val DemoModeEnabled: Preferences.Key<Boolean> = booleanPreferencesKey("demo_mode_enabled")
         val SampleDecorationEnabled: Preferences.Key<Boolean> = booleanPreferencesKey("sample_decoration_enabled")
-        val SampleDecorationStyleId: Preferences.Key<String> = stringPreferencesKey("sample_decoration_style_id")
+        val FlashVisualPerfOverlayEnabled: Preferences.Key<Boolean> = booleanPreferencesKey("visual_fps_overlay_enabled")
     }
 }

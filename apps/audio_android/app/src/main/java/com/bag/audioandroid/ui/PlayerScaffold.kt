@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -59,6 +61,7 @@ internal fun PlayerScaffold(
     miniPlayer: (@Composable () -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val safeTopPadding = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
     val bottomNavigationHeight = PlayerScaffoldDefaults.bottomNavigationBarHeight
     val miniPlayerHeight = if (miniPlayer != null) PlayerScaffoldDefaults.miniPlayerHeight else 0.dp
     val dockSpacing = if (miniPlayer != null) PlayerScaffoldDefaults.dockSectionSpacing else 0.dp
@@ -216,7 +219,10 @@ internal fun PlayerScaffold(
                     }.then(drawModifier),
         ) {
             content(
-                PaddingValues(bottom = contentBottomPadding),
+                PaddingValues(
+                    top = safeTopPadding,
+                    bottom = contentBottomPadding,
+                ),
             )
 
             Column(
